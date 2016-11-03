@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
+meta int remaining = 0;
+meta int heur =0;
+clock y;
+
+const int N = 10;
+const int M = 7;
+chan Transport[N], work[M];
+
+</declaration><template><name x="5" y="5">RecipePar</name><declaration>// Place local declarations here.
+bool done = false;</declaration><location id="id0" x="-248" y="-1144"></location><location id="id1" x="-248" y="-1944"></location><location id="id2" x="-248" y="-1288"></location><location id="id3" x="-120" y="-1432"></location><location id="id4" x="-120" y="-1528"></location><location id="id5" x="-248" y="-1432"></location><location id="id6" x="-248" y="-1528"></location><location id="id7" x="-376" y="-1432"></location><location id="id8" x="-248" y="-1800"></location><location id="id9" x="-376" y="-1528"></location><location id="id10" x="-248" y="-1600"></location><location id="id11" x="-192" y="-1696"></location><location id="id12" x="-312" y="-1696"></location><location id="id13" x="-248" y="-2080"></location><init ref="id13"/><transition><source ref="id2"/><target ref="id0"/><label kind="synchronisation" x="-304" y="-1248">Transport[0]?</label><label kind="assignment" x="-300" y="-1232">done = true</label></transition><transition><source ref="id1"/><target ref="id8"/><label kind="synchronisation" x="-308" y="-1887">work[0]!</label></transition><transition><source ref="id13"/><target ref="id1"/><label kind="synchronisation" x="-308" y="-2027">Transport[0]!</label></transition><transition><source ref="id3"/><target ref="id2"/><label kind="synchronisation" x="-160" y="-1392">work[4]!</label></transition><transition><source ref="id5"/><target ref="id2"/><label kind="synchronisation" x="-304" y="-1400">work[6]!</label></transition><transition><source ref="id7"/><target ref="id2"/><label kind="synchronisation" x="-400" y="-1392">work[6]!</label></transition><transition><source ref="id8"/><target ref="id11"/><label kind="synchronisation" x="-208" y="-1768">work[2]!</label></transition><transition><source ref="id8"/><target ref="id12"/><label kind="synchronisation" x="-340" y="-1763">work[1]!</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="-104" y="-1496">work[5]!</label></transition><transition><source ref="id6"/><target ref="id5"/><label kind="synchronisation" x="-308" y="-1495">work[4]!</label></transition><transition><source ref="id9"/><target ref="id7"/><label kind="synchronisation" x="-456" y="-1495">work[5]!</label></transition><transition><source ref="id10"/><target ref="id4"/><label kind="synchronisation" x="-184" y="-1584">work[6]!</label></transition><transition><source ref="id10"/><target ref="id6"/><label kind="synchronisation" x="-304" y="-1568">work[5]!</label></transition><transition><source ref="id11"/><target ref="id10"/><label kind="synchronisation" x="-216" y="-1656">work[1]!</label></transition><transition><source ref="id10"/><target ref="id9"/><label kind="synchronisation" x="-372" y="-1579">work[4]!</label></transition><transition><source ref="id12"/><target ref="id10"/><label kind="synchronisation" x="-348" y="-1655">work[2]!</label></transition></template><template><name>NoCameraRecipe</name><declaration>bool done = false;</declaration><location id="id14" x="-85" y="238"></location><location id="id15" x="-85" y="178"></location><location id="id16" x="-85" y="102"></location><location id="id17" x="-85" y="34"></location><location id="id18" x="-85" y="-297"></location><location id="id19" x="-85" y="-59"></location><location id="id20" x="-85" y="-127"></location><location id="id21" x="-85" y="-212"></location><init ref="id18"/><transition><source ref="id15"/><target ref="id14"/><label kind="synchronisation" x="-68" y="195">Transport[0]?</label><label kind="assignment" x="-51" y="221">done = true</label></transition><transition><source ref="id16"/><target ref="id15"/><label kind="synchronisation" x="-59" y="119">work[6]!</label></transition><transition><source ref="id17"/><target ref="id16"/><label kind="synchronisation" x="-60" y="51">work[4]!</label></transition><transition><source ref="id18"/><target ref="id21"/><label kind="synchronisation" x="-76" y="-272">Transport[0]!</label></transition><transition><source ref="id19"/><target ref="id17"/><label kind="synchronisation" x="-77" y="-42">work[2]!</label></transition><transition><source ref="id20"/><target ref="id19"/><label kind="synchronisation" x="-77" y="-110">work[1]!</label></transition><transition><source ref="id21"/><target ref="id20"/><label kind="synchronisation" x="-77" y="-187">work[0]!</label></transition></template><template><name x="5" y="5">Modul</name><parameter>int id, int type, int p_time, int t_time,  int&amp; next[4], int length</parameter><declaration>// Place local declarations here.
+typedef int[0, 9] id_t;
+clock x;
+
+bool is_callable(id_t cid)
+{
+   int i;
+   for(i=0; i&lt;length;++i){
+        if(next[i] == cid){
+            return true;
+       }
+    }
+   return false;
+}</declaration><location id="id22" x="-70" y="271"><name x="-104" y="240">Transporting</name><label kind="invariant" x="-120" y="288">x &lt;= t_time</label></location><location id="id23" x="187" y="34"><name x="177" y="0">Done</name></location><location id="id24" x="187" y="272"><name x="152" y="289">Processing</name><label kind="invariant" x="153" y="306">x &lt;= p_time &amp;&amp;
+cost'==20</label></location><location id="id25" x="-76" y="34"><name x="-86" y="0">Idle</name></location><init ref="id25"/><transition><source ref="id24"/><target ref="id25"/><label kind="select" x="-58" y="102">e: id_t</label><label kind="guard" x="-58" y="119">is_callable(e)</label><label kind="synchronisation" x="-58" y="136">Transport[e]!</label></transition><transition><source ref="id25"/><target ref="id22"/><label kind="synchronisation" x="-184" y="104">Transport[id]?</label><label kind="assignment" x="-136" y="128">x = 0</label></transition><transition><source ref="id22"/><target ref="id24"/><label kind="guard" x="17" y="246">x == t_time</label><label kind="assignment" x="-56" y="272">x = 0, remaining += 20*p_time</label></transition><transition><source ref="id23"/><target ref="id25"/><label kind="select" x="34" y="-42">e: id_t</label><label kind="guard" x="8" y="-25">is_callable(e)</label><label kind="synchronisation" x="8" y="-8">Transport[e]!</label></transition><transition><source ref="id24"/><target ref="id23"/><label kind="guard" x="212" y="161">x == p_time</label><label kind="synchronisation" x="212" y="127">work[type]?</label><label kind="assignment" x="208" y="96">remaining -= 20*p_time</label></transition></template><template><name>Recipe</name><declaration>bool done = false;</declaration><location id="id26" x="-93" y="229"></location><location id="id27" x="-93" y="153"></location><location id="id28" x="-93" y="76"></location><location id="id29" x="-93" y="9"></location><location id="id30" x="-93" y="-390"></location><location id="id31" x="-93" y="-59"></location><location id="id32" x="-93" y="-152"></location><location id="id33" x="-93" y="-220"></location><location id="id34" x="-93" y="-305"></location><init ref="id30"/><transition><source ref="id27"/><target ref="id26"/><label kind="synchronisation" x="-85" y="170">Transport[0]?</label><label kind="assignment" x="-85" y="187">done = true</label></transition><transition><source ref="id28"/><target ref="id27"/><label kind="synchronisation" x="-85" y="102">work[6]!</label></transition><transition><source ref="id29"/><target ref="id28"/><label kind="synchronisation" x="-76" y="25">work[5]!</label></transition><transition><source ref="id31"/><target ref="id29"/><label kind="synchronisation" x="-68" y="-42">work[4]!</label></transition><transition><source ref="id30"/><target ref="id34"/><label kind="synchronisation" x="-76" y="-365">Transport[0]!</label></transition><transition><source ref="id32"/><target ref="id31"/><label kind="synchronisation" x="-85" y="-135">work[2]!</label></transition><transition><source ref="id33"/><target ref="id32"/><label kind="synchronisation" x="-85" y="-203">work[1]!</label></transition><transition><source ref="id34"/><target ref="id33"/><label kind="synchronisation" x="-85" y="-280">work[0]!</label></transition></template><template><name>RecipePar2</name><declaration>bool done = false;
+bool states[4] = {true, false, false, false};
+
+bool canTakeEdge (int nextState)
+{
+	if(nextState == 3)
+	{
+	  return states[1] &amp;&amp; states[2] &amp;&amp; !(states[nextState]);
+	}
+	return !(states[nextState]);
+}</declaration><location id="id35" x="-64" y="-496"></location><location id="id36" x="-64" y="-128"><name x="-74" y="-158">P3</name></location><location id="id37" x="88" y="-272"><name x="78" y="-302">P2</name></location><location id="id38" x="-208" y="-264"><name x="-218" y="-294">P1</name></location><location id="id39" x="-64" y="-384"><name x="-56" y="-408">P0</name></location><init ref="id35"/><transition><source ref="id35"/><target ref="id39"/><label kind="synchronisation" x="-64" y="-456">Transport[0]!</label></transition><transition><source ref="id37"/><target ref="id36"/><label kind="guard" x="-8" y="-184">canTakeEdge(3)</label><label kind="synchronisation" x="8" y="-200">work[2]!</label><label kind="assignment" x="-30" y="-170">done = true, states[3]=true</label></transition><transition><source ref="id38"/><target ref="id36"/><label kind="guard" x="-240" y="-184">canTakeEdge(3)</label><label kind="synchronisation" x="-200" y="-200">work[1]!</label><label kind="assignment" x="-294" y="-170">done = true, states[3]=true</label></transition><transition><source ref="id38"/><target ref="id37"/><label kind="guard" x="-112" y="-240">canTakeEdge(2)</label><label kind="synchronisation" x="-88" y="-224">work[1]!</label><label kind="assignment" x="-112" y="-256">states[2]=true</label><nail x="-64" y="-232"/></transition><transition><source ref="id37"/><target ref="id38"/><label kind="guard" x="-120" y="-312">canTakeEdge(1)</label><label kind="synchronisation" x="-96" y="-328">work[2]!</label><label kind="assignment" x="-112" y="-296">states[1]=true</label><nail x="-64" y="-296"/></transition><transition><source ref="id39"/><target ref="id37"/><label kind="guard" x="-16" y="-360">canTakeEdge(2)</label><label kind="synchronisation" x="16" y="-344">work[0]!</label><label kind="assignment" x="-32" y="-376">states[2]=true</label></transition><transition><source ref="id39"/><target ref="id38"/><label kind="guard" x="-224" y="-360">canTakeEdge(1)</label><label kind="synchronisation" x="-192" y="-344">work[0]!</label><label kind="assignment" x="-200" y="-376">states[1]=true</label></transition></template><system>const int  t_time = 2; 
+
+int a0[4] = {1, 2, -1, -1};
+int a1[4] = {2, 3, -1, -1};
+int a2[4] = {3, 1, -1, -1};
+int a3[4] = {4, -1, -1, -1};
+int a4[4] = {5, 7, -1, -1};
+int a5[4] = {6, -1, -1, -1};
+int a6[4] = {0, -1, -1, -1};
+int a7[4] = {8, -1, -1, -1};
+int a8[4] = {9, -1, -1, -1};
+int a9[4] = {5, -1, -1, -1};
+Process0 = Modul(0, 0, 5, t_time, a0, 2);
+Process1 = Modul(1, 1, 5, t_time, a1, 2);
+Process2 = Modul(2, 2, 5, t_time, a2, 2);
+Process3 = Modul(3, 3, 5, t_time, a3, 1);
+Process4 = Modul(4, 4, 5, t_time, a4, 2);
+Process5 = Modul(5, 3, 5, 100, a5, 1);
+Process6 = Modul(6, 6, 5, t_time, a6, 1);
+Process7 = Modul(7, 3, 5, t_time, a7, 1);
+Process8 = Modul(8, 5, 5, t_time, a8, 1);
+Process9 = Modul(9, 3, 5, t_time, a9, 1);
+recipe1 = RecipePar2();
+//recipe2 = NoCameraRecipe();
+
+// List one or more processes to be composed into a system.
+system /*recipe2,*/ recipe1, Process0, Process1, Process2, Process3, Process4, Process5, Process6, Process7, Process8, Process9;</system></nta>

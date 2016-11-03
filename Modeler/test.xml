@@ -1,0 +1,215 @@
+<nta><declaration>const int NUMBER_OF_MODULES = 4;
+const int NUMBER_OF_WORKTYPES = 4;
+const int NUMBER_OF_RECIPES = 1;
+const int N_OF_NOD1 = 4;
+
+chan transport[NUMBER_OF_MODULES + 1];
+chan work[NUMBER_OF_WORKTYPES + 1];
+chan handshake[NUMBER_OF_RECIPES + 1];
+
+clock global_c;
+
+typedef int[-1, NUMBER_OF_RECIPES] rid_t;
+typedef int[0, NUMBER_OF_WORKTYPES] wid_t;
+typedef int[0, NUMBER_OF_MODULES] id_t;
+
+rid_t var = 0;
+
+meta int remaining = 0;
+
+</declaration><template><name x="5" y="5">Module</name><parameter>id_t id, wid_t wid, int p_time, int t_time, int cost_rate, id_t&amp; next[4], int length</parameter><declaration>clock local_c;
+
+rid_t lock = -1;
+
+bool is_callable(id_t cid){
+   int i;
+   for(i=0; i&lt;length;++i){
+        if(next[i] == cid){
+            return true;
+        }
+    }
+   return false;
+}</declaration><location id="id0" x="632" y="112"><committed /></location><location id="id1" x="632" y="-24"><name x="622" y="-54">Done</name></location><location id="id2" x="632" y="248"><name x="600" y="264">Processing</name><label kind="invariant" x="600" y="280">local_c &lt;= p_time &amp;&amp;
+cost' == cost_rate</label></location><location id="id3" x="168" y="248"><name x="120" y="264">Transporting</name><label kind="invariant" x="120" y="280">local_c &lt;= t_time</label></location><location id="id4" x="168" y="-24"><name x="158" y="-54">Idle</name></location><init ref="id4" /><transition><source ref="id0" /><target ref="id1" /><label kind="synchronisation" x="640" y="33">work[wid]!</label><label kind="assignment" x="640" y="48">remaining -= cost_rate *  p_time</label></transition><transition><source ref="id2" /><target ref="id0" /><label kind="guard" x="648" y="160">local_c == p_time</label><label kind="synchronisation" x="648" y="176">handshake[lock]?</label></transition><transition><source ref="id3" /><target ref="id4" /><label kind="select" x="288" y="72">e: id_t</label><label kind="guard" x="288" y="88">is_callable(e) &amp;&amp;
+local_c == t_time</label><label kind="synchronisation" x="288" y="112">transport[e]!</label><label kind="assignment" x="288" y="128">var = lock</label><nail x="272" y="104" /></transition><transition><source ref="id3" /><target ref="id2" /><label kind="guard" x="304" y="256">local_c == t_time</label><label kind="assignment" x="304" y="272">local_c = 0</label></transition><transition><source ref="id1" /><target ref="id4" /><label kind="select" x="340" y="-69">e: id_t</label><label kind="guard" x="340" y="-54">is_callable(e)</label><label kind="synchronisation" x="340" y="-39">transport[e]!</label><label kind="assignment" x="340" y="-24">var = lock</label></transition><transition><source ref="id4" /><target ref="id3" /><label kind="synchronisation" x="-72" y="80">transport[id]?</label><label kind="assignment" x="-72" y="96">local_c = 0,
+remaining += cost_rate * p_time,
+lock = var</label></transition></template><template><name>Remover</name><location id="id9" x="-112" y="-8" /><init ref="id9" /><transition><source ref="id9" /><target ref="id9" /><label kind="synchronisation" x="0" y="-16">transport[0]?</label><nail x="-56" y="48" /><nail x="-8" y="-8" /><nail x="-56" y="-64" /></transition></template><template><name>Coster</name><parameter>int c</parameter><location id="id10" x="-576" y="-176"><label kind="invariant" x="-586" y="-161">cost' == c</label></location><init ref="id10" /></template><template><name>Recipe0</name><parameter>rid_t rid, wid_t&amp; n_work[N_OF_NOD0],  int&amp; n_num_parents[N_OF_NOD0], int&amp; n_children[N_OF_NOD0][N_OF_NOD0], int&amp; n_children_len[N_OF_NOD0]</parameter><declaration>bool done = false; //Indicates when we are done with recipe; 
+int current_nodes[N_OF_NOD1]; //Keeps track of currently accessible nodes, which can be worked 
+int c_length = 0; // Length of current array to consider
+int called_node = -1; // Node being worked on
+
+// Called at beginning of recipe. Will find all independent nodes in dependency graph 
+void get_upper_nodes(){
+    int i;
+    
+    //Fill array with -1s otherwise it would be filled with 0s.
+    //0 is an actual node index so we want to be able to differentiate
+    for(i = 0; i &lt; N_OF_NOD1 ; i++)
+       current_nodes[i] = -1;
+
+    //Searches through graph, if a node is found not to have a parent it is added.
+    for(i = 0; i &lt; N_OF_NOD1 ; i++)
+        if(n_num_parents[i] == 0){
+            current_nodes[c_length] = i;
+	    c_length++;    
+        }
+}
+
+//Checks whether a given work can be performed
+bool is_callable(wid_t w){
+    int i;
+    for(i = 0; i &lt; c_length; i++){
+        if(n_work[current_nodes[i]] == w)
+            return true;
+    }
+    return false;   
+}
+
+//Same as is_callable, but used to get the index of the node that is being worked on
+int get_called_node(wid_t w){
+    int i;
+    for(i = 0; i &lt; c_length; i++){
+        if(n_work[current_nodes[i]] == w)
+            return current_nodes[i];
+    }
+    return -1;  
+} 
+
+//Updates the current nodes array to reflect that work has been done.
+void update_current_nodes(int called_id){
+    int new_nodes[N_OF_NOD1];
+    int i;
+    int j = 0;
+    
+    // Collects all elements of current_nodes except for the node just worked on.
+    // Decrements the size of array by 1
+    for(i = 0; i &lt; c_length; i++){
+        if(current_nodes[i] != called_id){
+            new_nodes[j] = current_nodes[i]; 
+            j++;
+        }
+    }
+    c_length--;
+
+    // Finds all children on the node that has been worked on and decrements their number of parents by 1
+    for(i = 0; i &lt; n_children_len[called_id]; i++){  
+        int res = --n_num_parents[n_children[called_id][i]];
+        
+        // If child has lost all it's parents :(
+        // It is added to the array of current nodes
+        if(res == 0){
+            new_nodes[c_length] = n_children[called_id][i];
+            c_length++;
+        }
+    }
+    
+    // Overwrite the old current array with new one
+    for(i = 0; i &lt; c_length; i++)
+        current_nodes[i] = new_nodes[i]; 
+
+    // Once the new array contains no new nodes we are finished!
+    if(c_length == 0)
+	done = true;       
+} </declaration><location id="id5" x="-192" y="-160"><name x="-176" y="-168">Handshaking</name><committed /></location><location id="id6" x="-400" y="8"><name x="-416" y="24">End</name></location><location id="id7" x="-400" y="-160"><name x="-496" y="-168">InProgress</name></location><location id="id8" x="-400" y="-296"><name x="-410" y="-326">Start</name></location><init ref="id8" /><transition><source ref="id5" /><target ref="id7" /><label kind="select" x="-272" y="-96">e:wid_t</label><label kind="guard" x="-272" y="-80">is_callable(e)</label><label kind="synchronisation" x="-272" y="-64">work[e]?</label><label kind="assignment" x="-272" y="-48">called_node = get_called_node(e),
+update_current_nodes(called_node)</label><nail x="-304" y="-96" /></transition><transition><source ref="id7" /><target ref="id5" /><label kind="synchronisation" x="-288" y="-256">handshake[rid]!</label><label kind="assignment" x="-288" y="-240">var = rid</label><nail x="-312" y="-216" /></transition><transition><source ref="id7" /><target ref="id6" /><label kind="guard" x="-504" y="-88">done == true</label></transition><transition><source ref="id8" /><target ref="id7" /><label kind="synchronisation" x="-552" y="-256">transport[1]!</label><label kind="assignment" x="-552" y="-240">var = rid,
+get_upper_nodes()</label></transition></template><template><name>Recipe1</name><parameter>rid_t rid, wid_t&amp; n_work[N_OF_NOD1],  int&amp; n_num_parents[N_OF_NOD1], int&amp; n_children[N_OF_NOD1][N_OF_NOD1], int&amp; n_children_len[N_OF_NOD1]</parameter><declaration>bool done = false; //Indicates when we are done with recipe; 
+int current_nodes[N_OF_NOD1]; //Keeps track of currently accessible nodes, which can be worked 
+int c_length = 0; // Length of current array to consider
+int called_node = -1; // Node being worked on
+
+// Called at beginning of recipe. Will find all independent nodes in dependency graph 
+void get_upper_nodes(){
+    int i;
+    
+    //Fill array with -1s otherwise it would be filled with 0s.
+    //0 is an actual node index so we want to be able to differentiate
+    for(i = 0; i &lt; N_OF_NOD1 ; i++)
+       current_nodes[i] = -1;
+
+    //Searches through graph, if a node is found not to have a parent it is added.
+    for(i = 0; i &lt; N_OF_NOD1 ; i++)
+        if(n_num_parents[i] == 0){
+            current_nodes[c_length] = i;
+	    c_length++;    
+        }
+}
+
+//Checks whether a given work can be performed
+bool is_callable(wid_t w){
+    int i;
+    for(i = 0; i &lt; c_length; i++){
+        if(n_work[current_nodes[i]] == w)
+            return true;
+    }
+    return false;   
+}
+
+//Same as is_callable, but used to get the index of the node that is being worked on
+int get_called_node(wid_t w){
+    int i;
+    for(i = 0; i &lt; c_length; i++){
+        if(n_work[current_nodes[i]] == w)
+            return current_nodes[i];
+    }
+    return -1;  
+} 
+
+//Updates the current nodes array to reflect that work has been done.
+void update_current_nodes(int called_id){
+    int new_nodes[N_OF_NOD1];
+    int i;
+    int j = 0;
+    
+    // Collects all elements of current_nodes except for the node just worked on.
+    // Decrements the size of array by 1
+    for(i = 0; i &lt; c_length; i++){
+        if(current_nodes[i] != called_id){
+            new_nodes[j] = current_nodes[i]; 
+            j++;
+        }
+    }
+    c_length--;
+
+    // Finds all children on the node that has been worked on and decrements their number of parents by 1
+    for(i = 0; i &lt; n_children_len[called_id]; i++){  
+        int res = --n_num_parents[n_children[called_id][i]];
+        
+        // If child has lost all it's parents :(
+        // It is added to the array of current nodes
+        if(res == 0){
+            new_nodes[c_length] = n_children[called_id][i];
+            c_length++;
+        }
+    }
+    
+    // Overwrite the old current array with new one
+    for(i = 0; i &lt; c_length; i++)
+        current_nodes[i] = new_nodes[i]; 
+
+    // Once the new array contains no new nodes we are finished!
+    if(c_length == 0)
+	done = true;       
+} </declaration><location id="id5" x="-192" y="-160"><name x="-176" y="-168">Handshaking</name><committed /></location><location id="id6" x="-400" y="8"><name x="-416" y="24">End</name></location><location id="id7" x="-400" y="-160"><name x="-496" y="-168">InProgress</name></location><location id="id8" x="-400" y="-296"><name x="-410" y="-326">Start</name></location><init ref="id8" /><transition><source ref="id5" /><target ref="id7" /><label kind="select" x="-272" y="-96">e:wid_t</label><label kind="guard" x="-272" y="-80">is_callable(e)</label><label kind="synchronisation" x="-272" y="-64">work[e]?</label><label kind="assignment" x="-272" y="-48">called_node = get_called_node(e),
+update_current_nodes(called_node)</label><nail x="-304" y="-96" /></transition><transition><source ref="id7" /><target ref="id5" /><label kind="synchronisation" x="-288" y="-256">handshake[rid]!</label><label kind="assignment" x="-288" y="-240">var = rid</label><nail x="-312" y="-216" /></transition><transition><source ref="id7" /><target ref="id6" /><label kind="guard" x="-504" y="-88">done == true</label></transition><transition><source ref="id8" /><target ref="id7" /><label kind="synchronisation" x="-552" y="-256">transport[1]!</label><label kind="assignment" x="-552" y="-240">var = rid,
+get_upper_nodes()</label></transition></template><system>int connections1[4] = {2, -1, -1, -1};
+int connections2[4] = {3, 4, -1, -1};
+int connections3[4] = {4, 0, -1, -1};
+int connections4[4] = {3, 0, -1, -1};
+
+m1 = Module(1, 1, 5, 5, 5, connections1, 1);
+m2 = Module(2, 2, 5, 5, 5, connections2, 2);
+m3 = Module(3, 4, 5, 5, 5, connections3, 2);
+m4 = Module(4, 3, 5, 5, 5, connections4, 2);
+
+wid_t n_works[N_OF_NOD1] = {1,2,3,4};
+int n_num_parents[N_OF_NOD1] = {0,1,1,1};
+int n_children[N_OF_NOD1][N_OF_NOD1] = {{1,-1,-1,-1}, {2,-1,-1,-1}, {3,-1,-1,-1}, {-1,-1,-1,-1}};
+int n_children_len[N_OF_NOD1] = {1,1,1,0};
+
+
+r1 = Recipe(1, n_works, n_num_parents, n_children, n_children_len);
+
+rem = Remover();
+cos = Coster(1);
+
+system rem, cos, m1, m2, m3, m4, r1;</system></nta>

@@ -1,0 +1,14 @@
+\section{Problem Definition}\label{ch:problemdefinition}
+Having looked into the FESTO system and its use, we decide upon the following problem definition:
+
+
+\textit{How can we construct a system, which given a list of time-varying production demands  develops a plan of configurations. The system should aim to keep costs low, by balancing the throughput of the individual configurations and the effort required to reconfigure a factory over time. Calculating a plan must be done in a reasonable timeframe.}
+
+
+To clarify, a list of time-varying production demands predicts several time frames into the future. If the timeframe is a week, such a list will describe the demands on a weekly basis. It may state that for week one we should produce 500 rocking horses and 250 hobby horses, while in week two we need 200 rocking horses and 300 hobby horses. With such a change in demand it may be beneficial to reconfigure the FESTO factory between week one and two. This is where the system comes in, as it for each timeframe will aim to construct a satisfying configuration. However, the system must not change the physical layout of the factory too much, as the effort involved in rearranging modules may be greater than the benefit of throughput. These two factors must be balanced, when the system constructs each individual configuration. It is also important  that a plan can be calculated in a reasonable time. Having to quickly meet new demands, manufacturers may not be able to wait several days for a plan to be developed.
+
+
+To not make the implementation of this system overly complex, we have decided upon a handful of abstractions. These limit the amount of use cases for the system to limit our scope.  The system should only focus on making linear factories, where recipes are continuously lead forward towards  unvisited modules. Making sure that configurations can loop back recipes to earlier points adds a large layer of complexity. Similarly, we do not allow for recipes, where the same type of work needs to be done at two different points. As we represent recipes as dependency graphs, this creates graph cycles, which makes the merging of recipes much harder. 
+
+
+What we will not abstract from is the physicality of factories. Creating a correct model of the different module and taking account for how they may be placed is crucial, if the system should be usable.  We also enable modules to have several items on its conveyor belt at one time, though we limit a module to only process one item at a time. 

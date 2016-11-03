@@ -1,0 +1,80 @@
+%----------------------------------------------------------------------------------------
+%	DOCUMENT AND FONTS
+%----------------------------------------------------------------------------------------
+
+%Document type
+\documentclass[11pt,twoside,a4paper,openright]{report}
+
+% Encoding. Allows input of accented characters
+\usepackage[utf8]{inputenc}
+%Language support
+\usepackage[english]{babel} 
+% Font
+\usepackage{lmodern} 
+%Encoding. Allows output for accented characters.
+\usepackage[T1]{fontenc} 
+
+%----------------------------------------------------------------------------------------
+%	COLORS AND GRAPHICS
+%----------------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{aaublue}{RGB}{33,26,82}% dark blue
+
+% The standard graphics inclusion package
+\usepackage{graphicx}
+\graphicspath{ {figures/} }
+
+% Make the standard latex tables look so much better
+\usepackage{array,booktabs}
+
+
+%----------------------------------------------------------------------------------------
+%	PAGE LAYOUT
+%----------------------------------------------------------------------------------------
+
+% Fix margins
+\usepackage[
+  left=28mm,% left margin on an odd page
+  right=41mm,% right margin on an odd page
+  ]{geometry}
+  
+
+% Change the headers and footers 
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{} %delete everything
+\renewcommand{\headrulewidth}{0pt} %remove the horizontal line in the header
+
+% Add page numbers
+\fancyhead[RE]{\color{aaublue}\small\nouppercase\leftmark} %even page - chapter title
+\fancyhead[LO]{\color{aaublue}\small\nouppercase\rightmark} %uneven page - section title
+\fancyhead[LE,RO]{\thepage} %page number on all pages
+
+% Do not stretch the content of a page. Instead,
+% insert white space at the bottom of the page
+\raggedbottom
+
+% Enable arithmetics with length. Useful when
+% typesetting the layout.
+\usepackage{calc}
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+%Style of references
+\bibliographystyle{ieeetr}
+
+
+%----------------------------------------------------------------------------------------
+%	HYPERLINKS
+%----------------------------------------------------------------------------------------
+
+%  Hyperlinks
+\usepackage{hyperref}
+\hypersetup{hidelinks,colorlinks,breaklinks=true,urlcolor=aaublue,citecolor=aaublue,linkcolor=aaublue,bookmarksopen=false,pdftitle={Title},pdfauthor={Author}} 
+
+% Crefs. Important to have after hyperrefs!
+\usepackage{cleveref}
+\usepackage{lastpage}
+\usepackage{todonotes}

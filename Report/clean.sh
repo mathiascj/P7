@@ -1,0 +1,24 @@
+#!/bin/sh
+rm -rf *.aux
+rm -rf *.bbl
+rm -rf *.bcf
+rm -rf *.blg
+rm -rf *.glg
+rm -rf *.glo
+rm -rf *.gls
+rm -rf *.idx
+rm -rf *.ilg
+rm -rf *.ind
+rm -rf *.ist
+rm -rf *.lof
+rm -rf *.log
+rm -rf *.lol
+rm -rf *.lot
+rm -rf *.nlo
+rm -rf *.nls
+rm -rf *.out
+rm -rf *.tdo
+rm -rf *.toc
+rm -rf *.xml
+rm -rf *.fls
+rm -rf *.fdb_latexmk

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>const int NUMBER_OF_MODULES = 12;
+const int NUMBER_OF_WORKTYPES = 12;
+const int NUMBER_OF_RECIPES = 3;
+chan transport[NUMBER_OF_MODULES];
+chan work[NUMBER_OF_WORKTYPES];
+chan handshake[NUMBER_OF_RECIPES];
+
+clock global_c;
+
+typedef int[-1, NUMBER_OF_RECIPES - 1] rid_t;
+typedef int[0, NUMBER_OF_WORKTYPES - 1] wid_t;
+typedef int[0, NUMBER_OF_MODULES - 1] id_t;
+
+rid_t var = 0;
+
+meta int remaining = 0;
+</declaration><template><name x="5" y="5">Module</name><parameter>id_t id, wid_t wid, int p_time, int t_time, int cost_rate, id_t&amp; next[4], int length</parameter><declaration>clock local_c;
+
+rid_t lock = -1;
+
+bool is_callable(id_t cid){
+   int i;
+   for(i=0; i&lt;length;++i){
+        if(next[i] == cid){
+            return true;
+        }
+    }
+   return false;
+}</declaration><location id="id0" x="632" y="112"><committed/></location><location id="id1" x="632" y="-24"><name x="622" y="-54">Done</name></location><location id="id2" x="632" y="248"><name x="600" y="264">Processing</name><label kind="invariant" x="600" y="280">local_c &lt;= p_time &amp;&amp;
+cost' == cost_rate</label></location><location id="id3" x="168" y="248"><name x="120" y="264">Transporting</name><label kind="invariant" x="120" y="280">local_c &lt;= t_time</label></location><location id="id4" x="168" y="-24"><name x="158" y="-54">Idle</name></location><init ref="id4"/><transition><source ref="id0"/><target ref="id1"/><label kind="synchronisation" x="640" y="33">work[wid]!</label><label kind="assignment" x="640" y="48">remaining -= cost_rate *  p_time</label></transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="648" y="160">local_c == p_time</label><label kind="synchronisation" x="648" y="176">handshake[lock]?</label></transition><transition><source ref="id3"/><target ref="id4"/><label kind="select" x="288" y="72">e: id_t</label><label kind="guard" x="288" y="88">is_callable(e) &amp;&amp;
+local_c == t_time</label><label kind="synchronisation" x="288" y="112">transport[e]!</label><label kind="assignment" x="288" y="128">var = lock</label><nail x="272" y="104"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="guard" x="304" y="256">local_c == t_time</label><label kind="assignment" x="304" y="272">local_c = 0</label></transition><transition><source ref="id1"/><target ref="id4"/><label kind="select" x="340" y="-69">e: id_t</label><label kind="guard" x="340" y="-54">is_callable(e)</label><label kind="synchronisation" x="340" y="-39">transport[e]!</label><label kind="assignment" x="340" y="-24">var = lock,
+lock = -1</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="-72" y="80">transport[id]?</label><label kind="assignment" x="-72" y="96">local_c = 0,
+remaining += cost_rate * p_time,
+lock = var</label></transition></template><template><name>Recipe</name><parameter>rid_t rid, wid_t&amp; dependencies[12][12], wid_t&amp; lengths[12], wid_t layers</parameter><declaration>bool done = false;
+wid_t current_layer = 0;
+wid_t current_element = 0;
+
+int power2(int n){
+    int result = 1;
+    int i = 0;
+    while(i &lt; n)
+    {
+        result = 2 * result;
+        i = i + 1;
+    }
+    return result;
+}
+
+int status[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+bool is_callable(wid_t wid){
+    int j;
+    for(j = 0; j &lt; lengths[current_layer]; j++){ 
+	bool unworked = (power2(j) &amp; status[current_layer]) == 0;  
+    	if(unworked &amp;&amp; dependencies[current_layer][j] == wid) { 
+		    return true;
+	}
+    }
+    return false;
+}
+
+
+void update_helper(wid_t wid){
+    int j;
+    for(j = 0; j &lt; lengths[current_layer]; j++){ 
+	bool unworked = (power2(j) &amp; status[current_layer]) == 0; 
+    	if(unworked &amp;&amp; dependencies[current_layer][j] == wid) {  
+		    current_element = j;
+	}
+    }
+}
+
+void update_status(){
+	status[current_layer] = status[current_layer] | power2(current_element); 
+	if (status[current_layer] == power2(lengths[current_layer])-1 ){
+		current_layer = current_layer + 1;
+	}
+}</declaration><location id="id5" x="112" y="-96"><name x="128" y="-104">Handshaking</name><committed/></location><location id="id6" x="-64" y="72"><name x="-80" y="88">End</name></location><location id="id7" x="-64" y="-96"><name x="-160" y="-104">InProgress</name></location><location id="id8" x="-64" y="-232"><name x="-74" y="-262">Start</name></location><init ref="id8"/><transition><source ref="id5"/><target ref="id7"/><label kind="select" x="48" y="-50">e: wid_t</label><label kind="guard" x="48" y="-24">current_layer &lt; layers &amp;&amp;
+is_callable(e)</label><label kind="synchronisation" x="48" y="-34">work[e]?</label><label kind="assignment" x="48" y="6">update_helper(e), 
+update_status()</label><nail x="24" y="-40"/></transition><transition><source ref="id7"/><target ref="id5"/><label kind="synchronisation" x="48" y="-192">handshake[rid]!</label><label kind="assignment" x="48" y="-176">var = rid</label><nail x="24" y="-152"/></transition><transition><source ref="id7"/><target ref="id6"/><label kind="guard" x="-240" y="-32">current_layer == layers</label><label kind="assignment" x="-160" y="-16">done = true</label></transition><transition><source ref="id8"/><target ref="id7"/><label kind="synchronisation" x="-160" y="-176">transport[1]!</label><label kind="assignment" x="-160" y="-160">var = rid</label></transition></template><template><name>Remover</name><location id="id9" x="-112" y="-8"></location><init ref="id9"/><transition><source ref="id9"/><target ref="id9"/><label kind="synchronisation" x="0" y="-16">transport[0]?</label><nail x="-56" y="48"/><nail x="-8" y="-8"/><nail x="-56" y="-64"/></transition></template><template><name>Coster</name><parameter>int c</parameter><location id="id10" x="-576" y="-176"><label kind="invariant" x="-586" y="-161">cost' == c</label></location><init ref="id10"/></template><system>
+// int id, int wid, int p_time, int t_time, int cost_rate, int&amp; next[4], int length
+int a0[4] = {2, -1, -1, -1};
+int a1[4] = {3, -1, -1, -1};
+int a2[4] = {0, -1, -1, -1};
+
+m0 = Module(1, 1, 5, 5, 5, a0, 1);
+m1 = Module(2, 2, 5, 5, 5, a1, 1);
+m2 = Module(3, 3, 5, 5, 5, a2, 1);
+
+// wid_t&amp; dependencies[16][16], wid_t&amp; lengths[16], wid_t layers
+
+
+wid_t deps0[12][12] = {
+{1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+,{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
+
+wid_t lengths[12] = {2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+
+
+r0 = Recipe(0, deps0, lengths, 2);
+r1 = Recipe(1, deps0, lengths, 2);
+r2 = Recipe(2, deps0, lengths, 2);
+
+
+rem = Remover();
+cos = Coster(1);
+
+
+system rem, cos, m0, m1, m2, r0, r1, r2;</system></nta>
