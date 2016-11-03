@@ -1,9 +1,6 @@
-from framework.module import A0Module, A1Module, A2Module, A3Module, A4Module, A5Module
-from framework.module import U0I0Module, U0I1Module, U1I0Module, U1I1Module, U2I0Module, U2I1Module
+from framework.module import SquareModule
 
+m0 = SquareModule(0, 0, 5, 5, 5)
+m1 = SquareModule(1, 1, 5, 5, 5)
+m2 = SquareModule(2, 2, 5, 5, 5)
 
-a0 = A0Module(right=None, id=0, w_type=1, t_time=5, p_time=5, c_rate=5)
-
-a1 = A1Module(up=None, id=1, w_type=1, t_time=5, p_time=5, c_rate=5)
-
-a2 = A2Module(right=None, id=1, w_type=1, t_time=5, p_time=5, c_rate=5)
