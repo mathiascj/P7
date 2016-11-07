@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
+const int NUMBER_OF_MODULES = 10;
+const int NUMBER_OF_RECIPES = 10;
+const int NUMBER_OF_WORKTYPES = 10;
+
+const int NUMBER_OF_OUTPUTS = 4;
+
+
+typedef int[0, NUMBER_OF_MODULES] mid_t;
+typedef int[-1, NUMBER_OF_RECIPES] rid_t;
+typedef int[0, NUMBER_OF_WORKTYPES] wid_t;
+
+chan dequeue[NUMBER_OF_MODULES];
+chan enqueue[NUMBER_OF_MODULES];
+
+chan internal[NUMBER_OF_MODULES];
+chan transport[NUMBER_OF_MODULES];
+
+chan handshake[NUMBER_OF_RECIPES];
+chan work[NUMBER_OF_WORKTYPES];
+
+
+int var = 0;</declaration><template><name x="8" y="8">ModuleQueue</name><parameter>mid_t mid, const int length</parameter><declaration>// Place local declarations here.
+
+rid_t queue[length];
+
+rid_t pop(){
+    rid_t result = queue[0];
+    int i;
+    for(i = 0; i &lt; length; ++i){
+	    if(i != length - 1){
+            queue[i] = queue[i + 1];
+        }
+	    else {
+            queue[i] = -1;
+        }
+    }
+    return result;
+}
+
+void add(rid_t recipe){
+    int i;
+    bool flag = true;
+    for(i = 0; i &lt; length &amp;&amp; flag; ++i){
+        if(queue[i] == -1){
+            queue[i] = recipe;
+            flag = false;
+        }
+    }
+}</declaration><location id="id0" x="8" y="-24"></location><init ref="id0"/><transition><source ref="id0"/><target ref="id0"/><label kind="synchronisation" x="-176" y="-40">enqueue[mid]?</label><label kind="assignment" x="-176" y="-24">add(var)</label><nail x="-64" y="40"/><nail x="-64" y="-80"/></transition><transition><source ref="id0"/><target ref="id0"/><label kind="synchronisation" x="80" y="-48">dequeue[mid]?</label><label kind="assignment" x="80" y="-32">var = pop()</label><nail x="72" y="40"/><nail x="72" y="-80"/></transition></template><template><name>ModuleTransporter</name><parameter>mid_t mid, int t_time, mid_t &amp;next[NUMBER_OF_OUTPUTS]</parameter><declaration>clock local_c;
+
+rid_t lock = -1;
+
+bool is_callable(mid_t cid){
+   int i;
+   for(i=0; i&lt;NUMBER_OF_OUTPUTS;++i){
+        if(next[i] == cid){
+            return true;
+        }
+    }
+   return false;
+}</declaration><location id="id1" x="0" y="32"><name x="16" y="24">Transporting</name><label kind="invariant" x="16" y="40">local_c &lt;= t_time</label></location><location id="id2" x="-344" y="32"><name x="-392" y="24">Idle</name></location><init ref="id2"/><transition><source ref="id1"/><target ref="id2"/><label kind="select" x="-208" y="-48">e: mid_t</label><label kind="guard" x="-208" y="-32">is_callable(e) &amp;&amp;
+local_c == t_time</label><label kind="synchronisation" x="-208" y="-8">enqueue[e]!</label><label kind="assignment" x="-208" y="8">var = lock</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-208" y="176">internal[mid]?</label><label kind="assignment" x="-208" y="192">lock = var</label><nail x="-168" y="176"/></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-208" y="-136">dequeue[mid]!</label><label kind="assignment" x="-208" y="-120">lock = var</label><nail x="-168" y="-104"/></transition></template><template><name>ModuleWorker</name><parameter>mid_t mid, wid_t &amp;worktype[NUMBER_OF_WORKTYPES], int &amp;p_time[NUMBER_OF_WORKTYPES], int cost_rate</parameter><declaration>clock local_c;
+
+rid_t lock;
+
+int index;</declaration><location id="id3" x="-328" y="24"><name x="-344" y="40">Idle</name></location><location id="id4" x="64" y="-200"><committed/></location><location id="id5" x="-328" y="-200"><name x="-338" y="-230">Done</name></location><location id="id6" x="64" y="24"><name x="40" y="40">Working</name><label kind="invariant" x="40" y="56">local_c &lt;= p_time[index] &amp;&amp; 
+cost' == cost_rate</label></location><location id="id7" x="-144" y="24"><name x="-176" y="40">Selector</name></location><init ref="id3"/><transition><source ref="id5"/><target ref="id7"/></transition><transition><source ref="id3"/><target ref="id7"/></transition><transition><source ref="id5"/><target ref="id3"/><label kind="synchronisation" x="-432" y="-96">internal[mid]!</label></transition><transition><source ref="id4"/><target ref="id5"/><label kind="synchronisation" x="-184" y="-224">work[index]!</label></transition><transition><source ref="id6"/><target ref="id4"/><label kind="guard" x="72" y="-80">local_c == p_time[index]</label><label kind="synchronisation" x="72" y="-64">handshake[lock]!</label></transition><transition><source ref="id7"/><target ref="id6"/><label kind="select" x="-176" y="58">e: wid_t</label><label kind="guard" x="-176" y="73">e != -1</label><label kind="assignment" x="-176" y="88">lock = var,
+index = e,
+local_c = 0</label></transition></template><template><name>Recipe</name></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process;</system></nta>
