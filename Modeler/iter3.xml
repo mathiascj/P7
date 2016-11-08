@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
-const int NUMBER_OF_MODULES = 10;
-const int NUMBER_OF_RECIPES = 10;
-const int NUMBER_OF_WORKTYPES = 10;
-
+const int NUMBER_OF_MODULES = 2;
+const int NUMBER_OF_RECIPES = 5;
+const int NUMBER_OF_WORKTYPES = 3;
 const int NUMBER_OF_OUTPUTS = 4;
+const int N_OF_NOD1 = 3;
 
 
-typedef int[0, NUMBER_OF_MODULES] mid_t;
-typedef int[-1, NUMBER_OF_RECIPES] rid_t;
-typedef int[0, NUMBER_OF_WORKTYPES] wid_t;
+typedef int[-1, NUMBER_OF_MODULES - 1] mid_t;
+typedef int [0, NUMBER_OF_MODULES - 1] mid_safe_t;
+typedef int[-1, NUMBER_OF_RECIPES - 1] rid_t;
+typedef int[0, NUMBER_OF_RECIPES - 1] rid_safe_t;
+typedef int[0, NUMBER_OF_WORKTYPES - 1] wid_t;
 
-chan dequeue[NUMBER_OF_MODULES];
 chan enqueue[NUMBER_OF_MODULES];
+chan dequeue[NUMBER_OF_MODULES];
 
 chan internal[NUMBER_OF_MODULES];
 chan transport[NUMBER_OF_MODULES];
 
+chan rstart[NUMBER_OF_RECIPES];
 chan handshake[NUMBER_OF_RECIPES];
 chan work[NUMBER_OF_WORKTYPES];
 
 
-int var = 0;</declaration><template><name x="8" y="8">ModuleQueue</name><parameter>mid_t mid, const int length</parameter><declaration>// Place local declarations here.
+int var = -1;
+</declaration><template><name x="8" y="8">ModuleQueue</name><parameter>mid_safe_t mid, const int length</parameter><declaration>// Place local declarations here.
 
-rid_t queue[length];
+rid_t queue[length] = {-1, -1};
 
 rid_t pop(){
     rid_t result = queue[0];
@@ -47,28 +51,168 @@ void add(rid_t recipe){
             flag = false;
         }
     }
-}</declaration><location id="id0" x="8" y="-24"></location><init ref="id0"/><transition><source ref="id0"/><target ref="id0"/><label kind="synchronisation" x="-176" y="-40">enqueue[mid]?</label><label kind="assignment" x="-176" y="-24">add(var)</label><nail x="-64" y="40"/><nail x="-64" y="-80"/></transition><transition><source ref="id0"/><target ref="id0"/><label kind="synchronisation" x="80" y="-48">dequeue[mid]?</label><label kind="assignment" x="80" y="-32">var = pop()</label><nail x="72" y="40"/><nail x="72" y="-80"/></transition></template><template><name>ModuleTransporter</name><parameter>mid_t mid, int t_time, mid_t &amp;next[NUMBER_OF_OUTPUTS]</parameter><declaration>clock local_c;
+}
+
+bool not_full(){
+    if(queue[length - 1] == -1)
+        return true;
+    else
+        return false;
+}
+
+bool not_empty(){
+    if(queue[0] != -1)
+        return true;
+    else
+        return false;
+}</declaration><location id="id0" x="8" y="-24"></location><init ref="id0"/><transition><source ref="id0"/><target ref="id0"/><label kind="guard" x="-176" y="-56">not_full()</label><label kind="synchronisation" x="-176" y="-40">enqueue[mid]?</label><label kind="assignment" x="-176" y="-24">add(var)</label><nail x="-64" y="40"/><nail x="-64" y="-80"/></transition><transition><source ref="id0"/><target ref="id0"/><label kind="guard" x="80" y="-64">not_empty()</label><label kind="synchronisation" x="80" y="-48">dequeue[mid]?</label><label kind="assignment" x="80" y="-32">var = pop()</label><nail x="72" y="40"/><nail x="72" y="-80"/></transition></template><template><name>ModuleTransporter</name><parameter>mid_safe_t mid, int t_time, mid_t &amp;next[NUMBER_OF_OUTPUTS]</parameter><declaration>clock local_c;
 
 rid_t lock = -1;
 
 bool is_callable(mid_t cid){
    int i;
-   for(i=0; i&lt;NUMBER_OF_OUTPUTS;++i){
+   for(i = 0; i &lt; NUMBER_OF_OUTPUTS; ++i){
         if(next[i] == cid){
             return true;
         }
     }
    return false;
-}</declaration><location id="id1" x="0" y="32"><name x="16" y="24">Transporting</name><label kind="invariant" x="16" y="40">local_c &lt;= t_time</label></location><location id="id2" x="-344" y="32"><name x="-392" y="24">Idle</name></location><init ref="id2"/><transition><source ref="id1"/><target ref="id2"/><label kind="select" x="-208" y="-48">e: mid_t</label><label kind="guard" x="-208" y="-32">is_callable(e) &amp;&amp;
-local_c == t_time</label><label kind="synchronisation" x="-208" y="-8">enqueue[e]!</label><label kind="assignment" x="-208" y="8">var = lock</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-208" y="176">internal[mid]?</label><label kind="assignment" x="-208" y="192">lock = var</label><nail x="-168" y="176"/></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-208" y="-136">dequeue[mid]!</label><label kind="assignment" x="-208" y="-120">lock = var</label><nail x="-168" y="-104"/></transition></template><template><name>ModuleWorker</name><parameter>mid_t mid, wid_t &amp;worktype[NUMBER_OF_WORKTYPES], int &amp;p_time[NUMBER_OF_WORKTYPES], int cost_rate</parameter><declaration>clock local_c;
+}</declaration><location id="id1" x="0" y="32"><name x="16" y="24">Transporting</name><label kind="invariant" x="16" y="40">local_c &lt;= t_time</label></location><location id="id2" x="-344" y="32"><name x="-392" y="24">Idle</name></location><init ref="id2"/><transition><source ref="id1"/><target ref="id2"/><label kind="select" x="-208" y="-48">e: mid_safe_t</label><label kind="guard" x="-208" y="-32">is_callable(e) &amp;&amp;
+local_c == t_time</label><label kind="synchronisation" x="-208" y="-8">enqueue[e]!</label><label kind="assignment" x="-208" y="8">var = lock</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-208" y="176">internal[mid]?</label><label kind="assignment" x="-208" y="192">lock = var,
+local_c = 0</label><nail x="-168" y="176"/></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-208" y="-136">dequeue[mid]!</label><label kind="assignment" x="-208" y="-120">lock = var,
+local_c = 0</label><nail x="-168" y="-104"/></transition></template><template><name>ModuleWorker</name><parameter>mid_safe_t mid, bool &amp;worktype[NUMBER_OF_WORKTYPES], int &amp;p_time[NUMBER_OF_WORKTYPES], int &amp;cost_rate[NUMBER_OF_WORKTYPES]</parameter><declaration>clock local_c;
 
-rid_t lock;
+rid_t lock = -1;
 
-int index;</declaration><location id="id3" x="-328" y="24"><name x="-344" y="40">Idle</name></location><location id="id4" x="64" y="-200"><committed/></location><location id="id5" x="-328" y="-200"><name x="-338" y="-230">Done</name></location><location id="id6" x="64" y="24"><name x="40" y="40">Working</name><label kind="invariant" x="40" y="56">local_c &lt;= p_time[index] &amp;&amp; 
-cost' == cost_rate</label></location><location id="id7" x="-144" y="24"><name x="-176" y="40">Selector</name></location><init ref="id3"/><transition><source ref="id5"/><target ref="id7"/></transition><transition><source ref="id3"/><target ref="id7"/></transition><transition><source ref="id5"/><target ref="id3"/><label kind="synchronisation" x="-432" y="-96">internal[mid]!</label></transition><transition><source ref="id4"/><target ref="id5"/><label kind="synchronisation" x="-184" y="-224">work[index]!</label></transition><transition><source ref="id6"/><target ref="id4"/><label kind="guard" x="72" y="-80">local_c == p_time[index]</label><label kind="synchronisation" x="72" y="-64">handshake[lock]!</label></transition><transition><source ref="id7"/><target ref="id6"/><label kind="select" x="-176" y="58">e: wid_t</label><label kind="guard" x="-176" y="73">e != -1</label><label kind="assignment" x="-176" y="88">lock = var,
-index = e,
-local_c = 0</label></transition></template><template><name>Recipe</name></template><system>// Place template instantiations here.
-Process = Template();
+int index;</declaration><location id="id3" x="-328" y="24"><name x="-344" y="40">Idle</name></location><location id="id4" x="-160" y="-200"><committed/></location><location id="id5" x="-328" y="-200"><name x="-336" y="-232">Done</name></location><location id="id6" x="64" y="24"><name x="40" y="40">Working</name><label kind="invariant" x="40" y="56">local_c &lt;= p_time[index] &amp;&amp; 
+cost' == cost_rate[index]</label></location><location id="id7" x="-144" y="24"><name x="-176" y="40">Selector</name></location><init ref="id3"/><transition><source ref="id5"/><target ref="id7"/></transition><transition><source ref="id3"/><target ref="id7"/><label kind="synchronisation" x="-296" y="32">dequeue[mid]!</label><label kind="assignment" x="-296" y="48">lock = var</label></transition><transition><source ref="id5"/><target ref="id3"/><label kind="synchronisation" x="-432" y="-96">internal[mid]!</label><label kind="assignment" x="-432" y="-80">var = lock</label></transition><transition><source ref="id4"/><target ref="id5"/><label kind="synchronisation" x="-288" y="-224">work[index]!</label></transition><transition><source ref="id6"/><target ref="id4"/><label kind="guard" x="-56" y="-144">local_c == p_time[index]</label><label kind="synchronisation" x="-56" y="-128">handshake[lock]?</label></transition><transition><source ref="id7"/><target ref="id6"/><label kind="select" x="-80" y="32">e: wid_t</label><label kind="guard" x="-80" y="48">worktype[e]</label><label kind="assignment" x="-80" y="64">index = e,
+local_c = 0</label></transition></template><template><name>Recipe</name><parameter>rid_safe_t rid, mid_t mid_start, wid_t&amp; n_work[N_OF_NOD1],  int&amp; n_num_parents[N_OF_NOD1], int&amp; n_children[N_OF_NOD1][N_OF_NOD1], int&amp; n_children_len[N_OF_NOD1], const int length</parameter><declaration>bool done = false; //Indicates when we are done with recipe; 
+int current_nodes[length]; //Keeps track of currently accessible nodes, which can be worked 
+int c_length = 0; // Length of current array to consider
+int called_node = -1; // Node being worked on
 
-// List one or more processes to be composed into a system.
-system Process;</system></nta>
+// Called at beginning of recipe. Will find all independent nodes in dependency graph 
+void get_upper_nodes(){
+    int i;
+    
+    //Fill array with -1s otherwise it would be filled with 0s.
+    //0 is an actual node index so we want to be able to differentiate
+    for(i = 0; i &lt; length ; i++)
+       current_nodes[i] = -1;
+
+    //Searches through graph, if a node is found not to have a parent it is added.
+    for(i = 0; i &lt; length ; i++)
+        if(n_num_parents[i] == 0){
+            current_nodes[c_length] = i;
+	    c_length++;    
+        }
+}
+
+//Checks whether a given work can be performed
+bool is_callable(wid_t w){
+    int i;
+    for(i = 0; i &lt; c_length; i++){
+        if(n_work[current_nodes[i]] == w)
+            return true;
+    }
+    return false;   
+}
+
+//Same as is_callable, but used to get the index of the node that is being worked on
+int get_called_node(wid_t w){
+    int i;
+    for(i = 0; i &lt; c_length; i++){
+        if(n_work[current_nodes[i]] == w)
+            return current_nodes[i];
+    }
+    return -1;  
+} 
+
+//Updates the current nodes array to reflect that work has been done.
+void update_current_nodes(int called_id){
+    int new_nodes[length];
+    int i;
+    int j = 0;
+    
+    // Collects all elements of current_nodes except for the node just worked on.
+    // Decrements the size of array by 1
+    for(i = 0; i &lt; c_length; i++){
+        if(current_nodes[i] != called_id){
+            new_nodes[j] = current_nodes[i]; 
+            j++;
+        }
+    }
+    c_length--;
+
+    // Finds all children on the node that has been worked on and decrements their number of parents by 1
+    for(i = 0; i &lt; n_children_len[called_id]; i++){  
+        int res = --n_num_parents[n_children[called_id][i]];
+        
+        // If child has lost all it's parents :(
+        // It is added to the array of current nodes
+        if(res == 0){
+            new_nodes[c_length] = n_children[called_id][i];
+            c_length++;
+        }
+    }
+    
+    // Overwrite the old current array with new one
+    for(i = 0; i &lt; c_length; i++)
+        current_nodes[i] = new_nodes[i]; 
+
+    // Once the new array contains no new nodes we are finished!
+    if(c_length == 0)
+	done = true;       
+} </declaration><location id="id8" x="-192" y="-160"><name x="-176" y="-168">Handshaking</name><committed/></location><location id="id9" x="-400" y="8"><name x="-416" y="24">End</name></location><location id="id10" x="-400" y="-160"><name x="-496" y="-168">InProgress</name></location><location id="id11" x="-400" y="-296"><name x="-410" y="-326">Start</name></location><init ref="id11"/><transition><source ref="id8"/><target ref="id10"/><label kind="select" x="-272" y="-96">e:wid_t</label><label kind="guard" x="-272" y="-80">is_callable(e)</label><label kind="synchronisation" x="-272" y="-64">work[e]?</label><label kind="assignment" x="-272" y="-48">called_node = get_called_node(e),
+update_current_nodes(called_node)</label><nail x="-304" y="-96"/></transition><transition><source ref="id10"/><target ref="id8"/><label kind="synchronisation" x="-296" y="-232">handshake[rid]!</label><nail x="-312" y="-216"/></transition><transition><source ref="id10"/><target ref="id9"/><label kind="guard" x="-504" y="-88">done == true</label></transition><transition><source ref="id11"/><target ref="id10"/><label kind="synchronisation" x="-552" y="-256">rstart[rid]!</label><label kind="assignment" x="-552" y="-240">var = mid_start,
+get_upper_nodes()</label></transition></template><template><name>RecipeQueue</name><parameter>rid_t &amp;queue[NUMBER_OF_RECIPES]</parameter><declaration>rid_t r = -1;
+mid_t start = -1;
+
+rid_t pop(){
+    rid_t result = queue[0];
+    int i;
+    for(i = 0; i &lt; NUMBER_OF_RECIPES; ++i){
+	    if(i != NUMBER_OF_RECIPES - 1){
+            queue[i] = queue[i + 1];
+        }
+	    else {
+            queue[i] = -1;
+        }
+    }
+    return result;
+}</declaration><location id="id12" x="-496" y="72"></location><location id="id13" x="-576" y="-48"></location><location id="id14" x="-432" y="-48"></location><init ref="id13"/><transition><source ref="id12"/><target ref="id13"/><label kind="synchronisation" x="-648" y="8">enqueue[start]!</label><label kind="assignment" x="-648" y="23">var = r</label></transition><transition><source ref="id14"/><target ref="id12"/><label kind="synchronisation" x="-408" y="16">rstart[r]?</label><label kind="assignment" x="-408" y="31">start = var</label></transition><transition><source ref="id13"/><target ref="id14"/><label kind="assignment" x="-536" y="-72">r = pop()</label></transition></template><system>q0 = ModuleQueue(0, 2); // id, queue length
+
+mid_t na0[NUMBER_OF_OUTPUTS] = {1, -1, -1, -1};
+t0 = ModuleTransporter(0, 4, na0); // id, t_time, next
+
+int wa0[NUMBER_OF_WORKTYPES] = {true, true, false};
+int pa0[NUMBER_OF_WORKTYPES] = {4, 2, 0};
+int ca0[NUMBER_OF_WORKTYPES] = {2, 4, 0};
+w0 = ModuleWorker(0, wa0, pa0, ca0);
+
+q1 = ModuleQueue(1, 2); // id, queue length
+
+int na1[NUMBER_OF_OUTPUTS] = {-1, -1, -1, -1};
+t1 = ModuleTransporter(1, 4, na1); // id, t_time, next
+
+int wa1[NUMBER_OF_WORKTYPES] = {false, false, true};
+int pa1[NUMBER_OF_WORKTYPES] = {0, 0, 2};
+int ca1[NUMBER_OF_WORKTYPES] = {0, 0, 1};
+w1 = ModuleWorker(1, wa1, pa1, ca1); // id, worktype, p_time, c_rate
+
+wid_t n_works[3] = {0, 1, 2};
+int n_num_parents[3] = {0, 0, 2};
+int n_children[3][3] = {{2, -1, -1}, {2, -1, -1}, {-1, -1, -1}};
+int n_children_len[3] = {1, 1, 0};
+
+r0 = Recipe(0, 0, n_works, n_num_parents, n_children, n_children_len, 3);
+r1 = Recipe(1, 0, n_works, n_num_parents, n_children, n_children_len, 3);
+r2 = Recipe(2, 0, n_works, n_num_parents, n_children, n_children_len, 3);
+r3 = Recipe(3, 0, n_works, n_num_parents, n_children, n_children_len, 3);
+r4 = Recipe(4, 0, n_works, n_num_parents, n_children, n_children_len, 3);
+
+rid_t rqa0[5] = {0, 1, 2, 3, 4};
+rq0 = RecipeQueue(rqa0);
+
+system rq0, q0, t0, w0, q1, t1, w1, r0, r1, r2, r3, r4;
+</system></nta>
