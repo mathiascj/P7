@@ -14,15 +14,24 @@ The FESTO system accessible to us is the Cyber-Physcial(CP) Learning Factory. Th
 An example of a CP-factory setup can be seen in \cref{fig:festo-example}. Each module in a setup is made up of the same base unit. This includes a control panel as well as two conveyor belts moving in opposite directions. Modules can be connected either at the narrow ends or on the face opposite the control panel. On each module new equiptment may be fitted. This can include a robot arm, a drill, camera etc. The high level factory tasks are handled through a MES(Manufacturing Execution System)known as MES4. This controls production order dispatch, scheduling, resource management etc. The low level control occuring at each module is determined by KRL code, created for each module and its equiptment. The factory also uses a large amount of networking technologies. RFID technology is used to monitor the location of individual items running along the conveyor belts. Individual modules may communicate by fieldbus, while overall communications in the factory occurs over a WLAN. The factory may also be connected to an Enterprise Resource Planning (ERP) system or other factories through MES4. A production run is initiated by activating each module through its control panel, then launching from a PC.
 
 \section{Problems in modular factories}
-Speaking to staff at Aalborg University we identified the following issues concerning their experience with their modular factory.
+Through our discussion with staff at Aalborg University we identified some problems relating to use of the modular FESTO system. Additional problems concerning modular factories in general were found by looking into the litterature. In this section we will examine each of these issues. Problems discovered through Aalborg staff is not marked with a litterary reference.
 
-\begin{itemize}
-\item Finding the optimal factory configuration according to demand
-\item Having to rewrite KRL code, when rearranging the factory
-\item Error recovery is difficult 
-\end{itemize}
+\subsection{Calculating an optimal factory configuration}
+Given some production demands, design the optimal production line. That in itself is a very classic problem within manufacturing. As such, it relates to the modular factory as well. What defines an optimal production line is however not set in stone. It may plainly relate to throughput. Yet it could also be about balancing throughput with some cost negativly affecting overall profit. A cost could be the price of powering the line, purchase of modules, wages for human operators etc. A unique cost to take account of for modular factories, is the effort required for reconfiguration. Thus, while some configuration may have a very high throughput, it may not be optimal because of a high reconfiguration.  
 
-The first point is very much a classic issue when it comes to production. Often this focuses on designing production lines with a high throughput. However other variables may be interesting when it comes to a modular factory. This could for instance concern how much effort is required to move from one configuration to the next. Using a modular factory for production, a manufacturer also has to concern themselves with configuration design, as reconfiguration happens very frequently.  
+\subsection{Manual Software Reconfiguration}
+In regards to the FESTO system, we were told that reconfiguration did not only mean physcially moving and connecting modules in a new way. The equiptment sitting on top of the modules are controlled by KRL code. This code has to be manually updated by staff, each time a line is reconfigured. This includes coding different logical cases for each new variant of a product, leading to a lot of boilerplate code. Because of this, the effort needed to reconfigure a factory is higher than i should be. Staff were looking for a way to automatically generate this code based on the configuration.
+
+\subsection{Error Recovery}
+
+
+
+
+\subsection{Security}
+As stated before, modular factories make heavy use of networking technologies. With wireless communications especially comes the issue of security. Unauthorized access of industrial equiptment risk huge monetary and even human loses. Yet, in the light of this, it seems that smart factories do not focus sufficiently on their network security\cite{Sadeghi2015}.
+
+\subsection{Big Data}
+Modular factories relate to the field Big Data.   a lot of data is communicated, processed and 
 
 
 \input {sections/problemanalysis/problemdefinition.tex}
