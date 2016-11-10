@@ -1,4 +1,29 @@
 \chapter{Problem Analysis}\label{ch:problemanalysis}
-Something about the problem...
+In this chapter we will delwe deeper into the problem stated in \cref{ch:introduction}. While the eventual solution is aimed at the area of modular factories as a whole, we use the FESTO modular factory system \cite{FESTOweb} as a point of reference. This system was chosen specifically as Aalborg University's Department of Mechanical and Manufacturing Engineering have access to several FESTO modules. In the following sections we will give a quick description of the modular FESTO system. Then we look into the problems it poses. This leads into a problem definition.  
+
+\section{FESTO}
+The FESTO system accessible to us is the Cyber-Physcial(CP) Learning Factory. This is not intended for full fledged production, but rather to educate students and allow for industry 4.0 research. While not a full fledged system, we deem that it will aid in a general understanding of the field and its related problems. The public litterature about the CP-factory is rather light. The most reliable sources come from FESTO themselves, such as with \cite{CPFactory2015}. To supply the written material, we also use our own observations about the local setup, in addition to statements made by staff working the factory.  
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{CP_Factory.jpg}
+\caption{A CP-factory setup}
+\label{fig:festo-example}
+\end{figure}
+
+An example of a CP-factory setup can be seen in \cref{fig:festo-example}. Each module in a setup is made up of the same base unit. This includes a control panel as well as two conveyor belts moving in opposite directions. Modules can be connected either at the narrow ends or on the face opposite the control panel. On each module new equiptment may be fitted. This can include a robot arm, a drill, camera etc. The high level factory tasks are handled through a MES(Manufacturing Execution System)known as MES4. This controls production order dispatch, scheduling, resource management etc. The low level control occuring at each module is determined by KRL code, created for each module and its equiptment. The factory also uses a large amount of networking technologies. RFID technology is used to monitor the location of individual items running along the conveyor belts. Individual modules may communicate by fieldbus, while overall communications in the factory occurs over a WLAN. The factory may also be connected to an Enterprise Resource Planning (ERP) system or other factories through MES4. A production run is initiated by activating each module through its control panel, then launching from a PC.
+
+\section{Problems in modular factories}
+Speaking to staff at Aalborg University we identified the following issues concerning their experience with their modular factory.
+
+\begin{itemize}
+\item Finding the optimal factory configuration according to demand
+\item Having to rewrite KRL code, when rearranging the factory
+\item Error recovery is difficult 
+\end{itemize}
+
+The first point is very much a classic issue when it comes to production. Often this focuses on designing production lines with a high throughput. However other variables may be interesting when it comes to a modular factory. This could for instance concern how much effort is required to move from one configuration to the next. Using a modular factory for production, a manufacturer also has to concern themselves with configuration design, as reconfiguration happens very frequently.  
+
 
 \input {sections/problemanalysis/problemdefinition.tex}
+
