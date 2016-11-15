@@ -162,10 +162,11 @@ else if(direction == 2)
 else
     return 1;
 
-}  </declaration><location id="id2" x="96" y="-24"><name x="86" y="-54">Transporting</name><label kind="invariant" x="96" y="8">local_c &lt;= t_time[origin][succ]</label></location><location id="id3" x="-64" y="-24"><name x="-80" y="-8">Selector</name><committed/></location><location id="id4" x="-336" y="-24"><name x="-384" y="-32">Idle</name></location><init ref="id4"/><transition><source ref="id2"/><target ref="id4"/><label kind="guard" x="32" y="-208">lock != -1 &amp;&amp;
-is_done(lock) &amp;&amp;
-local_c == t_time[origin][succ]</label><label kind="synchronisation" x="32" y="-168">remove[lock]!</label><nail x="8" y="-152"/><nail x="-128" y="-184"/><nail x="-256" y="-160"/></transition><transition><source ref="id2"/><target ref="id4"/><label kind="guard" x="-208" y="168">local_c == t_time[origin][succ]</label><label kind="synchronisation" x="-208" y="152">enqueue[next[succ]]!</label><label kind="assignment" x="-208" y="184">var = lock, 
-var2 = inverse(succ)</label><nail x="16" y="96"/><nail x="-40" y="152"/><nail x="-224" y="152"/><nail x="-320" y="96"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="select" x="-48" y="-96">e: did_safe_t</label><label kind="guard" x="-48" y="-80">next[e] != -1</label><label kind="assignment" x="-48" y="-64">succ = e,
+}  </declaration><location id="id2" x="96" y="-24"><name x="86" y="-54">Transporting</name><label kind="invariant" x="96" y="8">local_c &lt;= t_time[origin][succ]</label></location><location id="id3" x="-64" y="-24"><name x="-80" y="-8">Selector</name><committed/></location><location id="id4" x="-336" y="-24"><name x="-384" y="-32">Idle</name></location><init ref="id4"/><transition><source ref="id3"/><target ref="id4"/><label kind="guard" x="-264" y="-64">lock != -1 &amp;&amp;
+is_done(lock)</label><label kind="synchronisation" x="-260" y="-39">remove[lock]!</label></transition><transition><source ref="id2"/><target ref="id4"/><label kind="guard" x="-208" y="168">local_c == t_time[origin][succ]</label><label kind="synchronisation" x="-208" y="152">enqueue[next[succ]]!</label><label kind="assignment" x="-208" y="184">var = lock, 
+var2 = inverse(succ)</label><nail x="16" y="96"/><nail x="-40" y="152"/><nail x="-224" y="152"/><nail x="-320" y="96"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="select" x="-48" y="-120">e: did_safe_t</label><label kind="guard" x="-48" y="-104">next[e] != -1 &amp;&amp;
+lock != -1 &amp;&amp;
+!is_done(lock)</label><label kind="assignment" x="-48" y="-64">succ = e,
 local_c = 0</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="-240" y="40">intern[mid]?</label><label kind="assignment" x="-240" y="56">lock = var,
 origin = var2,
 local_c = 0</label><nail x="-200" y="32"/></transition><transition><source ref="id4"/><target ref="id3"/><label kind="guard" x="-240" y="-176">pass_through</label><label kind="synchronisation" x="-240" y="-160">dequeue[mid]!</label><label kind="assignment" x="-240" y="-144">lock = var,
