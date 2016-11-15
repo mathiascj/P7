@@ -76,8 +76,8 @@ void add(rid_t recipe){
     }
 }
 
-rid_t origin_pop(){
-    rid_t result = origin_queue[0];
+did_t origin_pop(){
+    did_t result = origin_queue[0];
     int i;
     for(i = 0; i &lt; length; ++i){
 	    if(i != length - 1){
@@ -118,9 +118,10 @@ bool not_empty(){
 
 void init_queues(){
     int i;
-    for(i = 0; i &lt; length; ++i)
+    for(i = 0; i &lt; length; ++i){
         queue[i] = -1;
         origin_queue[i] = -1;
+    }
 }
 
 int calculate_remaining(rid_t rid){
@@ -392,7 +393,7 @@ int n_children_len2[N_OF_NOD1] = {1, 1, 1, 1, 0};
 
 r2 = Recipe(2, 0, n_works2, n_num_parents2, n_children2, n_children_len2, N_OF_NOD1,3);
 
-rid_t rqa0[NUMBER_OF_RECIPES] = {2, -1, -1};
+rid_t rqa0[NUMBER_OF_RECIPES] = {0, 1, 2};
 rq0 = RecipeQueue(rqa0);
 
 coster = Coster(1);
