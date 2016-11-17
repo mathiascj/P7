@@ -1,0 +1,34 @@
+\section{Recipe}\label{sec:recipe}
+In this section, we will describe how we modelled items that are produced by a modular factory. Looking into earlier projects developed using UPPAAL, an item being produced is often implemented as a sequence of actions, which must be taken in order to complete the item. Therefore items are often refered to as recipes. We will do the same from this point on. 
+
+There are of course different ways of implementing a recipe. The most simple variant is a list of actions, which must be performed linearly. However, we find it more flexible to implement a recipe as a dependency graph. This is because we often do not care for the precise sequence of actions, just that some actions are performed before others. This is easily described using a dependency graph as seen in \cref{fig:dependency-graph}. This recipe describes that it needs to be hammered and screwed before it is packaged, yet it cares not in which order the hammering and scewing takes place. 
+
+We know that in some real life systems, a single item may be created through the aggregation of parts, which are individually produced. To escape this complexity, we only consider items, whose production is never distributed. That is the production of an item starts at one single point and ends at another point never splitting up. As we represent recipes as dependency graphs, it also means that the same work can not be applied on a recipe several times, as this would produce cycles in graph. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.3\textwidth]{dependencygraph.pdf}
+\caption{Dependency graph describing order of actions}
+\label{fig:dependency-graph}
+\end{figure}
+
+In \cref{fig:recipe} we present the recipe template. This template may be instantiated with parameters, to produce an instance functioning according to a specific dependency graph. In our implementation, each node of the underlying graph knows the type of work it represents, how many nodes it depends on, which nodes depend on it and how many nodes depend on it. In addition to the functional dependency graph, a recipe also has a unique id, as well as the id for the module, on which it should start processing. 
+
+When a recipe begins processing, it is placed onto its start module, and we find the ids of nodes, which do not depend on any other node. The ids of these are placed into the local \emph{current\_nodes} array, and represent what actions can be performed on the recipe. After this, the recipe is moved along the factory. Each time it meets a module, where it wishes to have an action performed, it will handshake on its own private channel with the module. Afterwards it will synchronize with the module again on one of the allowed \emph{work} channels. As the \emph{handshaking} location is commited the handshake acts as a mutex, ensuring that no other recipe can suddenly be worked by the module. A work channel can be synchronized on, if one of the nodes in the \emph{current\_nodes} array, represent the work type corresponding to that work channel. Once work has been accomplished, the worked node is removed. If this frees up any unworked node in the graph, its id is added to the \emph{current\_nodes} array. When the array is empty, it means that there is no work left to do, and the local \emph{done} boolean is set to \emph{True}. From this point on a recipe can not be worked on any further.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{recipe.pdf}
+\caption{Recipe template}
+\label{fig:recipe}
+\end{figure}
+
+We feel that our \emph{Recipe} template is a rather efficient implementation. However as each recipe instance represents a single item, we quickly get a large state space, if several recipies from the beginning are fighting to get onto the factory line. Therefore we implement a queuing system for recipies through the \emph{RecipeQueue} template as seen in \cref{fig:recipequeue}. This is instantiated with an array of recipe id's indicating the order in which we wish the recipes produced. Once instantiated, the queue may be popped from the front, and the recipe may begin processing. This reduces the state space, as recipes are to begin in a specified order. We will not get into how to produce an efficient ordering of recipes here, as it will be brought up in \cref{ch:configuration}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{recipequeue.pdf}
+\caption{RecipeQueue template}
+\label{fig:recipequeue}
+\end{figure}
