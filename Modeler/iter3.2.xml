@@ -167,7 +167,7 @@ int calculate_remaining(rid_t rid){
         if(worktype[i])
             remaining += p_time[i] * cost_rate[i];
     return remaining;
-}</declaration><location id="id0" x="104" y="-24"><committed/></location><location id="id1" x="-176" y="-216"><committed/></location><location id="id2" x="-176" y="-24"></location><init ref="id1"/><transition><source ref="id0"/><target ref="id2"/><label kind="guard" x="-136" y="48">!can_work(worktype,lock)</label><label kind="synchronisation" x="-136" y="64">transport_dequeue[mid]!</label><label kind="assignment" x="-136" y="80">var = lock, var2 = origin</label><nail x="40" y="104"/><nail x="-136" y="104"/></transition><transition><source ref="id0"/><target ref="id2"/><label kind="synchronisation" x="-136" y="-176">work_dequeue[mid]!</label><label kind="assignment" x="-136" y="-160">var = lock, var2 = origin</label><nail x="96" y="-48"/><nail x="56" y="-144"/><nail x="-144" y="-144"/></transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="-104" y="-80">not_empty()</label><label kind="assignment" x="-104" y="-64">lock = pop(),
+}</declaration><location id="id0" x="104" y="-24"><committed/></location><location id="id1" x="-176" y="-216"><committed/></location><location id="id2" x="-176" y="-24"></location><init ref="id1"/><transition><source ref="id0"/><target ref="id2"/><label kind="guard" x="-136" y="40">!can_work(worktype,lock)</label><label kind="synchronisation" x="-136" y="56">transport_dequeue[mid]!</label><label kind="assignment" x="-136" y="72">var = lock, var2 = origin</label><nail x="40" y="96"/><nail x="-136" y="96"/></transition><transition><source ref="id0"/><target ref="id2"/><label kind="synchronisation" x="-136" y="-176">work_dequeue[mid]!</label><label kind="assignment" x="-136" y="-160">var = lock, var2 = origin</label><nail x="96" y="-48"/><nail x="56" y="-144"/><nail x="-144" y="-144"/></transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="-104" y="-96">not_empty()</label><label kind="assignment" x="-104" y="-80">lock = pop(),
 origin = origin_pop()</label></transition><transition><source ref="id1"/><target ref="id2"/><label kind="assignment" x="-280" y="-176">init_queues()</label></transition><transition><source ref="id2"/><target ref="id2"/><label kind="guard" x="-496" y="8">not_full()</label><label kind="synchronisation" x="-496" y="24">enqueue[mid]?</label><label kind="assignment" x="-496" y="40">add(var),
 remaining += calculate_remaining(var),
 origin_add(var2)</label><nail x="-320" y="40"/><nail x="-320" y="-80"/></transition></template><template><name>ModuleTransporter</name><parameter>const mid_safe_t mid, const int t_time[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS], const mid_t next[NUMBER_OF_OUTPUTS], bool pass_through</parameter><declaration>clock local_c;
@@ -220,12 +220,12 @@ void init_unworked(){
         unworked[i] = true;
 }
 
-</declaration><location id="id6" x="0" y="56"><committed/></location><location id="id7" x="-424" y="48"><committed/></location><location id="id8" x="-264" y="48"><name x="-280" y="64">Idle</name></location><location id="id9" x="0" y="-248"><name x="-10" y="-278">Handshaking</name><committed/></location><location id="id10" x="-424" y="-248"><name x="-432" y="-280">Done</name><committed/></location><location id="id11" x="0" y="-96"><name x="-24" y="-80">Working</name><label kind="invariant" x="24" y="-104">local_c &lt;= p_time[work_index] &amp;&amp;
+</declaration><location id="id6" x="0" y="48"><committed/></location><location id="id7" x="-424" y="48"><committed/></location><location id="id8" x="-288" y="48"><name x="-304" y="64">Idle</name></location><location id="id9" x="0" y="-248"><name x="-10" y="-278">Handshaking</name><committed/></location><location id="id10" x="-424" y="-248"><name x="-432" y="-280">Done</name><committed/></location><location id="id11" x="0" y="-96"><name x="-24" y="-64">Working</name><label kind="invariant" x="32" y="-112">local_c &lt;= p_time[work_index] &amp;&amp;
 cost' == cost_rate[work_index]</label></location><init ref="id7"/><transition><source ref="id6"/><target ref="id11"/><label kind="select" x="40" y="-32">e: wid_safe_t</label><label kind="guard" x="40" y="-16">worktype[e] &amp;&amp;
 unworked[e]</label><label kind="assignment" x="40" y="16">work_index = e,
 local_c = 0,
-remaining -= p_time[e] * cost_rate[e]</label></transition><transition><source ref="id10"/><target ref="id6"/><label kind="guard" x="-288" y="-176">can_work(worktype,lock)</label></transition><transition><source ref="id8"/><target ref="id10"/><label kind="synchronisation" x="-272" y="-24">work_dequeue[mid]?</label><label kind="assignment" x="-272" y="-8">lock = var,
-origin = var2</label></transition><transition><source ref="id7"/><target ref="id8"/><label kind="assignment" x="-400" y="72">init_unworked()</label></transition><transition><source ref="id10"/><target ref="id7"/><label kind="guard" x="-616" y="-144">!can_work(worktype,lock)</label><label kind="synchronisation" x="-544" y="-128">intern[mid]!</label><label kind="assignment" x="-544" y="-112">var = lock,
+remaining -= p_time[e] * cost_rate[e]</label></transition><transition><source ref="id10"/><target ref="id6"/><label kind="guard" x="-288" y="-176">can_work(worktype,lock)</label></transition><transition><source ref="id8"/><target ref="id10"/><label kind="synchronisation" x="-288" y="-24">work_dequeue[mid]?</label><label kind="assignment" x="-280" y="-8">lock = var,
+origin = var2</label></transition><transition><source ref="id7"/><target ref="id8"/><label kind="assignment" x="-416" y="72">init_unworked()</label></transition><transition><source ref="id10"/><target ref="id7"/><label kind="guard" x="-616" y="-160">!can_work(worktype,lock)</label><label kind="synchronisation" x="-544" y="-144">intern[mid]!</label><label kind="assignment" x="-544" y="-128">var = lock,
 var2 = origin</label></transition><transition><source ref="id9"/><target ref="id10"/><label kind="synchronisation" x="-272" y="-288">work[work_index]!</label><label kind="assignment" x="-304" y="-272">unworked[work_index] = false</label></transition><transition><source ref="id11"/><target ref="id9"/><label kind="guard" x="24" y="-224">local_c == p_time[work_index]</label><label kind="synchronisation" x="24" y="-200">handshake[lock]?</label></transition></template><template><name>Recipe</name><parameter>rid_safe_t rid, mid_t mid_start, wid_safe_t&amp; n_work[NUMBER_OF_WORKTYPES],  int&amp; n_num_parents[NUMBER_OF_WORKTYPES], int&amp; n_children[NUMBER_OF_WORKTYPES][NUMBER_OF_WORKTYPES], int&amp; n_children_len[NUMBER_OF_WORKTYPES], const int length, did_safe_t origin</parameter><declaration>bool done = false; //Indicates when we are done with recipe; 
 int current_nodes[length]; //Keeps track of currently accessible nodes, which can be worked 
 int c_length = 0; // Length of current array to consider
@@ -383,7 +383,7 @@ const int time2[NUMBER_OF_OUTPUTS] = {-1, -1, 164, -1};
 const int t_time2[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {empty, empty, empty, time2};
 
 q2 = ModuleQueue(2, 3, wa2, pa2, ca2); // id, queue length
-t2 = ModuleTransporter(2, t_time2, na2, true); // id, t_time, next
+t2 = ModuleTransporter(2, t_time2, na2, false); // id, t_time, next
 w2 = ModuleWorker(2, wa2, pa2, ca2);
 
 // Module 3
@@ -428,13 +428,13 @@ w5 = ModuleWorker(5, wa5, pa5, ca5);
 const int empty2[NUMBER_OF_WORKTYPES] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
 // Recipe 0
-wid_t n_works0[NUMBER_OF_WORKTYPES] = {0, 2, 3, 6, 7, -1, -1, -1};
-int n_num_parents0[NUMBER_OF_WORKTYPES] = {0, 1, 1, 1, 1, -1, -1, -1};
-int n_children0[NUMBER_OF_WORKTYPES][NUMBER_OF_WORKTYPES] = {{1, -1, -1, -1, -1, -1, -1, -1}, {2, -1, -1, -1, -1, -1, -1, -1},
-								{3, -1, -1, -1, -1, -1, -1, -1}, {4, -1, -1, -1, -1, -1, -1, -1},
+wid_t n_works0[NUMBER_OF_WORKTYPES] = {0, 2, 6, 7, -1, -1, -1, -1};
+int n_num_parents0[NUMBER_OF_WORKTYPES] = {0, 1, 1, 1, -1, -1, -1, -1};
+int n_children0[NUMBER_OF_WORKTYPES][NUMBER_OF_WORKTYPES] = {{1, -1, -1, -1, -1, -1, -1, -1}, {3, -1, -1, -1, -1, -1, -1, -1},
+								{4, -1, -1, -1, -1, -1, -1, -1}, {-1, -1, -1, -1, -1, -1, -1, -1},
 								 empty2, empty2, empty2, empty2};
-int n_children_len0[NUMBER_OF_WORKTYPES] = {1, 1, 1, 1, 0, -1, -1, -1};
-const int number_of_nodes0 = 5;
+int n_children_len0[NUMBER_OF_WORKTYPES] = {1, 1, 1, 0, -1, -1, -1, -1};
+const int number_of_nodes0 = 4;
 
 r0 = Recipe(0, 0, n_works0, n_num_parents0, n_children0, n_children_len0, number_of_nodes0, 0);
 
