@@ -81,5 +81,6 @@ def get_satisfied(result):
         return True
 
 
-
+def pprint(bytestring):
+    print(bytestring.decode('utf-8'))
 
