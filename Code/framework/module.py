@@ -23,12 +23,32 @@ class SquareModule(Module):
     """ Represents Square Modules, where each edge can connect and be connected to be adjacent modules. This results in
     a grid like pattern for the entire factory configuration.
     """
-    def __init__(self, m_id, w_type, p_time, t_time, c_rate, up=None, down=None, left=None, right=None):
+    def __init__(self, m_id, w_type, p_time, c_rate, t_time, queue_length, allow_passthrough=False, up=None, down=None,
+                 left=None, right=None):
+        """
+        :param m_id: Id of the module, has to be unique for each module
+        :param w_type: A list of work types that this module is capable of performing, worktypes should be unique
+        integers
+        :param p_time: A dict of processing times, key is w_type and value the processing time
+        :param c_rate: A dict of cost rates, key is w_type and value cost rate
+        :param t_time: A 4x4 array (list) that defines the travel time from each input to each output of the module
+        :param queue_length: An integer specifying how many recipes that can be in the queue on the module
+        :param allow_passthrough: Boolean that specifies wether a recipe can skip working on a module and just go
+        straight to transporting
+        :param up: ID of the module situated above
+        :param down: ID of the module situated below
+        :param left: ID of the module situated to the left
+        :param right: ID of the module situated to the rigth
+        """
         # Private members, instantiated here for the sake of readability
         self.__up = None
         self.__down = None
         self.__left = None
         self.__right = None
+
+        # Attributes
+        self.queue_length = queue_length
+        self.allow_passthrough = allow_passthrough
 
         # Properties
         self.up = up
@@ -36,12 +56,31 @@ class SquareModule(Module):
         self.left = left
         self.right = right
 
-        super().__init__(connections=[up, down, left, right],
+        if len(t_time) != 4:
+            raise ValueError("t_time needs to be a 4x4 array")
+
+        for i in range(4):
+            if len(t_time[i]) != 4:
+                raise ValueError("t_time needs to be a 4x4 array")
+
+        if len(w_type) != len(p_time):
+            raise ValueError("w_type and p_time should be of equal length. Recieved lengths w_type: " + str(len(w_type))
+                             + " and p_time: " + str(len(p_time)))
+
+        if len(w_type) != len(c_rate):
+            raise ValueError("w_type and c_rate should be of equal length. Recieved lengths w_type: " + str(len(w_type))
+                             + " and c_rate: " + str(len(c_rate)))
+
+        super().__init__(connections=[up, right, down, left],
                          m_id=m_id,
                          w_type=w_type,
                          p_time=p_time,
                          t_time=t_time,
                          c_rate=c_rate)
+
+
+    def __update_connections(self):
+        self.connections = [self.up, self.right, self.down, self.left]
 
     @property
     def up(self):
@@ -54,6 +93,7 @@ class SquareModule(Module):
         if up:                          # Add ourselves to new
             up.__down = self
         self.__up = up
+        self.__update_connections()
 
     @property
     def down(self):
@@ -66,6 +106,7 @@ class SquareModule(Module):
         if down:
             down.__up = self
         self.__down = down
+        self.__update_connections()
 
     @property
     def left(self):
@@ -78,6 +119,7 @@ class SquareModule(Module):
         if left:
             left.__right = self
         self.__left = left
+        self.__update_connections()
 
     @property
     def right(self):
@@ -90,6 +132,7 @@ class SquareModule(Module):
         if right:
             right.__left = self
         self.__right = right
+        self.__update_connections()
 
     def make_grid(self, start_pos=(0, 0), ignore={None}):
         grid = {start_pos: self.m_id}
