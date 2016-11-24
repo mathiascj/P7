@@ -10,6 +10,7 @@ STR_NUMBER_OF_MODULES = "NUMBER_OF_MODULES"
 STR_NUMBER_OF_RECIPES = "NUMBER_OF_RECIPES"
 STR_NUMBER_OF_WORKTYPES = "NUMBER_OF_WORKTYPES"
 STR_NUMBER_OF_OUTPUTS = "NUMBER_OF_OUTPUTS"
+STR_NUMBER_OF_INITS = "NUMBER_OF_INITS"
 
 STR_MID = "mid"     # Module ID
 STR_RID = "rid"     # Recipe ID
@@ -63,13 +64,17 @@ def typedef_decl(type_name, max_val):
     return s
 
 
-def chan_decl(chan_name, size):
+def chan_decl(chan_name, size, urgent=False):
     """
     :param chan_name: Name of the channel
     :param size: Size of the channel
+    :param urgent: Bool if the channel should be urgent
     :return: A string that declare the channel
     """
-    return "chan " + chan_name + "[" + str(size) + "];\n"
+    s = ""
+    if urgent:
+        s += "urgent "
+    return s + "chan " + chan_name + "[" + str(size) + "];\n"
 
 
 def create_model_xml(file, global_decl_string, system_string, new_file):
@@ -166,7 +171,8 @@ def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
     create_query(recipe_names)
 
 
-def generate_global_declarations(number_of_modules, number_of_recipes, number_of_worktypes, number_of_outputs):
+def generate_global_declarations(number_of_modules, number_of_recipes, number_of_worktypes, number_of_outputs,
+                                 number_of_inits):
     """
     Generates a string to replace text in global declaration node
     :param number_of_modules: Number of modules in model
@@ -182,6 +188,7 @@ def generate_global_declarations(number_of_modules, number_of_recipes, number_of
     s += const_int_decl(STR_NUMBER_OF_RECIPES, number_of_recipes)
     s += const_int_decl(STR_NUMBER_OF_WORKTYPES, number_of_worktypes)
     s += const_int_decl(STR_NUMBER_OF_OUTPUTS, number_of_outputs)
+    s += const_int_decl(STR_NUMBER_OF_INITS, number_of_inits)
     s += "\n"
 
     # Types
@@ -196,13 +203,16 @@ def generate_global_declarations(number_of_modules, number_of_recipes, number_of
 
     # Channels
     s += "// Channels\n"
-    s += chan_decl("enqueue", STR_NUMBER_OF_MODULES)
-    s += chan_decl("dequeue", STR_NUMBER_OF_MODULES)
-    s += chan_decl("intern", STR_NUMBER_OF_MODULES)
+    s += chan_decl("enqueue", STR_NUMBER_OF_MODULES, True)
+    s += chan_decl("work_dequeue", STR_NUMBER_OF_MODULES)
+    s += chan_decl("transport_dequeue", STR_NUMBER_OF_MODULES)
+    s += chan_decl("intern", STR_NUMBER_OF_MODULES, True) 
     s += chan_decl("remove", STR_NUMBER_OF_RECIPES)
     s += chan_decl("rstart", STR_NUMBER_OF_RECIPES)
     s += chan_decl("handshake", STR_NUMBER_OF_RECIPES)
     s += chan_decl("work", STR_NUMBER_OF_WORKTYPES)
+    s += chan_decl("initialize", STR_NUMBER_OF_INITS)
+    s += "urgent chan urg;\n"
     s += "\n"
 
     # Misc
@@ -216,6 +226,12 @@ def generate_global_declarations(number_of_modules, number_of_recipes, number_of
     s += int_decl("var2")
 
     s += """
+//Variables used for passing values at handshake
+int var = -1;
+int var2 = -1;
+bool can_continue = true;
+bool can_add_recipe = true;
+
 //Functions for tracking completed recipes
 bool ra_done[NUMBER_OF_RECIPES];
 
@@ -227,7 +243,31 @@ void init_ra_done(){
 
 bool is_done(rid_safe_t rid){
     return ra_done[rid];
-}"""
+}
+
+
+bool current_works[NUMBER_OF_RECIPES][NUMBER_OF_WORKTYPES];
+
+void init_current_works(){
+    int i, j;
+    for(i = 0; i < NUMBER_OF_RECIPES; ++i)
+        for(j = 0; j < NUMBER_OF_WORKTYPES; ++j)
+            current_works[i][j] = false;
+}
+
+
+bool can_work(bool worktype[NUMBER_OF_WORKTYPES], rid_safe_t rid){
+    int i;
+    for(i = 0; i < NUMBER_OF_WORKTYPES; ++i){
+        if(worktype[i] &&  current_works[rid][i])
+            return true;}
+    return false;
+}
+
+bool full_modules[NUMBER_OF_MODULES];
+bool idle_workers[NUMBER_OF_MODULES];
+bool idle_transporters[NUMBER_OF_MODULES];
+"""
     return s
 
 
@@ -304,20 +344,17 @@ def generate_module_declaration(module, number_of_worktypes, number_of_outputs):
     s += temp
     pa, temp = p_time_array(module, number_of_worktypes)
     s += temp
-    ca, temp = c_rate_array(module, number_of_worktypes)
-    s += temp
     na, temp = next_array(module, number_of_outputs)
     s += temp
     ta, temp = t_time_array(module, number_of_outputs)
     s += temp
 
     mq = STR_MODULE_QUEUE + str(module.m_id)
-    s +=  mq + " = ModuleQueue(" + str(module.m_id) + ", " + str(module.queue_length)
-    s += ", " + wa + ", " + pa + ", " + ca + ");\n"
+    s += mq + " = ModuleQueue(" + str(module.m_id) + ", " + str(module.queue_length)
+    s += ", " + wa + ");\n"
 
     mw = STR_MODULE_WORKER + str(module.m_id)
-    s += mw + " = ModuleWorker(" + str(module.m_id) + ", " + wa + ", " + pa + ", "
-    s += ca + ");\n"
+    s += mw + " = ModuleWorker(" + str(module.m_id) + ", " + wa + ", " + pa + ");\n"
 
     mt = STR_MODULE_TRANSPORTER + str(module.m_id)
     s += mt + " = ModuleTransporter(" + str(module.m_id) + ", " + ta + ", " + na
@@ -352,20 +389,6 @@ def p_time_array(module, number_of_worktypes):
     for w_type in range(number_of_worktypes):
         if w_type in module.w_type:
             s += str(module.p_time[w_type])
-        else:
-            s += "0"
-        if w_type != number_of_worktypes - 1:
-            s += ", "
-    s += "};\n"
-    return varname, s
-
-
-def c_rate_array(module, number_of_worktypes):
-    varname = STR_CA + str(module.m_id)
-    s = "const int " + varname + "[" + STR_NUMBER_OF_WORKTYPES + "] = {"
-    for w_type in range(number_of_worktypes):
-        if w_type in module.w_type:
-            s += str(module.c_rate[w_type])
         else:
             s += "0"
         if w_type != number_of_worktypes - 1:
@@ -504,4 +527,4 @@ func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
 r0 = Recipe(func_deps, 0, 3)
 r1 = Recipe(func_deps2, 0, 3)
 r2 = Recipe(func_deps3, 0, 3)
-generate_xml("../../Modeler/iter3.1.xml", modules, [r0, r1, r2])
+generate_xml("../../Modeler/iter3.2.xml", modules, [r0, r1, r2])
