@@ -1,15 +1,14 @@
 class Module:
     """ Module class that contains all the required information for XML to be generated to the UPPAAL model. Represents
-    a real life factory module, in that it is identifiable with m_id, does some work w_type, that takes p_time and costs
-    c_rate pre time. Furthermore it takes t_time to travel through the module.
+    a real life factory module, in that it is identifiable with m_id, does some work w_type, that takes p_time.
+    Furthermore it takes t_time to travel through the module.
     """
-    def __init__(self, connections, m_id, w_type, p_time, t_time, c_rate):
+    def __init__(self, connections, m_id, w_type, p_time, t_time):
         self.connections = connections
         self.m_id = m_id
         self.w_type = w_type
         self.p_time = p_time
         self.t_time = t_time
-        self.c_rate = c_rate
 
 
 def get_id(module):
@@ -23,14 +22,13 @@ class SquareModule(Module):
     """ Represents Square Modules, where each edge can connect and be connected to be adjacent modules. This results in
     a grid like pattern for the entire factory configuration.
     """
-    def __init__(self, m_id, w_type, p_time, c_rate, t_time, queue_length, allow_passthrough=False, up=None, down=None,
+    def __init__(self, m_id, w_type, p_time,  t_time, queue_length, allow_passthrough=False, up=None, down=None,
                  left=None, right=None):
         """
         :param m_id: Id of the module, has to be unique for each module
         :param w_type: A list of work types that this module is capable of performing, worktypes should be unique
         integers
         :param p_time: A dict of processing times, key is w_type and value the processing time
-        :param c_rate: A dict of cost rates, key is w_type and value cost rate
         :param t_time: A 4x4 array (list) that defines the travel time from each input to each output of the module
         :param queue_length: An integer specifying how many recipes that can be in the queue on the module
         :param allow_passthrough: Boolean that specifies wether a recipe can skip working on a module and just go
@@ -67,16 +65,11 @@ class SquareModule(Module):
             raise ValueError("w_type and p_time should be of equal length. Recieved lengths w_type: " + str(len(w_type))
                              + " and p_time: " + str(len(p_time)))
 
-        if len(w_type) != len(c_rate):
-            raise ValueError("w_type and c_rate should be of equal length. Recieved lengths w_type: " + str(len(w_type))
-                             + " and c_rate: " + str(len(c_rate)))
-
         super().__init__(connections=[up, right, down, left],
                          m_id=m_id,
                          w_type=w_type,
                          p_time=p_time,
-                         t_time=t_time,
-                         c_rate=c_rate)
+                         t_time=t_time)
 
 
     def __update_connections(self):
