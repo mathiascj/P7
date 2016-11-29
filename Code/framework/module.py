@@ -154,24 +154,24 @@ class SquareModule(Module):
 
         # We add our up, down, right, left to the grid
         if self.up not in ignore_c:
-            grid.update(self.up.make_grid((pos[0] + 1, pos[1]), ignore_c))
+            grid.update(self.up.make_grid((pos[0], pos[1] + 1), ignore_c))
         if self.down not in ignore_c:
-            grid.update(self.down.make_grid((pos[0] - 1, pos[1]), ignore_c))
+            grid.update(self.down.make_grid((pos[0], pos[1] - 1), ignore_c))
         if self.right not in ignore_c:
-            grid.update(self.right.make_grid((pos[0], pos[1] + 1), ignore_c))
+            grid.update(self.right.make_grid((pos[0] + 1, pos[1]), ignore_c))
         if self.left not in ignore_c:
-            grid.update(self.left.make_grid((pos[0], pos[1] - 1), ignore_c))
+            grid.update(self.left.make_grid((pos[0] - 1, pos[1]), ignore_c))
 
         # We add __in_up, __in_down, __in_right, __in_left to the grid. This is done to make sure we catch all modules
         # and not only the ones are successors to this module.
         if self.__in_up not in ignore_c:
-            grid.update(self.__in_up.make_grid((pos[0] + 1, pos[1]), ignore_c))
+            grid.update(self.__in_up.make_grid((pos[0], pos[1] + 1), ignore_c))
         if self.__in_down not in ignore_c:
-            grid.update(self.__in_down.make_grid((pos[0] - 1, pos[1]), ignore_c))
+            grid.update(self.__in_down.make_grid((pos[0], pos[1] - 1), ignore_c))
         if self.__in_right not in ignore_c:
-            grid.update(self.__in_right.make_grid((pos[0], pos[1] + 1), ignore_c))
+            grid.update(self.__in_right.make_grid((pos[0] + 1, pos[1]), ignore_c))
         if self.__in_left not in ignore_c:
-            grid.update(self.__in_left.make_grid((pos[0], pos[1] - 1), ignore_c))
+            grid.update(self.__in_left.make_grid((pos[0] - 1, pos[1]), ignore_c))
 
         return grid
 
@@ -196,6 +196,7 @@ class SquareModule(Module):
         s += "\n    Left  -> " + str(get_id(self.left))
         s += "\n    Right -> " + str(get_id(self.right))
         print(s)
+
 
     def __repr__(self):
         return str(self.m_id)
