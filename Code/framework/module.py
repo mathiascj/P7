@@ -191,6 +191,7 @@ class SquareModule(Module):
         """ Pretty Prints a module
         """
         s = str(self.__class__)
+        s += "\n    Self  -> " + str(self.m_id)
         s += "\n    Up    -> " + str(get_id(self.up))
         s += "\n    Down  -> " + str(get_id(self.down))
         s += "\n    Left  -> " + str(get_id(self.left))
