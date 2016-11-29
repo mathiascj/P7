@@ -514,7 +514,6 @@ def create_query(recipe_names, new_file_name="test.q"):
 
 m0 = SquareModule(0, [0, 1, 2], {0: 2, 1: 2, 2: 3},
                   [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]], 3, True)
-m0.up = m0
 
 t0 = [[-1, -1, -1, -1],
       [-1, -1, -1, 117],
