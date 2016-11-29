@@ -197,7 +197,6 @@ class SquareModule(Module):
         s += "\n    Right -> " + str(get_id(self.right))
         print(s)
 
-
     def __repr__(self):
         return str(self.m_id)
 
