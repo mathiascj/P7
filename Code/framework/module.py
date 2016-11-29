@@ -44,6 +44,11 @@ class SquareModule(Module):
         self.__left = None
         self.__right = None
 
+        self.__in_up = None
+        self.__in_down = None
+        self.__in_left = None
+        self.__in_right = None
+
         # Attributes
         self.queue_length = queue_length
         self.allow_passthrough = allow_passthrough
@@ -71,8 +76,9 @@ class SquareModule(Module):
                          p_time=p_time,
                          t_time=t_time)
 
-
     def __update_connections(self):
+        """ Updates the connections variable with the directions
+        """
         self.connections = [self.up, self.right, self.down, self.left]
 
     @property
@@ -82,9 +88,9 @@ class SquareModule(Module):
     @up.setter
     def up(self, up):
         if self.__up:                   # Remove ourselves from currently connected to
-            self.__up.__down = None
+            self.__up.__in_down = None
         if up:                          # Add ourselves to new
-            up.__down = self
+            up.__in_down = self
         self.__up = up
         self.__update_connections()
 
@@ -95,9 +101,9 @@ class SquareModule(Module):
     @down.setter
     def down(self, down):
         if self.__down:
-            self.__down.__up = None
+            self.__down.__in_up = None
         if down:
-            down.__up = self
+            down.__in_up = self
         self.__down = down
         self.__update_connections()
 
@@ -108,9 +114,9 @@ class SquareModule(Module):
     @left.setter
     def left(self, left):
         if self.__left:
-            self.__left.__right = None
+            self.__left.__in_right = None
         if left:
-            left.__right = self
+            left.__in_right = self
         self.__left = left
         self.__update_connections()
 
@@ -121,33 +127,78 @@ class SquareModule(Module):
     @right.setter
     def right(self, right):
         if self.__right:
-            self.__right.__left = None
+            self.__right.__in_left = None
         if right:
-            right.__left = self
+            right.__in_left = self
         self.__right = right
         self.__update_connections()
 
-    def make_grid(self, start_pos=(0, 0), ignore={None}):
-        grid = {start_pos: self.m_id}
-        ignore.add(self)
-        if self.up not in ignore:
-            grid.update(self.up.make_grid((start_pos[0], start_pos[1] + 1), ignore))
-        if self.down not in ignore:
-            grid.update(self.down.make_grid((start_pos[0], start_pos[1] - 1), ignore))
-        if self.left not in ignore:
-            grid.update(self.left.make_grid((start_pos[0] - 1, start_pos[1]), ignore))
-        if self.right not in ignore:
-            grid.update(self.right.make_grid((start_pos[0] + 1, start_pos[1]), ignore))
+    def make_grid(self, pos=(0, 0), ignore={None}):
+        """ Makes a grid with the current module as its center, i.e. coordinates (0, 0)
+        :param pos: Position that a module is relative to module who started the call. The module that starts the call
+        shouldn't use this parameter. Defaults to (0, 0) as the module that starts the call should be in the center of
+        the grid.
+        :param ignore: A set of modules that are ignore, is used to so that we don not cycle.
+        :return: A dictionary, were the keys are modules and the values are a tuple representing their position in the
+        grid.
+        """
+        # We add ourselves to the grid at position pos
+        grid = {self: pos}
+
+        # The ignore set is copied, because ignore is mutable and it would therefor fuck up subsequent calls if we used
+        # it directly
+        ignore_c = ignore.copy()
+
+        # We add ourselves to the ignore set, so that we wont be called again in the future.
+        ignore_c.add(self)
+
+        # We add our up, down, right, left to the grid
+        if self.up not in ignore_c:
+            grid.update(self.up.make_grid((pos[0] + 1, pos[1]), ignore_c))
+        if self.down not in ignore_c:
+            grid.update(self.down.make_grid((pos[0] - 1, pos[1]), ignore_c))
+        if self.right not in ignore_c:
+            grid.update(self.right.make_grid((pos[0], pos[1] + 1), ignore_c))
+        if self.left not in ignore_c:
+            grid.update(self.left.make_grid((pos[0], pos[1] - 1), ignore_c))
+
+        # We add __in_up, __in_down, __in_right, __in_left to the grid. This is done to make sure we catch all modules
+        # and not only the ones are successors to this module.
+        if self.__in_up not in ignore_c:
+            grid.update(self.__in_up.make_grid((pos[0] + 1, pos[1]), ignore_c))
+        if self.__in_down not in ignore_c:
+            grid.update(self.__in_down.make_grid((pos[0] - 1, pos[1]), ignore_c))
+        if self.__in_right not in ignore_c:
+            grid.update(self.__in_right.make_grid((pos[0], pos[1] + 1), ignore_c))
+        if self.__in_left not in ignore_c:
+            grid.update(self.__in_left.make_grid((pos[0], pos[1] - 1), ignore_c))
+
         return grid
 
-    def __repr__(self):
+    def can_connect(self, module, direction):
+        """ Checks whether or not a module can be connect to this one in a good ol' practical way.
+        :param module: The module you wish to connect
+        :param direction: The direction in which you wish to connect it
+        :return: A boolean, stating whether or not the module could be practically connected
+        """
+        grid = self.make_grid()
+        if module in grid.keys():
+            return grid[module] == direction
+        elif module not in grid.keys():
+            return direction not in grid.values()
+
+    def pprint(self):
+        """ Pretty Prints a module
+        """
         s = str(self.__class__)
         s += "\n    Up    -> " + str(get_id(self.up))
         s += "\n    Down  -> " + str(get_id(self.down))
         s += "\n    Left  -> " + str(get_id(self.left))
         s += "\n    Right -> " + str(get_id(self.right))
-        return s
+        print(s)
 
+    def __repr__(self):
+        return str(self.m_id)
 
 
 
