@@ -3,7 +3,7 @@ const int NUMBER_OF_MODULES = 6;
 const int NUMBER_OF_RECIPES = 3;
 const int NUMBER_OF_WORKTYPES = 8;
 const int NUMBER_OF_OUTPUTS = 4;
-const int NUMBER_OF_INITS = 20;
+const int NUMBER_OF_INITS = NUMBER_OF_MODULES * 3 + 2;
 
 clock global_c;
 
@@ -42,7 +42,7 @@ chan handshake[NUMBER_OF_RECIPES];
 chan work[NUMBER_OF_WORKTYPES]; 
 urgent chan urg;
 
-chan initialize[NUMBER_OF_INITS + 1];
+chan initialize[NUMBER_OF_INITS];
 
 
 //Variables used for passing values at handshake
@@ -218,7 +218,7 @@ else if(direction == 2)
     return 0;
 else
     return 1;
-}  </declaration><location id="id3" x="-40" y="168"></location><location id="id4" x="-424" y="-176"></location><location id="id5" x="232" y="-24"><name x="222" y="-54">Transporting</name><label kind="invariant" x="248" y="-16">local_c &lt;= t_time[origin][succ]</label></location><location id="id6" x="-64" y="-24"><name x="-80" y="-8">Selector</name><committed/></location><location id="id7" x="-424" y="-24"><name x="-472" y="-32">Idle</name></location><init ref="id4"/><transition><source ref="id5"/><target ref="id3"/><label kind="guard" x="232" y="64">t_time[origin][succ] == local_c</label><nail x="232" y="168"/></transition><transition><source ref="id3"/><target ref="id7"/><label kind="synchronisation" x="-240" y="184">enqueue[next[succ]]!</label><label kind="assignment" x="-240" y="200">var = lock, 
+}  </declaration><location id="id3" x="-40" y="168"></location><location id="id4" x="-424" y="-176"><committed/></location><location id="id5" x="232" y="-24"><name x="222" y="-54">Transporting</name><label kind="invariant" x="248" y="-16">local_c &lt;= t_time[origin][succ]</label></location><location id="id6" x="-64" y="-24"><name x="-80" y="-8">Selector</name><committed/></location><location id="id7" x="-424" y="-24"><name x="-472" y="-32">Idle</name></location><init ref="id4"/><transition><source ref="id5"/><target ref="id3"/><label kind="guard" x="232" y="64">t_time[origin][succ] == local_c</label><nail x="232" y="168"/></transition><transition><source ref="id3"/><target ref="id7"/><label kind="synchronisation" x="-240" y="184">enqueue[next[succ]]!</label><label kind="assignment" x="-240" y="200">var = lock, 
 var2 = inverse(succ),
 idle_transporters[mid] = true</label><nail x="-424" y="168"/></transition><transition><source ref="id4"/><target ref="id7"/><label kind="synchronisation" x="-544" y="-128">initialize[init_id]!</label><label kind="assignment" x="-632" y="-104">idle_transporters[mid] = true</label></transition><transition><source ref="id6"/><target ref="id7"/><label kind="guard" x="-288" y="-72">lock != -1 &amp;&amp;
 is_done(lock)</label><label kind="synchronisation" x="-284" y="-47">remove[lock]!</label><label kind="assignment" x="-304" y="-24">idle_transporters[mid] = true</label></transition><transition><source ref="id6"/><target ref="id5"/><label kind="select" x="24" y="-120">e: did_safe_t</label><label kind="guard" x="24" y="-104">next[e] != -1 &amp;&amp;
