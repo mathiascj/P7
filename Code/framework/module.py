@@ -59,6 +59,8 @@ class SquareModule(Module):
         self.left = left
         self.right = right
 
+        self.active_w_type = set()
+
         if len(t_time) != 4:
             raise ValueError("t_time needs to be a 4x4 array")
 
@@ -186,6 +188,18 @@ class SquareModule(Module):
             return grid[module] == direction
         elif module not in grid.keys():
             return direction not in grid.values()
+
+    def swap(self, module):
+        module.up = self.up
+        self.__up = None
+        module.right = self.right
+        self.__right = None
+        module.down = self.down
+        self.__down = None
+        module.left = self.left
+        self.__left = None
+        self.active_w_type = set()
+
 
     def pprint(self):
         """ Pretty Prints a module
