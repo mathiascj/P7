@@ -1,5 +1,5 @@
-import verifytaAPI
-from xml_generator import generate_xml, generate_query
+from UPPAAL import verifytaAPI
+from Generation.xml_generator import generate_xml, create_query
 
 NEW_XML_FILE = 'temp.xml'
 NEW_Q_FILE = 'temp.q'
@@ -19,7 +19,7 @@ def xml_helper(configuration, modules, recipes, template_file):
     for m in modules:
         m.set_connections(configuration)
     generate_xml(template_file=template_file, modules=modules, recipes=recipes, new_file_name=NEW_XML_FILE)
-    generate_query(len(recipes), NEW_Q_FILE)
+    create_query(len(recipes), NEW_Q_FILE)
 
 
 def get_best_cost(configuration, modules, recipes, template_file, verifyta):

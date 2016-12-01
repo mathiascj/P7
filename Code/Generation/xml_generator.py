@@ -129,7 +129,7 @@ def create_model_xml(file, global_decl_string, system_string, new_file):
     tree.write(new_file)
 
 
-def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
+def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="test.q"):
     """
     Method to be called directly by user.
     Based on modules and recipes a new UPPAAL model is formed.
@@ -209,8 +209,8 @@ def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
     system_string += generate_system_declaration(system_list + recipe_names)
 
     # Write xml and query files
-    create_model_xml(template_file, global_decl_string, system_string, new_file_name)
-    create_query(recipe_names)
+    create_model_xml(template_file, global_decl_string, system_string, xml_name)
+    create_query(recipe_names, q_name)
 
     # Reset global vars
     m_id_dict = {}
@@ -568,7 +568,7 @@ def generate_system_declaration(system_list):
     return s
 
 
-def create_query(recipe_names, new_file_name="test.q"):
+def create_query(recipe_names, q_name="test.q"):
     """
     Generates a query file, containing a query to check whether all recipes are done.
     :param recipe_names: Names of the recipes for which a query will be generated
@@ -579,6 +579,7 @@ def create_query(recipe_names, new_file_name="test.q"):
         s += recipe + ".done"
         if i != len(recipe_names) - 1:
             s += " and "
-    f = open(new_file_name, 'w')
+    f = open(q_name, 'w')
     f.write(s)
     f.close()
+
