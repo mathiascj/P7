@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <nta>
 	<declaration>// Global Declarations
 // Constants
@@ -872,3 +873,6 @@ initer = Initializer();
 urge = Urgent();
 system mqueue0, mworker0, mtransporter0, mqueue1, mworker1, mtransporter1, mqueue2, mworker2, mtransporter2, mqueue3, mworker3, mtransporter3, mqueue4, mworker4, mtransporter4, mqueue5, mworker5, mtransporter5, rqueue, rem, initer, urge, recipe0, recipe1, recipe2, recipe3, recipe4;</system>
 	</nta>
+=======
+E<> recipe0.done and recipe1.done
+>>>>>>> 715cf337923a52f2d5eacfc9eb619ab62f0799d4

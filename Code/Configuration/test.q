@@ -1,1 +1,1 @@
-E<> recipe0.done
+E<> recipe0.done and recipe1.done

@@ -1,8 +1,10 @@
+
 from UPPAAL.verifytaAPI import run_verifyta, get_trace_time, pprint
 from Generation.xml_generator import generate_xml
 
 XML_FILE = 'temp.xml'
 Q_FILE = 'temp.q'
+
 
 def get_best_time(recipes, modules, template_file, verifyta):
     """

@@ -37,12 +37,13 @@ STR_MODULE_TRANSPORTER = "mtransporter"
 
 STR_RECIPE_NAME = "recipe"
 
-init_index = 0
-
+# Mapping dicts. For when not all works and modules are used.
 m_id_dict = {}
 inverted_m_id_dict = {}
 w_id_dict = {}
 inverted_w_id_dict = {}
+
+init_index = 0
 
 
 def get_init_index():
@@ -137,33 +138,31 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     :param recipes: A list of recipes, each being a functional dependency graph
     :param new_file_name: Path to new file
     """
-
     global m_id_dict
     global inverted_m_id_dict
-
     global w_id_dict
     global inverted_w_id_dict
 
     # Module id mapping
     m_id = 0
+
     for module in modules:
         m_id_dict[module.m_id] = m_id
         m_id += 1
 
-
     inverted_m_id_dict = {v: k for k, v in m_id_dict.items()}
 
     # Finds number of unique worktypes that can be performed with the modules
+    # Work id mapping
     w_id = 0
-
     S = set()
+
     for m in modules:
         S.update(m.w_type)
         for w in m.w_type:
             w_id_dict[w] = w_id
             w_id += 1
     number_of_worktypes = len(S)
-
 
     inverted_w_id_dict = {v: k for k, v in w_id_dict.items()}
 
@@ -220,7 +219,7 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     w_id_dict = {}
     inverted_w_id_dict = {}
 
-    #Inverse mapping
+    # Inverse mapping
     return inverted_m_id_dict
 
 
@@ -346,35 +345,56 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
     size = STR_NUMBER_OF_WORKTYPES
     nodes = []
 
+
+    child_mapping = {}
     # For each node add information to the initialization lists
-    for work, deps in recipe.items():
-        number_of_parents = len(deps)
+    for index, entry in enumerate(recipe.items()):
+        node = {}
+        work = entry[0]
+        deps = entry[1]
+
+        node['work'] = work
+        node['number_of_parents'] = len(deps)
         children = []
 
         # Gets children of node
         for node_id, parents in recipe.items():
             if work in parents:
                 mapped_id = w_id_dict[node_id]
-                children.append(str(mapped_id))
+                children.append(mapped_id)
 
-
-        number_of_children = len(children)
+        node['number_of_children'] = len(children)
 
         # Fills out rest of children list with -1s
         while len(children) < number_of_worktypes:
             children.append(-1)
 
-        children_string = ("{" + ", ".join(map(str, children)) + "}")
-        node_string = "{" + str(w_id_dict[work]) + ", " + str(number_of_parents) + \
-                      ", " + children_string + ", " + str(number_of_children) + "}"
+        node['children'] = children
 
-        nodes.append(node_string)
+        # Creates a mapping between the node's work and its index in the final list of nodes.
+        child_mapping[w_id_dict[work]] = index
 
-    number_of_nodes = len(nodes)
+        nodes.append(node)
+
+    child_mapping[-1] = -1
+
+    node_strings = []
+    for node in nodes:
+        # Maps the old children values to ones based on the child's index in the final list of nodes.
+        node['children'] = [child_mapping[x] for x in node['children']]
+
+        # Creates a string, delcaring the given node and stores it.
+        children_string = ("{" + ", ".join(map(str, node['children'])) + "}")
+        node_string = "{" + str(w_id_dict[node['work']]) + ", " + str(node['number_of_parents']) + \
+                      ", " + children_string + ", " + str(node['number_of_children']) + "}"
+        node_strings.append(node_string)
+
+
+    number_of_nodes = len(node_strings)
 
     # Fills up remaining array with empty nodes
-    while len(nodes) < number_of_worktypes:
-        nodes.append(generate_empty_node(number_of_worktypes))
+    while len(node_strings) < number_of_worktypes:
+        node_strings.append(generate_empty_node(number_of_worktypes))
 
     # Creates actual declaration string
     varname = STR_RECIPE_NAME + str(id)
@@ -383,7 +403,7 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
 
     # Creates all recipe nodes
     node_names = []
-    for index, node in enumerate(nodes):
+    for index, node in enumerate(node_strings):
         name = "r" + str(id) + "node" + str(index)
         node_names.append(name)
         s += "const node " + name + " = " + str(node) + "; \n"
@@ -397,7 +417,7 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
     s += "const int " + number_of_nodes_string + " = " + str(number_of_nodes) + "; \n"
 
     # Instantiates recipe template
-    s += "recipe" + str(id) + " = Recipe(" + str(id) + ", " + str(recipe.start_module) + \
+    s += "recipe" + str(id) + " = Recipe(" + str(id) + ", " + str(m_id_dict[recipe.start_module]) + \
          ", " + func_dep_string + ", " + number_of_nodes_string + ", " + str(recipe.start_direction) + ");\n\n"
 
     return varname, s
@@ -411,7 +431,6 @@ def generate_module_declaration(module, number_of_worktypes, number_of_outputs):
     :param number_of_outputs: Number of output directions for modules
     :return: strings declaring module
     """
-
     id = m_id_dict[module.m_id]
 
     s = "// Module " + str(id) + "\n"
@@ -562,3 +581,5 @@ def create_query(recipe_names, q_name="test.q"):
             s += " and "
     f = open(q_name, 'w')
     f.write(s)
+    f.close()
+

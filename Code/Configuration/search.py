@@ -32,6 +32,7 @@ def get_factorial_list(nodes):
 def initial_configuration(recipes, modules, transporters=None):
     G = Recipe.get_flow_graph(recipes)
     G.reverse()
+    Recipe.plot(G)
     G_copy = nx.topological_sort(G)
 
     conf = []
@@ -90,6 +91,7 @@ def tabu_search(recipes, modules, init_func):
     return current_best
 
 
+<<<<<<< HEAD
 
 t0 = [[100, 100, 100, 100],
       [100, 100, 100, 100],
@@ -170,3 +172,5 @@ r2 = Recipe(func_deps3, 0, 3)
 x = initial_configuration([r0, r1, r2], modules)
 
 y = tabu_search([r0, r1, r2], modules, None, initial_configuration)
+=======
+>>>>>>> 715cf337923a52f2d5eacfc9eb619ab62f0799d4

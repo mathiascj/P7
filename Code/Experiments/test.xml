@@ -1,1 +1,470 @@
+<<<<<<< HEAD
 E<> recipe0.done and recipe1.done and recipe2.done and recipe3.done and recipe4.done
+=======
+<nta><declaration>// Global Declarations
+// Constants
+const int NUMBER_OF_MODULES = 7;
+const int NUMBER_OF_RECIPES = 2;
+const int NUMBER_OF_WORKTYPES = 8;
+const int NUMBER_OF_OUTPUTS = 4;
+const int NUMBER_OF_INITS = 23;
+
+// User defined types.
+// Safe means that we cannot go to -1.
+// -1 is however sometimes needed as a filler value, so it can be permitted.
+typedef int[-1, NUMBER_OF_MODULES - 1] mid_t;
+typedef int[0, NUMBER_OF_MODULES - 1] mid_safe_t;
+typedef int[-1, NUMBER_OF_RECIPES - 1] rid_t;
+typedef int[0, NUMBER_OF_RECIPES - 1] rid_safe_t;
+typedef int[-1, NUMBER_OF_WORKTYPES - 1] wid_t;
+typedef int[0, NUMBER_OF_WORKTYPES - 1] wid_safe_t;
+typedef int[-1, NUMBER_OF_OUTPUTS - 1] did_t;
+typedef int[0, NUMBER_OF_OUTPUTS - 1] did_safe_t;
+
+
+typedef struct {
+	wid_t work;
+	int number_of_parents;
+	int children[NUMBER_OF_WORKTYPES];
+	int number_of_children;
+} node;
+// Channels
+urgent chan enqueue[NUMBER_OF_MODULES];
+chan work_dequeue[NUMBER_OF_MODULES];
+chan transport_dequeue[NUMBER_OF_MODULES];
+urgent chan intern[NUMBER_OF_MODULES];
+chan remove[NUMBER_OF_RECIPES];
+chan rstart[NUMBER_OF_RECIPES];
+chan handshake[NUMBER_OF_RECIPES];
+chan work[NUMBER_OF_WORKTYPES];
+chan initialize[NUMBER_OF_INITS];
+urgent chan urg;
+
+// Global clock
+clock global_c;
+
+
+//Variables used for passing values at handshake
+int var = -1;
+int var2 = -1;
+bool can_continue = true;
+bool can_add_recipe = true;
+
+//Functions for tracking completed recipes
+bool ra_done[NUMBER_OF_RECIPES];
+
+void init_ra_done(){
+    int i;
+    for(i = 0; i &lt; NUMBER_OF_RECIPES; ++i)
+        ra_done[i] = false;
+}
+
+bool is_done(rid_safe_t rid){
+    return ra_done[rid];
+}
+
+
+bool current_works[NUMBER_OF_RECIPES][NUMBER_OF_WORKTYPES];
+
+void init_current_works(){
+    int i, j;
+    for(i = 0; i &lt; NUMBER_OF_RECIPES; ++i)
+        for(j = 0; j &lt; NUMBER_OF_WORKTYPES; ++j)
+            current_works[i][j] = false;
+}
+
+
+bool can_work(bool worktype[NUMBER_OF_WORKTYPES], rid_safe_t rid){
+    int i;
+    for(i = 0; i &lt; NUMBER_OF_WORKTYPES; ++i){
+        if(worktype[i] &amp;&amp;  current_works[rid][i])
+            return true;}
+    return false;
+}
+
+bool full_modules[NUMBER_OF_MODULES];
+bool idle_workers[NUMBER_OF_MODULES];
+bool idle_transporters[NUMBER_OF_MODULES];
+</declaration><template><name x="8" y="8">ModuleQueue</name><parameter>const mid_safe_t mid, int init_id, const int length, const bool worktype[NUMBER_OF_WORKTYPES], const bool pass_through</parameter><declaration>// Place local declarations here.
+rid_t queue[length]; //Queue for recipes waiting to be processed
+did_t origin_queue[length]; //Queue for direction from which the recipes come
+rid_t lock = -1;
+did_t origin = -1;
+
+
+//Pops first element from queue
+rid_t pop(){
+    rid_t result = queue[0];
+    int i;
+    for(i = 0; i &lt; length; ++i){
+	    if(i != length - 1){
+            queue[i] = queue[i + 1];
+        }
+	    else {
+            queue[i] = -1;
+        }
+    }
+    return result;
+}
+
+//Adds element to back of queue
+void add(rid_t recipe){
+    int i;
+    bool flag = true;
+    for(i = 0; i &lt; length &amp;&amp; flag; ++i){
+        if(queue[i] == -1){
+            queue[i] = recipe;
+            flag = false;
+        }
+    }
+}
+
+//Pops first element from origin_queue
+did_t origin_pop(){
+    did_t result = origin_queue[0];
+    int i;
+    for(i = 0; i &lt; length; ++i){
+	    if(i != length - 1){
+            origin_queue[i] = origin_queue[i + 1];
+        }
+	    else {
+            origin_queue[i] = -1;
+        }
+    }
+    return result;
+}
+
+// Adds element to the back of origin_queue
+void origin_add(did_t direction){
+    int i;
+    bool flag = true;
+    for(i = 0; i &lt; length &amp;&amp; flag; ++i){
+        if(origin_queue[i] == -1){
+            origin_queue[i] = direction;
+            flag = false;
+        }
+    }
+}
+
+//Checks if queue of waiting recipes is not full
+bool not_full(){
+    if(queue[length - 1] == -1)
+        return true;
+    else
+        return false;
+}
+
+//Checks if queue of waiting recipes is not empty
+bool not_empty(){
+    if(queue[0] != -1)
+        return true;
+    else
+        return false;
+}
+
+//Initializing functions. Filling queues with -1's
+void init_queues(){
+    int i;
+    for(i = 0; i &lt; length; ++i){
+        queue[i] = -1;
+        origin_queue[i] = -1;
+    }
+}
+
+
+void if_full(){
+    if(!not_full())
+        full_modules[mid] = true;
+}
+
+bool synchable(){
+    return (can_work(worktype, queue[0]) &amp;&amp; idle_workers[mid]) ||
+    (!can_work(worktype, queue[0]) &amp;&amp; (idle_workers[mid] || idle_transporters[mid]));
+}</declaration><location id="id0" x="120" y="-24"><committed /></location><location id="id1" x="-176" y="-240"><committed /></location><location id="id2" x="-176" y="-24" /><init ref="id1" /><transition><source ref="id0" /><target ref="id2" /><label kind="guard" x="-104" y="72">pass_through &amp;&amp; 
+!can_work(worktype, lock)</label><label kind="synchronisation" x="-104" y="104">transport_dequeue[mid]!</label><label kind="assignment" x="-104" y="120">var = lock, var2 = origin,
+full_modules[mid] = false</label><nail x="120" y="64" /><nail x="-120" y="64" /></transition><transition><source ref="id0" /><target ref="id2" /><label kind="guard" x="-104" y="-216">!(pass_through &amp;&amp; !can_work(worktype, lock))</label><label kind="synchronisation" x="-104" y="-200">work_dequeue[mid]!</label><label kind="assignment" x="-104" y="-184">var = lock, var2 = origin, 
+full_modules[mid] = false</label><nail x="120" y="-144" /><nail x="-128" y="-144" /></transition><transition><source ref="id2" /><target ref="id0" /><label kind="guard" x="-112" y="-128">not_empty() &amp;&amp;
+synchable() &amp;&amp;
+!can_add_recipe</label><label kind="synchronisation" x="-112" y="-80">urg!</label><label kind="assignment" x="-112" y="-64">lock = pop(),
+origin = origin_pop()</label></transition><transition><source ref="id1" /><target ref="id2" /><label kind="synchronisation" x="-304" y="-160">initialize[init_id]!</label><label kind="assignment" x="-280" y="-144">init_queues()</label></transition><transition><source ref="id2" /><target ref="id2" /><label kind="guard" x="-520" y="8">not_full()</label><label kind="synchronisation" x="-520" y="24">enqueue[mid]?</label><label kind="assignment" x="-520" y="40">add(var),
+origin_add(var2),
+if_full()</label><nail x="-344" y="40" /><nail x="-344" y="-72" /></transition></template><template><name>ModuleTransporter</name><parameter>const mid_safe_t mid, int init_id, const int t_time[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS], const mid_t next[NUMBER_OF_OUTPUTS], bool pass_through</parameter><declaration>clock local_c;
+did_t origin; //Direction where recipe came from
+did_t succ; //Direction in which recipe is going
+rid_t lock = -1; //Recipe being worked on
+
+// Returns true if recipe can be moved to module with id cid 
+bool is_callable(mid_t cid){
+   int i;
+   for(i = 0; i &lt; NUMBER_OF_OUTPUTS; ++i)
+        if(next[i] == cid){
+            return true;
+        }
+   return false;
+}
+
+//Returns the inverse of a direction
+//0 = up, 1 = right, 2 = down, 3 = left
+did_safe_t inverse(did_safe_t direction){
+if(direction == 0)
+    return 2;
+else if(direction == 1)
+    return 3;
+else if(direction == 2)
+    return 0;
+else
+    return 1;
+}  </declaration><location id="id3" x="-40" y="168" /><location id="id4" x="-424" y="-176"><committed /></location><location id="id5" x="232" y="-24"><name x="222" y="-54">Transporting</name><label kind="invariant" x="248" y="-16">local_c &lt;= t_time[origin][succ]</label></location><location id="id6" x="-64" y="-24"><name x="-80" y="-8">Selector</name><committed /></location><location id="id7" x="-424" y="-24"><name x="-472" y="-32">Idle</name></location><init ref="id4" /><transition><source ref="id5" /><target ref="id3" /><label kind="guard" x="232" y="64">t_time[origin][succ] == local_c</label><nail x="232" y="168" /></transition><transition><source ref="id3" /><target ref="id7" /><label kind="synchronisation" x="-240" y="184">enqueue[next[succ]]!</label><label kind="assignment" x="-240" y="200">var = lock, 
+var2 = inverse(succ),
+idle_transporters[mid] = true</label><nail x="-424" y="168" /></transition><transition><source ref="id4" /><target ref="id7" /><label kind="synchronisation" x="-544" y="-128">initialize[init_id]!</label><label kind="assignment" x="-632" y="-104">idle_transporters[mid] = true</label></transition><transition><source ref="id6" /><target ref="id7" /><label kind="guard" x="-288" y="-72">lock != -1 &amp;&amp;
+is_done(lock)</label><label kind="synchronisation" x="-284" y="-47">remove[lock]!</label><label kind="assignment" x="-304" y="-24">idle_transporters[mid] = true</label></transition><transition><source ref="id6" /><target ref="id5" /><label kind="select" x="24" y="-120">e: did_safe_t</label><label kind="guard" x="24" y="-104">next[e] != -1 &amp;&amp;
+lock != -1 &amp;&amp;
+!is_done(lock) &amp;&amp;
+can_continue</label><label kind="assignment" x="24" y="-64">succ = e,
+local_c = 0</label></transition><transition><source ref="id7" /><target ref="id6" /><label kind="synchronisation" x="-280" y="48">intern[mid]?</label><label kind="assignment" x="-384" y="32">lock = var,
+origin = var2,
+local_c = 0,
+idle_transporters[mid] = false</label><nail x="-248" y="48" /></transition><transition><source ref="id7" /><target ref="id6" /><label kind="guard" x="-288" y="-192">pass_through</label><label kind="synchronisation" x="-288" y="-176">transport_dequeue[mid]?</label><label kind="assignment" x="-288" y="-160">lock = var,
+origin = var2,
+local_c = 0,
+idle_transporters[mid] = false</label><nail x="-248" y="-112" /></transition></template><template><name>ModuleWorker</name><parameter>const mid_safe_t mid,  int init_id, const bool worktype[NUMBER_OF_WORKTYPES],  const int p_time[NUMBER_OF_WORKTYPES]</parameter><declaration>clock local_c;
+did_t origin = -1; //Direction from which recipe came from
+rid_t lock = -1; //Recipe being worked on
+int work_index; //Work being performed  
+
+//Keeps track of which works we have performed. 
+//Reduces state space
+bool unworked[NUMBER_OF_WORKTYPES];
+
+void init_unworked(){
+    int i;
+    for(i = 0; i &lt; NUMBER_OF_WORKTYPES; ++i)
+        unworked[i] = true;
+}
+
+</declaration><location id="id8" x="-560" y="48"><committed /></location><location id="id9" x="0" y="56"><committed /></location><location id="id10" x="-424" y="48"><committed /></location><location id="id11" x="-288" y="48"><name x="-304" y="64">Idle</name></location><location id="id12" x="0" y="-248"><name x="-10" y="-278">Handshaking</name><committed /></location><location id="id13" x="-424" y="-248"><name x="-432" y="-280">Done</name></location><location id="id14" x="0" y="-96"><name x="-24" y="-64">Working</name><label kind="invariant" x="32" y="-112">local_c &lt;= p_time[work_index]</label></location><init ref="id8" /><transition><source ref="id8" /><target ref="id10" /><label kind="synchronisation" x="-576" y="64">initialize[init_id]!</label><label kind="assignment" x="-576" y="72">can_continue = false</label></transition><transition><source ref="id9" /><target ref="id14" /><label kind="select" x="40" y="-32">e: wid_safe_t</label><label kind="guard" x="40" y="-16">worktype[e] &amp;&amp;
+unworked[e]</label><label kind="assignment" x="40" y="16">work_index = e,
+local_c = 0</label></transition><transition><source ref="id13" /><target ref="id9" /><label kind="guard" x="-288" y="-176">can_work(worktype,lock)</label><label kind="synchronisation" x="-216" y="-144">urg!</label></transition><transition><source ref="id11" /><target ref="id13" /><label kind="synchronisation" x="-288" y="-24">work_dequeue[mid]?</label><label kind="assignment" x="-280" y="-8">lock = var,
+origin = var2,
+idle_workers[mid] = false</label></transition><transition><source ref="id10" /><target ref="id11" /><label kind="assignment" x="-416" y="72">init_unworked(),
+can_continue = true,
+idle_workers[mid] = true</label></transition><transition><source ref="id13" /><target ref="id10" /><label kind="guard" x="-640" y="-192">!can_work(worktype,lock) &amp;&amp;
+idle_transporters[mid]</label><label kind="synchronisation" x="-600" y="-160">intern[mid]!</label><label kind="assignment" x="-592" y="-128">var = lock,
+var2 = origin,
+can_continue = false</label></transition><transition><source ref="id12" /><target ref="id13" /><label kind="synchronisation" x="-272" y="-288">work[work_index]!</label><label kind="assignment" x="-304" y="-272">unworked[work_index] = false</label></transition><transition><source ref="id14" /><target ref="id12" /><label kind="guard" x="24" y="-200">local_c == p_time[work_index]</label><label kind="synchronisation" x="24" y="-184">handshake[lock]?</label></transition></template><template><name>Recipe</name><parameter>rid_safe_t rid, mid_t mid_start, node&amp; func_dep[NUMBER_OF_WORKTYPES], const int length, did_safe_t origin</parameter><declaration>bool done = false; //Indicates when we are done with recipe; 
+node current_nodes[length]; //Keeps track of currently accessible nodes, which can be worked 
+int c_length = 0; // Length of current array to consider
+node called_node; // Node being worked on
+
+// Called at beginning of recipe. Will find all independent nodes in dependency graph 
+void get_upper_nodes(){
+    int i;
+    
+    //Searches through graph, if a node is found not to have a parent it is added.
+    for(i = 0; i &lt; length; i++){
+	node n = func_dep[i];
+        if(n.number_of_parents == 0){
+            current_nodes[c_length] = n;
+	    current_works[rid][n.work] = true;
+	    c_length++;    
+        }
+    }
+}
+
+//Checks whether a given work can be performed
+bool is_callable(wid_safe_t w){
+    int i;
+    for(i = 0; i &lt; c_length; i++){
+        if(current_nodes[i].work == w){
+		return true;
+	}
+    }
+    return false;   
+}
+
+//Checks whether a given work can be performed
+void set_called_node(wid_safe_t w){
+    int i;
+    bool flag = true;
+    for(i = 0; i &lt; c_length &amp;&amp; flag; i++){
+        if(current_nodes[i].work == w){
+            	called_node = current_nodes[i];
+		flag = false;
+	}
+    }
+}
+
+
+//Updates the current_nodes array to reflect that work has been done.
+void update_current_nodes(){
+    node new_nodes[length];
+    int i;
+    int j = 0;
+	
+    current_works[rid][called_node.work] = false;
+
+    // Collects all elements of current_nodes except for the node just worked on.
+    // Decrements the size of array by 1
+    for(i = 0; i &lt; c_length; i++){
+        if(current_nodes[i] != called_node){
+            new_nodes[j] = current_nodes[i]; 
+            j++;
+        }
+    }
+    c_length--;
+
+    // Finds all children on the node that has been worked on and decrements their number of parents by 1
+    for(i = 0; i &lt; called_node.number_of_children; i++){  
+        
+	node child = func_dep[called_node.children[i]];
+	int res;
+	res = --child.number_of_parents;
+	
+        // If child has lost all it's parents :-(
+        // It is added to the array of current nodes
+        if(res == 0){
+            new_nodes[c_length] = child;
+            current_works[rid][child.work] = true;
+            c_length++;
+        }
+    }
+    
+    // Overwrite the old current array with new one
+    for(i = 0; i &lt; c_length; i++)
+        current_nodes[i] = new_nodes[i];  
+} 
+
+// Finishes recipe if all nodes have been processed
+void no_more_nodes(){
+   
+    if(c_length == 0) {
+	done = true;      
+        ra_done[rid] = true; 
+    }
+}</declaration><location id="id15" x="-176" y="-160"><name x="-160" y="-168">Handshaking</name><committed /></location><location id="id16" x="-400" y="-160"><name x="-496" y="-168">InProgress</name></location><location id="id17" x="-400" y="-296"><name x="-410" y="-326">Start</name></location><init ref="id17" /><transition><source ref="id15" /><target ref="id16" /><label kind="select" x="-272" y="-96">e:wid_safe_t</label><label kind="guard" x="-272" y="-80">is_callable(e)</label><label kind="synchronisation" x="-272" y="-64">work[e]?</label><label kind="assignment" x="-272" y="-48">set_called_node(e),
+update_current_nodes(),
+no_more_nodes()</label><nail x="-288" y="-96" /></transition><transition><source ref="id16" /><target ref="id15" /><label kind="guard" x="-336" y="-256">done != true</label><label kind="synchronisation" x="-336" y="-240">handshake[rid]!</label><nail x="-288" y="-216" /></transition><transition><source ref="id17" /><target ref="id16" /><label kind="synchronisation" x="-552" y="-256">rstart[rid]!</label><label kind="assignment" x="-552" y="-240">var = mid_start,
+var2 = origin,
+get_upper_nodes()</label></transition></template><template><name>RecipeQueue</name><parameter>rid_t &amp;queue[NUMBER_OF_RECIPES],  int init_id</parameter><declaration>rid_t r = -1; //Recipe being worked on
+mid_t start = -1; //Module queuing into
+did_t origin; //Direction from which recipe came
+
+//Pops a recipe off the recipe queue
+rid_t pop(){
+    rid_t result = queue[0];
+    int i;
+    for(i = 0; i &lt; NUMBER_OF_RECIPES; ++i){
+	    if(i != NUMBER_OF_RECIPES - 1){
+            queue[i] = queue[i + 1];
+        }
+	    else {
+            queue[i] = -1;
+        }
+    }
+    return result;
+}
+
+//Checks if queue is not empty
+bool not_empty(){
+    if(queue[0] != -1)
+        return true;
+    else
+        return false;
+}</declaration><location id="id18" x="-472" y="-184" /><location id="id19" x="-480" y="88" /><location id="id20" x="-664" y="88"><committed /></location><location id="id21" x="-664" y="0"><committed /></location><location id="id22" x="-664" y="-288"><committed /></location><location id="id23" x="-664" y="-184" /><location id="id24" x="-664" y="-96"><committed /></location><init ref="id22" /><transition><source ref="id23" /><target ref="id18" /><label kind="guard" x="-632" y="-256">!not_empty()</label><label kind="synchronisation" x="-632" y="-240">urg!</label><label kind="assignment" x="-632" y="-224">can_add_recipe = false</label></transition><transition><source ref="id19" /><target ref="id20" /><label kind="guard" x="-640" y="96">!full_modules[start]</label><label kind="synchronisation" x="-640" y="112">urg!</label><label kind="assignment" x="-640" y="128">can_add_recipe = true</label></transition><transition><source ref="id21" /><target ref="id19" /><label kind="guard" x="-608" y="-8">full_modules[start]</label><label kind="assignment" x="-608" y="8">can_add_recipe = false</label></transition><transition><source ref="id20" /><target ref="id23" /><label kind="synchronisation" x="-1008" y="-64">enqueue[start]!</label><label kind="assignment" x="-1048" y="-48">var = r, var2 = origin</label><nail x="-892" y="88" /><nail x="-892" y="-184" /></transition><transition><source ref="id21" /><target ref="id20" /><label kind="guard" x="-816" y="24">!full_modules[start]</label></transition><transition><source ref="id24" /><target ref="id21" /><label kind="synchronisation" x="-760" y="-72">rstart[r]?</label><label kind="assignment" x="-768" y="-56">start = var,
+origin = var2</label></transition><transition><source ref="id22" /><target ref="id23" /><label kind="synchronisation" x="-804" y="-223">initialize[init_id]!</label><label kind="assignment" x="-824" y="-240">init_current_works()</label></transition><transition><source ref="id23" /><target ref="id24" /><label kind="guard" x="-768" y="-168">not_empty()</label><label kind="synchronisation" x="-744" y="-152">urg!</label><label kind="assignment" x="-760" y="-136">r = pop()</label></transition></template><template><name>Remover</name><parameter> int init_id</parameter><location id="id25" x="-384" y="-120"><committed /></location><location id="id26" x="-224" y="-120" /><init ref="id25" /><transition><source ref="id25" /><target ref="id26" /><label kind="synchronisation" x="-364" y="-135">initialize[init_id]!</label><label kind="assignment" x="-352" y="-112">init_ra_done()</label></transition><transition><source ref="id26" /><target ref="id26" /><label kind="select" x="-152" y="-144">e: rid_safe_t</label><label kind="synchronisation" x="-152" y="-128">remove[e]?</label><nail x="-160" y="-184" /><nail x="-160" y="-64" /></transition></template><template><name>Initializer</name><declaration>int counter = 0;
+</declaration><location id="id27" x="-336" y="24" /><location id="id28" x="-336" y="-56"><committed /></location><init ref="id28" /><transition><source ref="id28" /><target ref="id27" /><label kind="guard" x="-576" y="-8">counter &gt;= NUMBER_OF_INITS</label></transition><transition><source ref="id28" /><target ref="id28" /><label kind="guard" x="-192" y="-152">counter &lt; NUMBER_OF_INITS &amp;&amp; 
+can_continue</label><label kind="synchronisation" x="-192" y="-176">initialize[counter]?</label><label kind="assignment" x="-192" y="-112">counter += 1</label><nail x="-200" y="-56" /><nail x="-200" y="-176" /><nail x="-336" y="-176" /></transition></template><template><name>Urgent</name><location id="id29" x="-176" y="-64" /><init ref="id29" /><transition><source ref="id29" /><target ref="id29" /><label kind="synchronisation" x="-264" y="-88">urg?</label><nail x="-304" y="-64" /><nail x="-304" y="-136" /><nail x="-176" y="-136" /></transition></template><system>// Module 0
+const bool work_array0[NUMBER_OF_WORKTYPES] = {true, false, false, false, false, false, false, false};
+const int ptime_array0[NUMBER_OF_WORKTYPES] = {582, 0, 0, 0, 0, 0, 0, 0};
+const mid_t next_array0[NUMBER_OF_OUTPUTS] = {-1, 1, -1, -1};
+const int ttime_array0[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
+mqueue0 = ModuleQueue(0, 0, 3, work_array0, true);
+mworker0 = ModuleWorker(0, 1, work_array0, ptime_array0);
+mtransporter0 = ModuleTransporter(0, 2, ttime_array0, next_array0, true);
+
+// Module 1
+const bool work_array1[NUMBER_OF_WORKTYPES] = {false, true, false, false, false, false, false, false};
+const int ptime_array1[NUMBER_OF_WORKTYPES] = {0, 20, 0, 0, 0, 0, 0, 0};
+const mid_t next_array1[NUMBER_OF_OUTPUTS] = {-1, 2, -1, -1};
+const int ttime_array1[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
+mqueue1 = ModuleQueue(1, 3, 3, work_array1, false);
+mworker1 = ModuleWorker(1, 4, work_array1, ptime_array1);
+mtransporter1 = ModuleTransporter(1, 5, ttime_array1, next_array1, false);
+
+// Module 2
+const bool work_array2[NUMBER_OF_WORKTYPES] = {false, false, true, true, false, false, false, false};
+const int ptime_array2[NUMBER_OF_WORKTYPES] = {0, 0, 60, 0, 0, 0, 0, 0};
+const mid_t next_array2[NUMBER_OF_OUTPUTS] = {-1, 3, -1, -1};
+const int ttime_array2[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
+mqueue2 = ModuleQueue(2, 6, 3, work_array2, false);
+mworker2 = ModuleWorker(2, 7, work_array2, ptime_array2);
+mtransporter2 = ModuleTransporter(2, 8, ttime_array2, next_array2, false);
+
+// Module 3
+const bool work_array3[NUMBER_OF_WORKTYPES] = {false, false, false, false, true, false, false, false};
+const int ptime_array3[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 106, 0, 0, 0};
+const mid_t next_array3[NUMBER_OF_OUTPUTS] = {-1, 4, -1, -1};
+const int ttime_array3[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
+mqueue3 = ModuleQueue(3, 9, 3, work_array3, false);
+mworker3 = ModuleWorker(3, 10, work_array3, ptime_array3);
+mtransporter3 = ModuleTransporter(3, 11, ttime_array3, next_array3, false);
+
+// Module 4
+const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, true, false, false};
+const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 68, 0, 0};
+const mid_t next_array4[NUMBER_OF_OUTPUTS] = {-1, 5, -1, -1};
+const int ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
+mqueue4 = ModuleQueue(4, 12, 3, work_array4, true);
+mworker4 = ModuleWorker(4, 13, work_array4, ptime_array4);
+mtransporter4 = ModuleTransporter(4, 14, ttime_array4, next_array4, true);
+
+// Module 5
+const bool work_array5[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, false, true, false};
+const int ptime_array5[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 0, 68, 0};
+const mid_t next_array5[NUMBER_OF_OUTPUTS] = {-1, 6, -1, -1};
+const int ttime_array5[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
+mqueue5 = ModuleQueue(5, 15, 3, work_array5, true);
+mworker5 = ModuleWorker(5, 16, work_array5, ptime_array5);
+mtransporter5 = ModuleTransporter(5, 17, ttime_array5, next_array5, true);
+
+// Module 6
+const bool work_array6[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, false, false, true};
+const int ptime_array6[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 0, 0, 68};
+const mid_t next_array6[NUMBER_OF_OUTPUTS] = {-1, -1, -1, -1};
+const int ttime_array6[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
+mqueue6 = ModuleQueue(6, 18, 3, work_array6, true);
+mworker6 = ModuleWorker(6, 19, work_array6, ptime_array6);
+mtransporter6 = ModuleTransporter(6, 20, ttime_array6, next_array6, true);
+
+// Recipe 0
+const node r0node0 = {2, 0, {5, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node1 = {4, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node2 = {5, 1, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node3 = {6, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node4 = {7, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r0node5 = {3, 1, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node r0node7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep0[NUMBER_OF_WORKTYPES] = {r0node0,r0node1,r0node2,r0node3,r0node4,r0node5,r0node6,r0node7}; 
+const int number_of_nodes0 = 6; 
+recipe0 = Recipe(0, 2, func_dep0, number_of_nodes0, 3);
+
+// Recipe 1
+const node r1node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node1 = {1, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node2 = {6, 1, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node3 = {7, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r1node4 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node r1node5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node r1node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node r1node7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep1[NUMBER_OF_WORKTYPES] = {r1node0,r1node1,r1node2,r1node3,r1node4,r1node5,r1node6,r1node7}; 
+const int number_of_nodes1 = 4; 
+recipe1 = Recipe(1, 0, func_dep1, number_of_nodes1, 3);
+
+rid_t rqa[NUMBER_OF_RECIPES] = {0, 1};
+rqueue = RecipeQueue(rqa, 21);rem = Remover(22);
+initer = Initializer();
+urge = Urgent();
+system mqueue0, mworker0, mtransporter0, mqueue1, mworker1, mtransporter1, mqueue2, mworker2, mtransporter2, mqueue3, mworker3, mtransporter3, mqueue4, mworker4, mtransporter4, mqueue5, mworker5, mtransporter5, mqueue6, mworker6, mtransporter6, rqueue, rem, initer, urge, recipe0, recipe1;</system></nta>
+>>>>>>> 715cf337923a52f2d5eacfc9eb619ab62f0799d4
