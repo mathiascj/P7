@@ -1,9 +1,9 @@
 from framework.module import SquareModule
 from framework.recipe import Recipe
-from collections import OrderedDict
 from copy import deepcopy, copy
 from Generation.xml_generator import generate_xml
 from UPPAAL.verifytaAPI import run_verifyta, pprint
+import networkx as nx
 import random
 from UPPAAL.uppaalAPI import get_best_time
 import signal
@@ -31,9 +31,8 @@ def get_factorial_list(nodes):
 
 def initial_configuration(recipes, modules, transporters=None):
     G = Recipe.get_flow_graph(recipes)
-    G = Recipe.kahn_topological_sort(G, recipes[0].start_module)
-    a = G.reverse()
-    G_copy = deepcopy(G.nodes())
+    G.reverse()
+    G_copy = nx.topological_sort(G)
 
     conf = []
     while G_copy:
@@ -47,6 +46,7 @@ def initial_configuration(recipes, modules, transporters=None):
                 continue
             else:
                 break
+
         smallest_len = len(G)
         candidate = None
         for m in current:
@@ -75,14 +75,6 @@ def tabu_search(recipes, modules, transporters, init_func):
     long_term_memory = []
     intermediate_memory = []
     short_term_memory = []
-
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        print("Interrupted")
-
-
 
     #return current_best
 
@@ -167,25 +159,16 @@ t = [[100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100]]
 
+
 func_deps1 = {0: set(), 1: {0}, 4: {1}, 6: {4}, 7: {6}}
 func_deps2 = {0: set(), 2: {0}, 3: {2}, 6: {3}, 7: {6}}
 func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
 
 r0 = Recipe(func_deps1, 0, 3)
-r1 = Recipe(func_deps2, 0, 3)
+r1 = Recipe(func_deps2, 2, 3)
 r2 = Recipe(func_deps3, 0, 3)
-
-create_transporters(5, t, [1, 1, 1, 1, 1])
 
 
 x = initial_configuration([r0, r1, r2], modules)
 
 y = tabu_search([r0, r1, r2], modules, None, initial_configuration)
-"""
-generate_xml("../../Modeler/iter3.4.1.xml", x, [r0, r1, r2])
-res, trace = run_verifyta("../../Code/Generation/test.xml",
-             "../../Code/Generation/test.q", "-t 2 -o 3 -u",
-             verifyta='/home/beta/uppaal64-4.1.19/bin-Linux/verifyta')
-
-pprint(res)
-"""

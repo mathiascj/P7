@@ -1,10 +1,10 @@
 <nta><declaration>// Global Declarations
 // Constants
-const int NUMBER_OF_MODULES = 8;
-const int NUMBER_OF_RECIPES = 3;
-const int NUMBER_OF_WORKTYPES = 8;
+const int NUMBER_OF_MODULES = 5;
+const int NUMBER_OF_RECIPES = 1;
+const int NUMBER_OF_WORKTYPES = 6;
 const int NUMBER_OF_OUTPUTS = 4;
-const int NUMBER_OF_INITS = 26;
+const int NUMBER_OF_INITS = 17;
 
 // User defined types.
 // Safe means that we cannot go to -1.
@@ -371,118 +371,63 @@ bool not_empty(){
 origin = var2</label></transition><transition><source ref="id22" /><target ref="id23" /><label kind="synchronisation" x="-804" y="-223">initialize[init_id]!</label><label kind="assignment" x="-824" y="-240">init_current_works()</label></transition><transition><source ref="id23" /><target ref="id24" /><label kind="guard" x="-768" y="-168">not_empty()</label><label kind="synchronisation" x="-744" y="-152">urg!</label><label kind="assignment" x="-760" y="-136">r = pop()</label></transition></template><template><name>Remover</name><parameter> int init_id</parameter><location id="id25" x="-384" y="-120"><committed /></location><location id="id26" x="-224" y="-120" /><init ref="id25" /><transition><source ref="id25" /><target ref="id26" /><label kind="synchronisation" x="-364" y="-135">initialize[init_id]!</label><label kind="assignment" x="-352" y="-112">init_ra_done()</label></transition><transition><source ref="id26" /><target ref="id26" /><label kind="select" x="-152" y="-144">e: rid_safe_t</label><label kind="synchronisation" x="-152" y="-128">remove[e]?</label><nail x="-160" y="-184" /><nail x="-160" y="-64" /></transition></template><template><name>Initializer</name><declaration>int counter = 0;
 </declaration><location id="id27" x="-336" y="24" /><location id="id28" x="-336" y="-56"><committed /></location><init ref="id28" /><transition><source ref="id28" /><target ref="id27" /><label kind="guard" x="-576" y="-8">counter &gt;= NUMBER_OF_INITS</label></transition><transition><source ref="id28" /><target ref="id28" /><label kind="guard" x="-192" y="-152">counter &lt; NUMBER_OF_INITS &amp;&amp; 
 can_continue</label><label kind="synchronisation" x="-192" y="-176">initialize[counter]?</label><label kind="assignment" x="-192" y="-112">counter += 1</label><nail x="-200" y="-56" /><nail x="-200" y="-176" /><nail x="-336" y="-176" /></transition></template><template><name>Urgent</name><location id="id29" x="-176" y="-64" /><init ref="id29" /><transition><source ref="id29" /><target ref="id29" /><label kind="synchronisation" x="-264" y="-88">urg?</label><nail x="-304" y="-64" /><nail x="-304" y="-136" /><nail x="-176" y="-136" /></transition></template><system>// Module 0
-const bool work_array0[NUMBER_OF_WORKTYPES] = {true, false, false, false, false, false, false, false};
-const int ptime_array0[NUMBER_OF_WORKTYPES] = {60, 0, 0, 0, 0, 0, 0, 0};
+const bool work_array0[NUMBER_OF_WORKTYPES] = {true, true, false, false, false, false};
+const int ptime_array0[NUMBER_OF_WORKTYPES] = {60, 0, 0, 0, 0, 0};
 const mid_t next_array0[NUMBER_OF_OUTPUTS] = {-1, 1, -1, -1};
 const int ttime_array0[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue0 = ModuleQueue(0, 20, 3, work_array0, false);
-mworker0 = ModuleWorker(0, 21, work_array0, ptime_array0);
-mtransporter0 = ModuleTransporter(0, 22, ttime_array0, next_array0, false);
+mqueue0 = ModuleQueue(0, 0, 3, work_array0, false);
+mworker0 = ModuleWorker(0, 1, work_array0, ptime_array0);
+mtransporter0 = ModuleTransporter(0, 2, ttime_array0, next_array0, false);
 
 // Module 1
-const bool work_array1[NUMBER_OF_WORKTYPES] = {false, true, false, false, false, false, false, false};
-const int ptime_array1[NUMBER_OF_WORKTYPES] = {0, 106, 0, 0, 0, 0, 0, 0};
+const bool work_array1[NUMBER_OF_WORKTYPES] = {false, false, true, false, false, false};
+const int ptime_array1[NUMBER_OF_WORKTYPES] = {0, 0, 106, 0, 0, 0};
 const mid_t next_array1[NUMBER_OF_OUTPUTS] = {-1, 2, -1, -1};
 const int ttime_array1[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue1 = ModuleQueue(1, 23, 3, work_array1, false);
-mworker1 = ModuleWorker(1, 24, work_array1, ptime_array1);
-mtransporter1 = ModuleTransporter(1, 25, ttime_array1, next_array1, false);
+mqueue1 = ModuleQueue(1, 3, 3, work_array1, false);
+mworker1 = ModuleWorker(1, 4, work_array1, ptime_array1);
+mtransporter1 = ModuleTransporter(1, 5, ttime_array1, next_array1, false);
 
 // Module 2
-const bool work_array2[NUMBER_OF_WORKTYPES] = {false, false, true, false, false, false, false, false};
-const int ptime_array2[NUMBER_OF_WORKTYPES] = {0, 0, 582, 0, 0, 0, 0, 0};
+const bool work_array2[NUMBER_OF_WORKTYPES] = {false, false, false, true, false, false};
+const int ptime_array2[NUMBER_OF_WORKTYPES] = {0, 0, 0, 68, 0, 0};
 const mid_t next_array2[NUMBER_OF_OUTPUTS] = {-1, 3, -1, -1};
 const int ttime_array2[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue2 = ModuleQueue(2, 26, 3, work_array2, true);
-mworker2 = ModuleWorker(2, 27, work_array2, ptime_array2);
-mtransporter2 = ModuleTransporter(2, 28, ttime_array2, next_array2, true);
+mqueue2 = ModuleQueue(2, 6, 3, work_array2, true);
+mworker2 = ModuleWorker(2, 7, work_array2, ptime_array2);
+mtransporter2 = ModuleTransporter(2, 8, ttime_array2, next_array2, true);
 
 // Module 3
-const bool work_array3[NUMBER_OF_WORKTYPES] = {false, false, false, true, false, false, false, false};
-const int ptime_array3[NUMBER_OF_WORKTYPES] = {0, 0, 0, 20, 0, 0, 0, 0};
+const bool work_array3[NUMBER_OF_WORKTYPES] = {false, false, false, false, true, false};
+const int ptime_array3[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 68, 0};
 const mid_t next_array3[NUMBER_OF_OUTPUTS] = {-1, 4, -1, -1};
 const int ttime_array3[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue3 = ModuleQueue(3, 29, 3, work_array3, false);
-mworker3 = ModuleWorker(3, 30, work_array3, ptime_array3);
-mtransporter3 = ModuleTransporter(3, 31, ttime_array3, next_array3, false);
+mqueue3 = ModuleQueue(3, 9, 3, work_array3, true);
+mworker3 = ModuleWorker(3, 10, work_array3, ptime_array3);
+mtransporter3 = ModuleTransporter(3, 11, ttime_array3, next_array3, true);
 
 // Module 4
-const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, true, false, false, false};
-const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 68, 0, 0, 0};
-const mid_t next_array4[NUMBER_OF_OUTPUTS] = {-1, 4, -1, -1};
-const int ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue4 = ModuleQueue(4, 32, 3, work_array4, true);
-mworker4 = ModuleWorker(4, 33, work_array4, ptime_array4);
-mtransporter4 = ModuleTransporter(4, 34, ttime_array4, next_array4, true);
-
-// Module 4
-const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, true, false, false};
-const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 68, 0, 0};
-const mid_t next_array4[NUMBER_OF_OUTPUTS] = {-1, 4, -1, -1};
-const int ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue4 = ModuleQueue(4, 35, 3, work_array4, true);
-mworker4 = ModuleWorker(4, 36, work_array4, ptime_array4);
-mtransporter4 = ModuleTransporter(4, 37, ttime_array4, next_array4, true);
-
-// Module 4
-const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, false, true, false};
-const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 0, 68, 0};
-const mid_t next_array4[NUMBER_OF_OUTPUTS] = {-1, 4, -1, -1};
-const int ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue4 = ModuleQueue(4, 38, 3, work_array4, true);
-mworker4 = ModuleWorker(4, 39, work_array4, ptime_array4);
-mtransporter4 = ModuleTransporter(4, 40, ttime_array4, next_array4, true);
-
-// Module 4
-const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, false, false, true};
-const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 0, 0, 68};
+const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, true};
+const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 68};
 const mid_t next_array4[NUMBER_OF_OUTPUTS] = {-1, -1, -1, -1};
 const int ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue4 = ModuleQueue(4, 41, 3, work_array4, true);
-mworker4 = ModuleWorker(4, 42, work_array4, ptime_array4);
-mtransporter4 = ModuleTransporter(4, 43, ttime_array4, next_array4, true);
+mqueue4 = ModuleQueue(4, 12, 3, work_array4, true);
+mworker4 = ModuleWorker(4, 13, work_array4, ptime_array4);
+mtransporter4 = ModuleTransporter(4, 14, ttime_array4, next_array4, true);
 
 // Recipe 0
-const node r0node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node1 = {1, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node2 = {4, 1, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node3 = {6, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node4 = {7, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node r0node5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r0node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r0node7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-node func_dep0[NUMBER_OF_WORKTYPES] = {r0node0,r0node1,r0node2,r0node3,r0node4,r0node5,r0node6,r0node7}; 
+const node r0node0 = {0, 0, {2, -1, -1, -1, -1, -1}, 1}; 
+const node r0node1 = {2, 1, {3, -1, -1, -1, -1, -1}, 1}; 
+const node r0node2 = {3, 1, {4, -1, -1, -1, -1, -1}, 1}; 
+const node r0node3 = {4, 1, {5, -1, -1, -1, -1, -1}, 1}; 
+const node r0node4 = {5, 1, {-1, -1, -1, -1, -1, -1}, 0}; 
+const node r0node5 = { -1, -1, {-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep0[NUMBER_OF_WORKTYPES] = {r0node0,r0node1,r0node2,r0node3,r0node4,r0node5}; 
 const int number_of_nodes0 = 5; 
 recipe0 = Recipe(0, 0, func_dep0, number_of_nodes0, 3);
 
-// Recipe 1
-const node r1node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r1node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r1node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r1node3 = {6, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r1node4 = {7, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node r1node5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r1node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r1node7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-node func_dep1[NUMBER_OF_WORKTYPES] = {r1node0,r1node1,r1node2,r1node3,r1node4,r1node5,r1node6,r1node7}; 
-const int number_of_nodes1 = 5; 
-recipe1 = Recipe(1, 0, func_dep1, number_of_nodes1, 3);
-
-// Recipe 2
-const node r2node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r2node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r2node2 = {5, 1, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r2node3 = {6, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r2node4 = {7, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node r2node5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r2node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r2node7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-node func_dep2[NUMBER_OF_WORKTYPES] = {r2node0,r2node1,r2node2,r2node3,r2node4,r2node5,r2node6,r2node7}; 
-const int number_of_nodes2 = 5; 
-recipe2 = Recipe(2, 0, func_dep2, number_of_nodes2, 3);
-
-rid_t rqa[NUMBER_OF_RECIPES] = {0, 1, 2};
-rqueue = RecipeQueue(rqa, 44);rem = Remover(45);
+rid_t rqa[NUMBER_OF_RECIPES] = {0};
+rqueue = RecipeQueue(rqa, 15);rem = Remover(16);
 initer = Initializer();
 urge = Urgent();
-system mqueue0, mworker0, mtransporter0, mqueue1, mworker1, mtransporter1, mqueue2, mworker2, mtransporter2, mqueue3, mworker3, mtransporter3, mqueue4, mworker4, mtransporter4, mqueue4, mworker4, mtransporter4, mqueue4, mworker4, mtransporter4, mqueue4, mworker4, mtransporter4, rqueue, rem, initer, urge, recipe0, recipe1, recipe2;</system></nta>
+system mqueue0, mworker0, mtransporter0, mqueue1, mworker1, mtransporter1, mqueue2, mworker2, mtransporter2, mqueue3, mworker3, mtransporter3, mqueue4, mworker4, mtransporter4, rqueue, rem, initer, urge, recipe0;</system></nta>
