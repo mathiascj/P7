@@ -120,11 +120,7 @@ def create_model_xml(file, global_decl_string, system_string, new_file):
 
     # Remove system node
     system_decl = tree.find("system")
-    tree.getroot().remove(system_decl)
-
-    # Creates a new system node and adds it
     system_decl.text = system_string
-    tree.getroot().append(system_decl)
 
     tree.write(new_file)
 
@@ -207,6 +203,7 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     system_list.append("urge")
 
     system_string += generate_system_declaration(system_list + recipe_names)
+
 
     # Write xml and query files
     create_model_xml(template_file, global_decl_string, system_string, xml_name)
