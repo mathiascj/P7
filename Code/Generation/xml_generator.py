@@ -138,6 +138,8 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     global inverted_m_id_dict
     global w_id_dict
     global inverted_w_id_dict
+    global init_index
+    init_index = 0
 
     # Module id mapping
     m_id = 0
@@ -217,6 +219,7 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     inverted_w_id_dict = {}
 
     # Inverse mapping
+    init_index = 0
     return inverted_m_id_dict
 
 
