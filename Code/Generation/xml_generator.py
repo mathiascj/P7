@@ -268,6 +268,8 @@ def generate_global_declarations(number_of_modules, number_of_recipes, number_of
     s += chan_decl("work", STR_NUMBER_OF_WORKTYPES)
     s += chan_decl("initialize", STR_NUMBER_OF_INITS)
     s += "urgent chan urg;\n"
+    s += "chan priority transport_dequeue < work_dequeue" \
+         " < intern < handshake < work < enqueue < default < rstart < remove < urg;"
     s += "\n"
 
     # Misc
