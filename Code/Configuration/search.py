@@ -1,9 +1,9 @@
 from framework.module import SquareModule
 from framework.recipe import Recipe
-from collections import OrderedDict
 from copy import deepcopy, copy
 from Generation.xml_generator import generate_xml
 from UPPAAL.verifytaAPI import run_verifyta, pprint
+import networkx as nx
 import random
 
 
@@ -26,11 +26,11 @@ def get_factorial_list(nodes):
 
 def initial_configuration(recipes, modules, transporters=None):
     G = Recipe.get_flow_graph(recipes)
-    G = Recipe.kahn_topological_sort(G, recipes[0].start_module)
-    a = G.reverse()
-    Recipe.plot(a)
-    G_copy = deepcopy(G.nodes())
+    G.reverse()
+    G_copy = nx.topological_sort(G)
 
+    e = G.edges()
+    #Graph ok here
     conf = []
     while G_copy:
         size = 0
@@ -43,8 +43,6 @@ def initial_configuration(recipes, modules, transporters=None):
                 continue
             else:
                 break
-
-
 
 
         smallest_len = len(G)
@@ -81,17 +79,6 @@ def get_swap_neighbours(conf, recipes, free_modules, free_transporters):
 
     m, fm = random.choice(L)
     m.swap(fm)
-
-
-
-
-
-    
-
-
-
-
-
 
 t0 = [[100, 100, 100, 100],
       [100, 100, 100, 100],
@@ -160,19 +147,19 @@ t = [[100, 100, 100, 100],
 
 transporters = create_transporters(6, t, 3, 10)
 
-func_deps1 = {0: set(), 1: {0}, 4: {1}, 6: {4}, 7: {6}}
-func_deps2 = {0: set(), 2: {0}, 3: {2}, 6: {3}, 7: {6}}
+func_deps1 = {0: set(), 9: {0},  1: {9}, 4: {1}, 6: {4}, 7: {6}}
+func_deps2 = {2: set(), 3: {2}, 6: {3}, 7: {6}}
 func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
 
 r0 = Recipe(func_deps1, 0, 3)
-r1 = Recipe(func_deps2, 0, 3)
-r2 = Recipe(func_deps3, 0, 3)
+r1 = Recipe(func_deps2, 2, 3)
+#r2 = Recipe(func_deps3, 0, 3)
 
 
-x = initial_configuration([r0, r1, r2], modules)
-generate_xml("../../Modeler/iter3.4.1.xml", x, [r0, r1, r2])
-res, trace = run_verifyta("../../Code/Generation/test.xml",
-             "../../Code/Generation/test.q", "-t 2 -o 3 -u",
-             verifyta='/home/beta/uppaal64-4.1.19/bin-Linux/verifyta')
+x = initial_configuration([r0], modules)
+map = generate_xml("../../Modeler/iter3.4.1.xml", x, [r0])
+res, trace = run_verifyta("../../Code/Configuration/test.xml",
+             "../../Code/Configuration/test.q", "-t 2 -o 3 -u",
+             verifyta='/home/alexander/uppaal64-4.1.19/bin-Linux/verifyta')
 
 pprint(res)

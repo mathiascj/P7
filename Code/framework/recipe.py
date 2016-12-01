@@ -59,13 +59,21 @@ class Recipe:
                 G.add_edge(item[0], dependency)
         return G
 
+    def list_to_Digraph(self, L):
+        G = nx.DiGraph()
+        G.add_nodes_from(L)
+        for i, node in enumerate(L):
+            if (i != len(L) - 1):
+                G.add_edge(L[i+1], node)
+
+        return G
+
     def to_topological_sorted_DiGraph(self):
         """
         From dependencies constructs a directed graph, which is topologically sorted
         :return:  Topologically sorted graph
         """
-        return self.kahn_topological_sort(self.to_DiGraph(), self.start_module)
-
+        return self.list_to_Digraph(nx.topological_sort(self.to_DiGraph()))
 
     @staticmethod
     def get_flow_graph(recipes):
@@ -85,55 +93,52 @@ class Recipe:
         # Compose together the sorted recipes into G
         for r in sorted_recipes:
             G.add_nodes_from(r)
-            temp = nx.DiGraph()
-            temp.add_nodes_from(r)
-            temp.add_path(r)
-            G = nx.compose(G, temp)
+            G = nx.compose(G, r)
 
-        return G.reverse()
+        return G
 
 
-    @staticmethod
-    def kahn_topological_sort(graph, start_node):
-        """
-        Topologically sorts a directed graph
-        :param graph: Graph to be sorted
-        :param start_node: Node from where sort should start
-        :return: A sorted graph
-        """
-        L = []
-
-        # Get all nodes that do not depend on anyone else
-        S = {n for n in graph.nodes() if not graph.successors(n)}
-        first = True
-
-        # Creates a toplocially sorted sequence of nodes
-        while S:
-            # Makes sure we pop start_node first
-            if first:
-                n = start_node
-                S.remove(n)
-                first = False
-            else:
-                n = S.pop()
-            # Append popped node to sequence, then add any freed up nodes to S
-            L += [n]
-            for m in [m for m, x in graph.edges() if x == n]:
-                graph.remove_edge(m, n)
-                if not graph.successors(m):
-                    S.add(m)
-
-        # If not all edges have been removed, we have a cycle
-        x = graph.edges()
-        if x:
-            raise ValueError('Graph has at least one cycle')
-        else:
-            # From the sequence of nodes in L, creates a graph
-            G = nx.DiGraph()
-            G.add_nodes_from(L)
-            for i in range(1, len(L)):
-                G.add_edge(L[i], L[i - 1])
-            return G
+    # @staticmethod
+    # def kahn_topological_sort(graph, start_node):
+    #     """
+    #     Topologically sorts a directed graph
+    #     :param graph: Graph to be sorted
+    #     :param start_node: Node from where sort should start
+    #     :return: A sorted graph
+    #     """
+    #     L = []
+    #
+    #     # Get all nodes that do not depend on anyone else
+    #     S = {n for n in graph.nodes() if not graph.successors(n)}
+    #     first = True
+    #
+    #     # Creates a toplocially sorted sequence of nodes
+    #     while S:
+    #         # Makes sure we pop start_node first
+    #         if first:
+    #             n = start_node
+    #             S.remove(n)
+    #             first = False
+    #         else:
+    #             n = S.pop()
+    #         # Append popped node to sequence, then add any freed up nodes to S
+    #         L += [n]
+    #         for m in [m for m, x in graph.edges() if x == n]:
+    #             graph.remove_edge(m, n)
+    #             if not graph.successors(m):
+    #                 S.add(m)
+    #
+    #     # If not all edges have been removed, we have a cycle
+    #     x = graph.edges()
+    #     if x:
+    #         raise ValueError('Graph has at least one cycle')
+    #     else:
+    #         # From the sequence of nodes in L, creates a graph
+    #         G = nx.DiGraph()
+    #         G.add_nodes_from(L)
+    #         for i in range(1, len(L)):
+    #             G.add_edge(L[i], L[i - 1])
+    #         return G
 
     @staticmethod
     def plot(G):
@@ -147,21 +152,3 @@ class Recipe:
         plt.show()
 
 
-func_deps0 = {0: set(), 1: {0}, 2: {0}, 3: {1, 2}, 4: {3}, 5: {3}}
-func_deps1 = {6: set(), 0: {6}, 1: {0}, 2: {1}, 3: {1}, 4: {1}, 5: {4}, 8: {3}, 7: {4}}
-
-func_deps = OrderedDict()
-func_deps[0] = set()
-func_deps[2] = {0}
-func_deps[3] = {2}
-func_deps[6] = {3}
-func_deps[7] = {6}
-
-func_deps2 = {0: set(), 1: {0}, 4: {1}, 6: {4}, 7: {6}}
-func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
-
-r0 = Recipe(func_deps, 0, 3)
-r1 = Recipe(func_deps2, 0, 3)
-r2 = Recipe(func_deps3, 0, 3)
-
-G = Recipe.get_flow_graph([r0, r1, r2])
