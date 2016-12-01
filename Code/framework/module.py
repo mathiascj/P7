@@ -17,12 +17,10 @@ class SquareModule(Module):
     """ Represents Square Modules, where each edge can connect and be connected to be adjacent modules. This results in
     a grid like pattern for the entire factory configuration.
     """
-    def __init__(self, m_id, w_type, p_time,  t_time, queue_length, allow_passthrough=False, up=None, down=None,
+    def __init__(self, m_id, wp_time,  t_time, queue_length, allow_passthrough=False, up=None, down=None,
                  left=None, right=None):
         """
         :param m_id: Id of the module, has to be unique for each module
-        :param w_type: A list of work types that this module is capable of performing, worktypes should be unique
-        integers
         :param p_time: A dict of processing times, key is w_type and value the processing time
         :param t_time: A 4x4 array (list) that defines the travel time from each input to each output of the module
         :param queue_length: An integer specifying how many recipes that can be in the queue on the module
@@ -49,6 +47,7 @@ class SquareModule(Module):
         # Attributes
         self.queue_length = queue_length
         self.allow_passthrough = allow_passthrough
+        self.w_type = set(wp_time.keys())
 
         # Properties
         self.up = up
@@ -72,14 +71,10 @@ class SquareModule(Module):
             if len(t_time[i]) != 4:
                 raise ValueError("t_time needs to be a 4x4 array")
 
-        if len(w_type) != len(p_time):
-            raise ValueError("w_type and p_time should be of equal length. Recieved lengths w_type: " + str(len(w_type))
-                             + " and p_time: " + str(len(p_time)))
-
         super().__init__(connections=[up, right, down, left],
                          m_id=m_id,
-                         w_type=w_type,
-                         p_time=p_time,
+                         w_type=self.w_type,
+                         p_time=wp_time,
                          t_time=t_time)
 
     # STATIC VARS
