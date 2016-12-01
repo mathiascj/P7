@@ -123,7 +123,7 @@ def create_model_xml(file, global_decl_string, system_string, new_file):
     tree.write(new_file)
 
 
-def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
+def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="test.q"):
     """
     Method to be called directly by user.
     Based on modules and recipes a new UPPAAL model is formed.
@@ -182,8 +182,8 @@ def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
     system_string += generate_system_declaration(system_list + recipe_names)
 
     # Write xml and query files
-    create_model_xml(template_file, global_decl_string, system_string, new_file_name)
-    create_query(recipe_names)
+    create_model_xml(template_file, global_decl_string, system_string, xml_name)
+    create_query(recipe_names, q_name)
 
 
 def generate_global_declarations(number_of_modules, number_of_recipes, number_of_worktypes, number_of_outputs=4):
@@ -510,72 +510,3 @@ def create_query(recipe_names, new_file_name="test.q"):
     f = open(new_file_name, 'w')
     f.write(s)
     f.close()
-
-
-m0 = SquareModule(0, [0, 1, 2], {0: 2, 1: 2, 2: 3},
-                  [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]], 3, True)
-
-t0 = [[-1, -1, -1, -1],
-      [-1, -1, -1, 117],
-      [-1, -1, -1, -1],
-      [-1, 117, -1, -1]]
-m0 = SquareModule(0, [0], {0: 60},  t0, 3)
-
-t1 = [[-1, -1, -1, -1],
-      [-1, -1, -1, 107],
-      [-1, -1, -1, -1],
-      [-1, 107, -1, -1]]
-
-m1 = SquareModule(1, [1, 2], {1: 53, 2: 106},  t1, 3)
-
-t2 = [[-1, -1, -1, -1],
-      [-1, -1, -1, 164],
-      [-1, -1, -1, -1],
-      [-1, 164, -1, -1]]
-
-m2 = SquareModule(2, [3, 4, 5], {3: 582, 4: 752, 5: 850},  t2, 3, allow_passthrough=True)
-
-t3 = [[-1, -1, -1, -1],
-      [-1, -1, -1, 112],
-      [-1, -1, -1, -1],
-      [-1, 112, -1, -1]]
-
-m3 = SquareModule(3, [6], {6: 20}, t3, 3)
-
-t4 = [[-1, -1, -1, -1],
-      [-1, -1, -1, 112],
-      [-1, -1, -1, -1],
-      [-1, 112, -1, -1]]
-
-m4 = SquareModule(4, [], {},  t4, 3, allow_passthrough=True)
-
-t5 = [[-1, -1, -1, -1],
-      [-1, -1, -1, -1],
-      [-1, -1, -1, -1],
-      [-1, 0, -1, -1]]
-
-m5 = SquareModule(5, [7], {7: 68},  t5, 3, allow_passthrough=True)
-
-m0.right = m1
-m1.right = m2
-m2.right = m3
-m3.right = m4
-m4.right = m5
-
-modules = [m0, m1, m2, m3, m4, m5]
-
-func_deps = OrderedDict()
-func_deps[0] = set()
-func_deps[2] = {0}
-func_deps[3] = {2}
-func_deps[6] = {3}
-func_deps[7] = {6}
-
-func_deps2 = {0: set(), 1: {0}, 4: {1}, 6: {4}, 7: {6}}
-func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
-
-r0 = Recipe(func_deps, 0, 3)
-r1 = Recipe(func_deps2, 0, 3)
-r2 = Recipe(func_deps3, 0, 3)
-
-generate_xml("../../Modeler/iter3.4.1.xml", modules, [r0, r1, r2])

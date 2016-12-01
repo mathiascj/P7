@@ -5,10 +5,16 @@ from copy import deepcopy, copy
 from Generation.xml_generator import generate_xml
 from UPPAAL.verifytaAPI import run_verifyta, pprint
 import random
+from UPPAAL.uppaalAPI import get_best_time
+import signal
+import time
 
+VERIFYTA = '/home/beta/uppaal64-4.1.19/bin-Linux/verifyta'
+XML_TEMPLATE = "../../Modeler/iter3.4.1.xml"
+
+signal.signal(signal.SIGINT, signal.default_int_handler)
 
 def create_transporters(amount, time, queue_size):
-
     transporters = []
     for i in range(amount):
         t = SquareModule('trans_' + str(i), [], {}, time, queue_size, allow_passthrough= True)
@@ -59,27 +65,34 @@ def initial_configuration(recipes, modules, transporters=None):
     return conf
 
 def tabu_search(recipes, modules, transporters, init_func):
-    initial_configuration = init_func(modules, recipes, transporters)
-    free_modules = [m for m in modules if m not in initial_configuration]
+    init_config = init_func(recipes, modules, transporters)
+    free_modules = [m for m in modules if m not in init_config]
+    
+    #init_time = get_best_time(recipes, init_config, XML_TEMPLATE, VERIFYTA)
 
+    #current_best = (SquareModule.configuration_str(init_config[0]), init_time)
 
     long_term_memory = []
     intermediate_memory = []
     short_term_memory = []
+
     try:
         while True:
             pass
-
     except KeyboardInterrupt:
-        pass
+        print("Interrupted")
 
 
-def get_neighbours(conf, recipes, free_modules, free_transporters):
-    return get_swap_neighbours(conf, recipes, free_modules, free_transporters)
 
-def get_swap_neighbours(conf, recipes, free_modules, free_transporters):
+    #return current_best
+
+
+def get_neighbours(config, recipes, free_modules, free_transporters):
+    return get_swap_neighbours(config, recipes, free_modules, free_transporters)
+
+def get_swap_neighbours(config, recipes, free_modules, free_transporters):
     L = []
-    for m in conf:
+    for m in config:
         for fm in free_modules:
             if m.active_w_type <= fm.w_type:
                 L.append((m, fm))
@@ -166,6 +179,8 @@ create_transporters(5, t, [1, 1, 1, 1, 1])
 
 
 x = initial_configuration([r0, r1, r2], modules)
+
+y = tabu_search([r0, r1, r2], modules, None, initial_configuration)
 """
 generate_xml("../../Modeler/iter3.4.1.xml", x, [r0, r1, r2])
 res, trace = run_verifyta("../../Code/Generation/test.xml",
