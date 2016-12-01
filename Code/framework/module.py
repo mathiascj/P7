@@ -1,3 +1,5 @@
+import re
+
 class Module:
     """ Module class that contains all the required information for XML to be generated to the UPPAAL model. Represents
     a real life factory module, in that it is identifiable with m_id, does some work w_type, that takes p_time.
@@ -9,13 +11,6 @@ class Module:
         self.w_type = w_type
         self.p_time = p_time
         self.t_time = t_time
-
-
-def get_id(module):
-    if module:
-        return module.m_id
-    else:
-        return None
 
 
 class SquareModule(Module):
@@ -49,6 +44,8 @@ class SquareModule(Module):
         self.__in_left = None
         self.__in_right = None
 
+        self.__connections = [self.up, self.right, self.down, self.left]
+
         # Attributes
         self.queue_length = queue_length
         self.allow_passthrough = allow_passthrough
@@ -60,6 +57,13 @@ class SquareModule(Module):
         self.right = right
 
         self.active_w_type = set()
+
+
+        # Checks
+        if str(m_id) in self.modules_dictionary:
+            raise KeyError('m_id is not unique, a ' + str(self.modules_dictionary[str(m_id)]) + ' already exists')
+        else:
+            self.modules_dictionary[str(m_id)] = self
 
         if len(t_time) != 4:
             raise ValueError("t_time needs to be a 4x4 array")
@@ -78,10 +82,24 @@ class SquareModule(Module):
                          p_time=p_time,
                          t_time=t_time)
 
-    def __update_connections(self):
-        """ Updates the connections variable with the directions
-        """
-        self.connections = [self.up, self.right, self.down, self.left]
+    # STATIC VARS
+    modules_dictionary = {}
+
+    @property
+    def connections(self):
+        return [self.up, self.right, self.down, self.left]
+
+    @connections.setter
+    def connections(self, connections):
+        if len(connections) == 4:
+            self.__connections = list(connections)
+        else:
+            raise ValueError("Connections must be an iterable of size 4")
+
+
+    @property
+    def __in_connections(self):
+        return [self.__in_up, self.__in_right, self.__in_down, self.__in_left]
 
     @property
     def up(self):
@@ -94,7 +112,6 @@ class SquareModule(Module):
         if up:                          # Add ourselves to new
             up.__in_down = self
         self.__up = up
-        self.__update_connections()
 
     @property
     def down(self):
@@ -107,7 +124,6 @@ class SquareModule(Module):
         if down:
             down.__in_up = self
         self.__down = down
-        self.__update_connections()
 
     @property
     def left(self):
@@ -120,7 +136,6 @@ class SquareModule(Module):
         if left:
             left.__in_right = self
         self.__left = left
-        self.__update_connections()
 
     @property
     def right(self):
@@ -133,7 +148,6 @@ class SquareModule(Module):
         if right:
             right.__in_left = self
         self.__right = right
-        self.__update_connections()
 
     def make_grid(self, pos=(0, 0), ignore={None}):
         """ Makes a grid with the current module as its center, i.e. coordinates (0, 0)
@@ -200,20 +214,69 @@ class SquareModule(Module):
         self.__left = None
         self.active_w_type = set()
 
+    def find_connected_modules(self, ignore={None}):
+        ignore_c = ignore.copy()
+        ignore_c.add(self)
+        L = [self]
+        for m in self.connections:
+            if m not in ignore_c:
+                L += m.find_connected_modules(ignore_c)
+        for m in self.__in_connections:
+            if m not in ignore_c:
+                L += m.find_connected_modules(ignore_c)
+        return L
+
+    @staticmethod
+    def configuration_str(module):
+        configuration = module.find_connected_modules()
+        configuration.sort(key=lambda m: m.m_id)        # Sorts the list based on m_id
+
+        L = []
+        for m in configuration:
+            s = str(m.m_id) + '{' + ','.join(map(str, m.active_w_type)) + '}'
+            s += '[' + ','.join(map(str, map(lambda x: x.m_id if x else '_', m.connections))) + ']'
+            L.append(s)
+
+        return ':'.join(L)
+
+    @staticmethod
+    def make_configuration(configuration_str):
+        if not isinstance(configuration_str, str):
+            raise ValueError("configuration_str should be a string!")
+        for m in SquareModule.modules_dictionary.values():
+            m.up = None
+            m.right = None
+            m.down = None
+            m.left = None
+            m.active_w_type = set()
+
+        L = configuration_str.split(sep=':')
+        for ms in L:
+            m_id = re.search('(.*)(?=\{)', ms).group(0) # (?=...) is a lookahead assertion
+            active_w_type = set(re.search('.*\{(.*)\}.*', ms).group(1).split(sep=','))
+            temp = re.search('.*\[(.*)\].*', ms).group(1).split(sep=',')
+            connections = [SquareModule.modules_dictionary[conn_id] if conn_id != '_' else None for conn_id in temp]
+
+            SquareModule.modules_dictionary[m_id].active_w_type = active_w_type
+            SquareModule.modules_dictionary[m_id].up = connections[0]
+            SquareModule.modules_dictionary[m_id].right = connections[1]
+            SquareModule.modules_dictionary[m_id].down = connections[2]
+            SquareModule.modules_dictionary[m_id].left = connections[3]
+
 
     def pprint(self):
         """ Pretty Prints a module
         """
         s = str(self.__class__)
-        s += "\n    Self  -> " + str(self.m_id)
-        s += "\n    Up    -> " + str(get_id(self.up))
-        s += "\n    Down  -> " + str(get_id(self.down))
-        s += "\n    Left  -> " + str(get_id(self.left))
-        s += "\n    Right -> " + str(get_id(self.right))
+        s += "\n    Self  == " + str(self.m_id)
+        s += "\n    Up    -> " + str((lambda m: m.m_id if m else '_')(self.up))
+        s += "\n    Down  -> " + str((lambda m: m.m_id if m else '_')(self.down))
+        s += "\n    Left  -> " + str((lambda m: m.m_id if m else '_')(self.left))
+        s += "\n    Right -> " + str((lambda m: m.m_id if m else '_')(self.right))
         print(s)
 
     def __repr__(self):
-        return str(self.m_id)
+        return "module_" + str(self.m_id)
 
 
 
