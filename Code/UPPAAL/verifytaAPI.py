@@ -49,23 +49,10 @@ def get_trace_time(trace, clock_name='global_c'):
     :param clock_name: A string representing the name of the global clock from which we will extract a value
     :return: An integer representing the last clock value
     """
-    lst = trace.splitlines()
+    trace_str = trace.decode('utf-8')
+    lst = trace_str.splitlines()
     s = str(lst[-1])    # The information we want is on the last line
-    res = re.search(clock_name + ">=(\d+)", s).group(1)
-    return int(res)
-
-
-def get_best_cost(result, default):
-    """
-    :param result: The result of running uppaal given as bytes. Requires that it was run with the -t flag
-    :return: An integer representing the best cost
-    """
-    lst = result.splitlines()
-    if len(lst) == 13:      # If the length is not 13, we know the verification failed
-        s = str(lst[-2])    # The information we want is on the second last line
-        res = re.search(' -- Best solution   : (\d+)', s).group(1)
-    else:
-        res = default
+    res = re.search(clock_name + ".?(=)(\d+)", s).group(2)
     return int(res)
 
 
