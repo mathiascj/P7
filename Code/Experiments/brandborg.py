@@ -98,7 +98,12 @@ r2 = Recipe(func_deps3, 0, 3)
 
 
 x = initial_configuration([r0, r1], modules)
-map = generate_xml("../../Modeler/iter3.4.1.xml", x, [r0, r1])
+map = generate_xml("../../Modeler/iter3.4.2.xml", x, [r0, r1])
 res, trace = run_verifyta("../../Code/Configuration/test.xml",
-             "../../Code/Configuration/test.q", "-t 2 -o 3 -u",
+             "../../Code/Configuration/test.q", "-t 2 -o 3 -y -u",
              verifyta='/home/alexander/uppaal64-4.1.19/bin-Linux/verifyta')
+
+
+text_file = open("Output.txt", "w")
+text_file.write(trace.decode('utf-8'))
+text_file.close()
