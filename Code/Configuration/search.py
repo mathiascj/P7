@@ -7,13 +7,12 @@ from UPPAAL.verifytaAPI import run_verifyta, pprint
 import random
 
 
-def create_transporters(initial_id, times, queue_size, amount):
+def create_transporters(amount, time, queue_size):
 
     transporters = []
     for i in range(amount):
-        t = SquareModule(initial_id, [], {}, times, queue_size, allow_passthrough= True)
+        t = SquareModule('trans_' + str(i), [], {}, time, queue_size, allow_passthrough= True)
         transporters.append(t)
-        initial_id += 1
     return transporters
 
 
@@ -28,7 +27,6 @@ def initial_configuration(recipes, modules, transporters=None):
     G = Recipe.get_flow_graph(recipes)
     G = Recipe.kahn_topological_sort(G, recipes[0].start_module)
     a = G.reverse()
-    Recipe.plot(a)
     G_copy = deepcopy(G.nodes())
 
     conf = []
@@ -43,10 +41,6 @@ def initial_configuration(recipes, modules, transporters=None):
                 continue
             else:
                 break
-
-
-
-
         smallest_len = len(G)
         candidate = None
         for m in current:
@@ -64,9 +58,20 @@ def initial_configuration(recipes, modules, transporters=None):
 
     return conf
 
-def tabu_search(recipes, modules, transporters, init_conf_func):
-    init_conf = init_conf_func(modules, recipes, transporters)
-    free_modules = [m for m in modules if m not in init_conf]
+def tabu_search(recipes, modules, transporters, init_func):
+    initial_configuration = init_func(modules, recipes, transporters)
+    free_modules = [m for m in modules if m not in initial_configuration]
+
+
+    long_term_memory = []
+    intermediate_memory = []
+    short_term_memory = []
+    try:
+        while True:
+            pass
+
+    except KeyboardInterrupt:
+        pass
 
 
 def get_neighbours(conf, recipes, free_modules, free_transporters):
@@ -83,20 +88,11 @@ def get_swap_neighbours(conf, recipes, free_modules, free_transporters):
     m.swap(fm)
 
 
-
-
-
-    
-
-
-
-
-
-
 t0 = [[100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100]]
+
 m0 = SquareModule(0, {0, 9}, {0: 60, 9: 0},  t0, 3)
 
 t1 = [[100, 100, 100, 100],
@@ -158,8 +154,6 @@ t = [[100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100]]
 
-transporters = create_transporters(6, t, 3, 10)
-
 func_deps1 = {0: set(), 1: {0}, 4: {1}, 6: {4}, 7: {6}}
 func_deps2 = {0: set(), 2: {0}, 3: {2}, 6: {3}, 7: {6}}
 func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
@@ -168,11 +162,15 @@ r0 = Recipe(func_deps1, 0, 3)
 r1 = Recipe(func_deps2, 0, 3)
 r2 = Recipe(func_deps3, 0, 3)
 
+create_transporters(5, t, [1, 1, 1, 1, 1])
+
 
 x = initial_configuration([r0, r1, r2], modules)
+"""
 generate_xml("../../Modeler/iter3.4.1.xml", x, [r0, r1, r2])
 res, trace = run_verifyta("../../Code/Generation/test.xml",
              "../../Code/Generation/test.q", "-t 2 -o 3 -u",
              verifyta='/home/beta/uppaal64-4.1.19/bin-Linux/verifyta')
 
 pprint(res)
+"""
