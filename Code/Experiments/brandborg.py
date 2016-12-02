@@ -7,6 +7,8 @@ import networkx as nx
 import random
 import signal
 import time
+import re
+
 from Configuration.search import initial_configuration
 
 t0 = [[100, 100, 100, 100],
@@ -107,3 +109,39 @@ res, trace = run_verifyta("../../Code/Configuration/test.xml",
 text_file = open("Output.txt", "w")
 text_file.write(trace.decode('utf-8'))
 text_file.close()
+
+
+is_transition = False
+is_handshake = False
+
+
+worked_on = {}
+with open("Output.txt") as f:
+    for line in f:
+        if line == "Transitions:\n":
+                lines = []
+                counter = 0
+                for line in f:
+                    lines.append(line)
+                    counter += 1
+                    if counter == 2:
+                        break
+                counter = 0
+                if "handshake" in lines[0]:
+                    r_id = int(re.findall("\d+", lines[0])[0])
+                    w_id = int(re.findall("\d+", lines[1])[0])
+
+                    if w_id not in worked_on:
+                        worked_on[w_id] = []
+
+                    if r_id not in worked_on[w_id]:
+                        worked_on[w_id].append(r_id)
+
+
+print(worked_on)
+
+
+
+
+
+

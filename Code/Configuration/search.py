@@ -32,7 +32,6 @@ def get_factorial_list(nodes):
 def initial_configuration(recipes, modules, transporters=None):
     G = Recipe.get_flow_graph(recipes)
     G.reverse()
-    Recipe.plot(G)
     G_copy = nx.topological_sort(G)
 
     conf = []
