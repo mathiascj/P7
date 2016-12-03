@@ -1,0 +1,66 @@
+%----------------------------------------------------------------------------------------
+%	DOCUMENT AND FONTS
+%----------------------------------------------------------------------------------------
+
+%Document type
+\documentclass[11pt, a4paper]{report}
+\usepackage{appendix}
+
+% Encoding. Allows input of accented characters
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+% Font
+\usepackage{lmodern} 
+%Encoding. Allows output for accented characters.
+\usepackage[T1]{fontenc} 
+
+%----------------------------------------------------------------------------------------
+%	COLORS AND GRAPHICS
+%----------------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{aaublue}{RGB}{33,26,82}% dark blue
+
+% The standard graphics inclusion package
+\usepackage{graphicx}
+\graphicspath{ {figures/} }
+
+% Make the standard latex tables look so much better
+\usepackage{array,booktabs}
+
+
+%----------------------------------------------------------------------------------------
+%	PAGE LAYOUT
+%----------------------------------------------------------------------------------------
+
+% Do not stretch the content of a page. Instead,
+% insert white space at the bottom of the page
+\raggedbottom
+
+% Enable arithmetics with length. Useful when
+% typesetting the layout.
+\usepackage{calc}
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+%Style of references
+\bibliographystyle{ieeetr}
+
+
+%----------------------------------------------------------------------------------------
+%	HYPERLINKS
+%----------------------------------------------------------------------------------------
+
+%  Hyperlinks
+\usepackage{hyperref}
+\hypersetup{hidelinks,colorlinks,breaklinks=true,urlcolor=aaublue,citecolor=aaublue,linkcolor=aaublue,bookmarksopen=false,pdftitle={Title},pdfauthor={Author}} 
+
+% Crefs. Important to have after hyperrefs!
+\usepackage{cleveref}
+
+
+% Makes hyper links point to the correct places
+% Important to have after hyperrefs!
+\usepackage[all]{hypcap}
