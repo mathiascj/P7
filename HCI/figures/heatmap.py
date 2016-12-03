@@ -14,7 +14,7 @@ def get_avg(key):
 
 df_avg = pandas.DataFrame()
 
-df_avg['pleasantness'] = get_avg('pleasantness')
+df_avg['pleasure'] = get_avg('pleasure')
 df_avg['arousal'] = get_avg('arousal')
 df_avg['name'] = ex_name['name']
 
@@ -23,7 +23,7 @@ df_all = df_all.append(arash)
 df_all = df_all.append(mikael)
 df_all = df_all.append(andreas)
 
-df_all[df_all.index > 5].plot(kind='hexbin', x='pleasantness', y='arousal', gridsize=9)
+df_all[df_all.index > 5].plot(kind='hexbin', x='pleasure', y='arousal', gridsize=9)
 plt.savefig('hexbin.png')
 
 
