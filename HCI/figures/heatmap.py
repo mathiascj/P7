@@ -29,13 +29,13 @@ plt.savefig('hexbin.png')
 
 names = ex_name['name'][ex_name.index > 5]
 
-morten[morten.index > 5].plot(kind='bar', title='Person 1', x=names, ylim=(0, 9))
+morten[morten.index > 5].plot(kind='bar', title='Person 3', x=names, ylim=(0, 9))
 plt.savefig('AGmorten.png')
 
 arash[arash.index > 5].plot(kind='bar', title='Person 2', x=names, ylim=(0, 9))
 plt.savefig('AGarash.png')
 
-mikael[mikael.index > 5].plot(kind='bar', title='Person 3', x=names, ylim=(0, 9))
+mikael[mikael.index > 5].plot(kind='bar', title='Person 1', x=names, ylim=(0, 9))
 plt.savefig('AGmikael.png')
 
 andreas[andreas.index > 5].plot(kind='bar', title='Person 4', x=names, ylim=(0, 9))

@@ -1,11 +1,26 @@
 \input{preamble.tex}% package inclusion and set up of the document
 \begin{document}
 
+%Dånsk
+\renewcommand{\contentsname}{Indholdsfortegnelse}
+\renewcommand{\chaptername}{Kapitel}
+\renewcommand{\appendixname}{Bilag}
+\renewcommand\bibname{Litteraturliste}
+\renewcommand\figurename{Figur}
+\renewcommand\tablename{Tabel}
+
+\crefname{table}{tabel}{tabeller}
+\crefname{figure}{figur}{figure}
+\crefname{chapter}{kapitel}{kapitler}
+\crefname{section}{sektion}{sektioner}
+
+
 %frontmatter
 \input{frontpage.tex}
-\pdfbookmark[0]{Contents}{label:contents}
+\pdfbookmark[0]{Indholdsfortegnelse}{label:contents}
 \tableofcontents
 \thispagestyle{empty}
+
 
 \input{sections/introduktion.tex}
 \input{sections/metoder.tex}
