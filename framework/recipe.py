@@ -2,16 +2,18 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 class Recipe:
-    def __init__(self, dependencies, start_module, start_direction):
+    def __init__(self, name, dependencies, start_module, start_direction, amount):
         """
 
         :param dependencies: Dictionary representing dependency graph
         :param start_module: Initial module for production
         :param start_direction: Origin point into start module
         """
+        self.name = str(name)
         self.dependencies = dependencies
         self.start_module = start_module
         self.start_direction = start_direction
+        self.amount = amount
 
     def __getitem__(self, item):
         return self.dependencies[item]

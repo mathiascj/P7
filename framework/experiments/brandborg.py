@@ -10,7 +10,7 @@ t0 = [[100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100]]
 
-m0 = SquareModule("Pik",  {"Pik": 60, 9: 0},  t0, 3)
+m0 = SquareModule(0,  {0: 60, 9: 0},  t0, 3)
 
 t1 = [[100, 100, 100, 100],
       [100, 100, 100, 100],
@@ -71,32 +71,22 @@ t = [[100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100]]
 
-
 func_deps1 = {0: set(), 9: {0}, 1: {9}, 4: {1}, 6: {4}, 7: {6}}
 func_deps2 = {2: set(), 3: {2}, 6: {3}, 7: {6}}
 func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
 
-r0 = Recipe(func_deps1, "Pik", 3)
-r1 = Recipe(func_deps2, 2, 3)
-r2 = Recipe(func_deps3, 0, 3)
+r0 = Recipe("Jens", func_deps1, 0, 3, 1)
+r1 = Recipe("Karl", func_deps2, 2, 3, 9)
+r2 = Recipe("Bob", func_deps3, 0, 3, 3)
 
 
 x = initial_configuration([r0, r1, r2], modules)
+print(x)
 
-
-func_deps1 = {0: set(), 9: {0}, 1: {9}, 4: {1}, 6: {4}, 7: {6}}
-func_deps2 = {2: set(), 3: {2}, 6: {3}, 7: {6}}
-func_deps3 = {0: set(), 2: {0}, 5: {2}, 6: {5}, 7: {6}}
-
-r0 = Recipe(func_deps1, 0, 3)
-r1 = Recipe(func_deps2, 2, 3)
-r2 = Recipe(func_deps3, 0, 3)
-
-
-x = initial_configuration([r0, r1], modules)
-m_map, w_map = generate_xml("../../Modeler/iter3.4.2.xml", x, [r0, r1])
+m_map, w_map, r_map = generate_xml("../../Modeler/iter3.4.2.xml", x, [r0, r1, r2])
 print(m_map)
 print(w_map)
+print(r_map)
 
 res, trace = run_verifyta("test.xml",
              "test.q", '-t 2', '-o 3', '-y', '-u',

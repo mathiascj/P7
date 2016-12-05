@@ -33,25 +33,6 @@ STR_MODULE_TRANSPORTER = "mtransporter"
 
 STR_RECIPE_NAME = "recipe"
 
-# Mapping dicts. For when not all works and modules are used.
-m_id_dict = {}
-inverted_m_id_dict = {}
-w_id_dict = {}
-inverted_w_id_dict = {}
-
-init_index = 0
-
-
-def get_init_index():
-    """
-    :return: The next index to initialize
-     """
-    global init_index
-    old = init_index
-    init_index += 1
-
-    return old
-
 
 def const_int_decl(variable_name, init_value):
     """
@@ -137,22 +118,9 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     :param new_file_name: Path to new file
     """
 
-    # Reset global variables
-    global m_id_dict
-    global inverted_m_id_dict
-    global w_id_dict
-    global inverted_w_id_dict
-    global init_index
-
-    m_id_dict = {}
-    inverted_m_id_dict = {}
-    w_id_dict = {}
-    inverted_w_id_dict = {}
-    init_index = 0
-
     # Module id mapping
     m_id = 0
-
+    m_id_dict = {}
     for module in modules:
         m_id_dict[module.m_id] = m_id
         m_id += 1
@@ -168,6 +136,7 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
 
     # Work id mapping
     w_id = 0
+    w_id_dict = {}
     for w in S:
         w_id_dict[w] = w_id
         w_id += 1
@@ -175,21 +144,18 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     inverted_w_id_dict = {v: k for k, v in w_id_dict.items()}
 
     # Generation of global string
-    global_decl_string = generate_global_declarations(len(modules), len(recipes), number_of_worktypes, 4)
+    number_of_recipes = sum([x.amount for x in recipes])
+    global_decl_string = generate_global_declarations(len(modules), number_of_recipes, number_of_worktypes, 4)
 
     # Generation of system string
-    system_string = generate_system_declaration(modules, number_of_worktypes, recipes)
-
-    recipe_names = []
-    for id, r in enumerate(recipes):
-        recipe_names.append(STR_RECIPE_NAME + str(id))
+    system_string, recipe_names, r_id_dict\
+        = generate_system_declaration(modules, number_of_worktypes, recipes, m_id_dict, w_id_dict)
 
     # Write xml and query files
     create_model_xml(template_file, global_decl_string, system_string, xml_name)
     create_query(recipe_names, q_name)
 
-
-    return inverted_m_id_dict, inverted_w_id_dict
+    return inverted_m_id_dict, inverted_w_id_dict, r_id_dict
 
 
 def generate_global_declarations(number_of_modules, number_of_recipes, number_of_worktypes, number_of_outputs=4):
@@ -293,7 +259,7 @@ bool idle_transporters[NUMBER_OF_MODULES];
     return s
 
 
-def generate_system_declaration(modules, number_of_worktypes, recipes):
+def generate_system_declaration(modules, number_of_worktypes, recipes, m_id_dict, w_id_dict):
     """
     Generates system declaration
     :param modules: module objects
@@ -301,35 +267,47 @@ def generate_system_declaration(modules, number_of_worktypes, recipes):
     :param recipes: recipe object
     :return: system declaration string and recipe names
     """
+    init_index = 0
     s = ""
 
     # Declaring modules
     system_list = []
     for m in modules:
-        decl_string, queue_name, worker_name, transporter_name, = \
-            generate_module_declaration(m, number_of_worktypes, 4)
+        decl_string, queue_name, worker_name, transporter_name, i = \
+            generate_module_declaration(m, number_of_worktypes, 4, init_index, m_id_dict, w_id_dict)
         s += decl_string
         system_list.append(queue_name)
         system_list.append(worker_name)
         system_list.append(transporter_name)
+        init_index = i
 
     # Declaring recipes
     recipe_names = []
-    for id, r in enumerate(recipes):
-        s += generate_recipe_declaration(id, r, number_of_worktypes)
-        recipe_names.append(STR_RECIPE_NAME + str(id))
+    recipe_counter = 0
+
+    r_id_dict = {}
+    for r in recipes:
+        decl_string, names, dic =\
+            generate_recipe_declaration(recipe_counter, r, number_of_worktypes, m_id_dict, w_id_dict)
+        recipe_names = recipe_names + names
+        recipe_counter += r.amount
+        s += decl_string
+        r_id_dict = {**r_id_dict, **dic}
+
 
     # Declaring recipe queue
     s += "rid_t rqa[" + STR_NUMBER_OF_RECIPES + "]" + " = {"
-    s += ",".join([str(id) for id, r in enumerate(recipes)])
+    s += ",".join([str(x) for x in range(recipe_counter)])
     s += "};\n"
 
-    s += "rqueue = RecipeQueue(rqa, " + str(get_init_index()) + ");"
+    s += "rqueue = RecipeQueue(rqa, " + str(init_index) + ");"
     system_list.append("rqueue")
+    init_index += 1
 
     # Declaring remover
-    s += "rem = Remover(" + str(get_init_index()) + ");\n"
+    s += "rem = Remover(" + str(init_index) + ");\n"
     system_list.append("rem")
+    init_index += 1
 
     # Declaring Initializer
     s += "initer = Initializer();\n"
@@ -342,10 +320,10 @@ def generate_system_declaration(modules, number_of_worktypes, recipes):
     # Declaring system instance
     s += generate_system_instance(system_list + recipe_names)
 
-    return s
+    return s, recipe_names, r_id_dict
 
 
-def generate_module_declaration(module, number_of_worktypes, number_of_outputs):
+def generate_module_declaration(module, number_of_worktypes, number_of_outputs, init_index, m_id_dict, w_id_dict):
     """
     Creates a declration for a module
     :param module: Module object
@@ -359,11 +337,11 @@ def generate_module_declaration(module, number_of_worktypes, number_of_outputs):
 
     # Setting up arrays
     s = "// Module " + str(m_id) + "\n"
-    wa, temp = work_array(module, number_of_worktypes, m_id)
+    wa, temp = work_array(module, number_of_worktypes, m_id, w_id_dict)
     s += temp
-    pa, temp = p_time_array(module, number_of_worktypes, m_id)
+    pa, temp = p_time_array(module, number_of_worktypes, m_id, w_id_dict)
     s += temp
-    na, temp = next_array(module, number_of_outputs, m_id)
+    na, temp = next_array(module, number_of_outputs, m_id, m_id_dict)
     s += temp
     ta, temp = t_time_array(module, number_of_outputs, m_id)
     s += temp
@@ -372,34 +350,37 @@ def generate_module_declaration(module, number_of_worktypes, number_of_outputs):
     module_queue = STR_MODULE_QUEUE + str(m_id)
     s += module_queue + " = ModuleQueue(" \
          + str(m_id) + ", " \
-         + str(get_init_index()) + ", " \
+         + str(init_index) + ", " \
          + str(module.queue_length) + ", " \
          + wa + ", " \
          + str(module.allow_passthrough).lower() \
          + ");\n"
+    init_index += 1
 
     # Instantiates module worker template
     module_worker = STR_MODULE_WORKER + str(m_id)
     s += module_worker + " = ModuleWorker(" \
          + str(m_id) + ", " \
-         + str(get_init_index()) + ", " \
+         + str(init_index) + ", " \
          + wa + ", " \
          + pa \
          + ");\n"
+    init_index += 1
 
     # Instantiates module transporter template
     module_transporter = STR_MODULE_TRANSPORTER + str(m_id)
     s += module_transporter + " = ModuleTransporter(" \
          + str(m_id) + ", " \
-         + str(get_init_index()) + ", " \
+         + str(init_index) + ", " \
          + ta + ", " \
          + na + ", " + str(module.allow_passthrough).lower() \
          + ");\n\n"
+    init_index += 1
 
-    return s, module_queue, module_worker, module_transporter
+    return s, module_queue, module_worker, module_transporter, init_index
 
 
-def work_array(module, number_of_worktypes, m_id):
+def work_array(module, number_of_worktypes, m_id, w_id_dict):
     """
     :param module:  Module for which we create a work array
     :param number_of_worktypes: Amount of unique work types total
@@ -417,7 +398,7 @@ def work_array(module, number_of_worktypes, m_id):
     return varname, s
 
 
-def p_time_array(module, number_of_worktypes, m_id):
+def p_time_array(module, number_of_worktypes, m_id, w_id_dict):
     """
     :param module: Module object
     :param number_of_worktypes: total number of work types across recipe
@@ -425,6 +406,7 @@ def p_time_array(module, number_of_worktypes, m_id):
     """
     varname = STR_PA + str(m_id)
     w_ids = [w_id_dict[id] for id in module.w_type]  # mapped work ids
+    inverted_w_id_dict = {v: k for k, v in w_id_dict.items()}
 
     s = "const int " + varname + "[" + STR_NUMBER_OF_WORKTYPES + "] = {"
     s += ",".join([str(module.p_time[inverted_w_id_dict[x]]) if x in w_ids
@@ -434,7 +416,7 @@ def p_time_array(module, number_of_worktypes, m_id):
     return varname, s
 
 
-def next_array(module, number_of_outputs, m_id):
+def next_array(module, number_of_outputs, m_id, m_id_dict):
     """
     :param module: Module object
     :param number_of_outputs: Number of neighbours a module can have
@@ -471,7 +453,7 @@ def t_time_array(module, number_of_outputs, m_id):
     return varname, s
 
 
-def generate_recipe_declaration(id, recipe, number_of_worktypes):
+def generate_recipe_declaration(counter, recipe, number_of_worktypes, m_id_dict, w_id_dict):
     """
     Generates the part of system that declares new recipes
     :param id: ID of recipe
@@ -480,33 +462,42 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
     """
 
     size = STR_NUMBER_OF_WORKTYPES
-    node_strings, number_of_nodes = generate_nodes(recipe, number_of_worktypes)
+    node_strings, number_of_nodes = generate_nodes(recipe, number_of_worktypes, w_id_dict)
 
-    s = "// Recipe " + str(id) + "\n"
+    s = "// Recipe " + recipe.name + "\n"
 
     # Creates all recipe nodes
     node_names = []
     for index, node in enumerate(node_strings):
-        name = "r" + str(id) + "node" + str(index)
+        name = "r" + recipe.name + "node" + str(index)
         node_names.append(name)
         s += "const node " + name + " = " + str(node) + "; \n"
 
     # Puts nodes into list
-    func_dep_string = "func_dep" + str(id)
+    func_dep_string = "func_dep" + recipe.name
     s += "node " + func_dep_string + "[" + size + "] = {" + ",".join(node_names) + "}; \n"
 
     # Declares number of nodes
-    number_of_nodes_string = "number_of_nodes" + str(id)
+    number_of_nodes_string = "number_of_nodes" + recipe.name
     s += "const int " + number_of_nodes_string + " = " + str(number_of_nodes) + "; \n"
 
-    # Instantiates recipe template
-    s += "recipe" + str(id) + " = Recipe(" + str(id) + ", " + str(m_id_dict[recipe.start_module]) + \
-         ", " + func_dep_string + ", " + number_of_nodes_string + ", " + str(recipe.start_direction) + ");\n\n"
+    # Instantiates recipe templates
+    recipe_names = []
+    r_id_dict = {}
+    for x in range(recipe.amount):
+        r_id = str(x + counter)
+        recipe_name = "recipe" + r_id
+        recipe_names.append(recipe_name)
+        s += recipe_name + " = Recipe(" + r_id + ", " + str(m_id_dict[recipe.start_module]) + \
+             ", " + func_dep_string + ", " + number_of_nodes_string + ", " + str(recipe.start_direction) + ");\n\n"
 
-    return s
+        r_id_dict[x + counter] = recipe.name
 
 
-def generate_nodes(recipe, number_of_worktypes):
+    return s, recipe_names, r_id_dict
+
+
+def generate_nodes(recipe, number_of_worktypes, w_id_dict):
     nodes = []
     child_mapping = {-1: -1}
 
@@ -538,7 +529,6 @@ def generate_nodes(recipe, number_of_worktypes):
         child_mapping[w_id_dict[work]] = index
 
         nodes.append(node)
-
 
     node_strings = []
     for node in nodes:
