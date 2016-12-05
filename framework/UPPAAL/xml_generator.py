@@ -1,8 +1,4 @@
 from xml.etree.ElementTree import parse
-from copy import deepcopy
-from collections import OrderedDict
-from module import SquareModule
-from recipe import Recipe
 
 # GLOBALS DECLS
 # String decls put here for the sake of easier reconfiguration
@@ -70,7 +66,7 @@ def int_decl(variable_name, init_value=""):
     """
     :param variable_name: Name of the variable
     :param init_value: Value that the variable be instantiated to
-    :return: A int declaration
+    :return: An int declaration
     """
     s = "int " + variable_name
     if init_value:
@@ -90,7 +86,7 @@ def typedef_decl(type_name, max_val):
     return s
 
 
-def chan_decl(chan_name, size, urgent=False):
+def chan_decl(chan_name, size="", urgent=False):
     """
     :param chan_name: Name of the channel
     :param size: Size of the channel
@@ -100,7 +96,13 @@ def chan_decl(chan_name, size, urgent=False):
     s = ""
     if urgent:
         s += "urgent "
-    return s + "chan " + chan_name + "[" + str(size) + "];\n"
+
+    if size:
+        size_string = "[" + str(size) + "]"
+    else:
+        size_string = ""
+
+    return s + "chan " + chan_name + size_string + ";\n"
 
 
 def create_model_xml(file, global_decl_string, system_string, new_file):
@@ -134,11 +136,18 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     :param recipes: A list of recipes, each being a functional dependency graph
     :param new_file_name: Path to new file
     """
+
+    # Reset global variables
     global m_id_dict
     global inverted_m_id_dict
     global w_id_dict
     global inverted_w_id_dict
     global init_index
+
+    m_id_dict = {}
+    inverted_m_id_dict = {}
+    w_id_dict = {}
+    inverted_w_id_dict = {}
     init_index = 0
 
     # Module id mapping
@@ -151,16 +160,17 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     inverted_m_id_dict = {v: k for k, v in m_id_dict.items()}
 
     # Finds number of unique worktypes that can be performed with the modules
-    # Work id mapping
-    w_id = 0
     S = set()
 
     for m in modules:
         S.update(m.w_type)
-        for w in m.w_type:
-            w_id_dict[w] = w_id
-            w_id += 1
     number_of_worktypes = len(S)
+
+    # Work id mapping
+    w_id = 0
+    for w in S:
+        w_id_dict[w] = w_id
+        w_id += 1
 
     inverted_w_id_dict = {v: k for k, v in w_id_dict.items()}
 
@@ -168,59 +178,18 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     global_decl_string = generate_global_declarations(len(modules), len(recipes), number_of_worktypes, 4)
 
     # Generation of system string
-    system_string = ""
-    system_list = []
-
-    for m in modules:
-        q, w, t, s = generate_module_declaration(m, number_of_worktypes, 4)
-        system_string += s
-        system_list.append(q)
-        system_list.append(w)
-        system_list.append(t)
+    system_string = generate_system_declaration(modules, number_of_worktypes, recipes)
 
     recipe_names = []
-
     for id, r in enumerate(recipes):
-        r, s = generate_recipe_declaration(id, r, number_of_worktypes)
-        system_string += s
-        recipe_names.append(r)
-
-    system_string += "rid_t rqa[" + STR_NUMBER_OF_RECIPES + "]" + " = {"
-    for id, r in enumerate(recipes):
-        system_string += str(id)
-        if id < len(recipes) - 1:
-            system_string += ", "
-    system_string += "};\n"
-
-    system_string += "rqueue = RecipeQueue(rqa, " + str(get_init_index()) + ");"
-    system_list.append("rqueue")
-
-    system_string += "rem = Remover(" + str(get_init_index()) + ");\n"
-    system_list.append("rem")
-
-    system_string += "initer = Initializer();\n"
-    system_list.append("initer")
-
-    system_string += "urge = Urgent();\n"
-    system_list.append("urge")
-
-    system_string += generate_system_declaration(system_list + recipe_names)
-
+        recipe_names.append(STR_RECIPE_NAME + str(id))
 
     # Write xml and query files
     create_model_xml(template_file, global_decl_string, system_string, xml_name)
     create_query(recipe_names, q_name)
 
-    # Reset global vars
-    m_id_dict = {}
-    inverted_m_id_dict = {}
 
-    w_id_dict = {}
-    inverted_w_id_dict = {}
-
-    # Inverse mapping
-    init_index = 0
-    return inverted_m_id_dict
+    return inverted_m_id_dict, inverted_w_id_dict
 
 
 def generate_global_declarations(number_of_modules, number_of_recipes, number_of_worktypes, number_of_outputs=4):
@@ -267,16 +236,17 @@ def generate_global_declarations(number_of_modules, number_of_recipes, number_of
     s += chan_decl("handshake", STR_NUMBER_OF_RECIPES)
     s += chan_decl("work", STR_NUMBER_OF_WORKTYPES)
     s += chan_decl("initialize", STR_NUMBER_OF_INITS)
-    s += "urgent chan urg;\n"
+    s += chan_decl("urg", "", True)
     s += "chan priority transport_dequeue < work_dequeue" \
          " < intern < handshake < work < enqueue < default < rstart < remove < urg;"
     s += "\n"
 
-    # Misc
+    # Clock
     s += "// Global clock\n"
     s += "clock global_c;\n"
     s += "\n"
 
+    # Global functions and their variables
     s += """
 //Variables used for passing values at handshake
 int var = -1;
@@ -323,17 +293,182 @@ bool idle_transporters[NUMBER_OF_MODULES];
     return s
 
 
-def generate_empty_node(number_of_worktypes):
+def generate_system_declaration(modules, number_of_worktypes, recipes):
     """
-    Creates an empty nodes for recipe declaration.
-    :param number_of_worktypes: total number of worktypes across recipes
-    :return: string to instantiate an empty node
+    Generates system declaration
+    :param modules: module objects
+    :param number_of_worktypes: number of unique types of work
+    :param recipes: recipe object
+    :return: system declaration string and recipe names
     """
-    children = []
-    for i in range(number_of_worktypes):
-        children.append(-1)
+    s = ""
 
-    return "{ -1, -1, {" + ",".join(map(str, children)) + "}, -1}"
+    # Declaring modules
+    system_list = []
+    for m in modules:
+        decl_string, queue_name, worker_name, transporter_name, = \
+            generate_module_declaration(m, number_of_worktypes, 4)
+        s += decl_string
+        system_list.append(queue_name)
+        system_list.append(worker_name)
+        system_list.append(transporter_name)
+
+    # Declaring recipes
+    recipe_names = []
+    for id, r in enumerate(recipes):
+        s += generate_recipe_declaration(id, r, number_of_worktypes)
+        recipe_names.append(STR_RECIPE_NAME + str(id))
+
+    # Declaring recipe queue
+    s += "rid_t rqa[" + STR_NUMBER_OF_RECIPES + "]" + " = {"
+    s += ",".join([str(id) for id, r in enumerate(recipes)])
+    s += "};\n"
+
+    s += "rqueue = RecipeQueue(rqa, " + str(get_init_index()) + ");"
+    system_list.append("rqueue")
+
+    # Declaring remover
+    s += "rem = Remover(" + str(get_init_index()) + ");\n"
+    system_list.append("rem")
+
+    # Declaring Initializer
+    s += "initer = Initializer();\n"
+    system_list.append("initer")
+
+    # Declaring Urgent
+    s += "urge = Urgent();\n"
+    system_list.append("urge")
+
+    # Declaring system instance
+    s += generate_system_instance(system_list + recipe_names)
+
+    return s
+
+
+def generate_module_declaration(module, number_of_worktypes, number_of_outputs):
+    """
+    Creates a declration for a module
+    :param module: Module object
+    :param number_of_worktypes: Total number of worktypes across recipe
+    :param number_of_outputs: Number of output directions for modules
+    :return: strings declaring module
+    """
+
+    # Getting the mapped id
+    m_id = m_id_dict[module.m_id]
+
+    # Setting up arrays
+    s = "// Module " + str(m_id) + "\n"
+    wa, temp = work_array(module, number_of_worktypes, m_id)
+    s += temp
+    pa, temp = p_time_array(module, number_of_worktypes, m_id)
+    s += temp
+    na, temp = next_array(module, number_of_outputs, m_id)
+    s += temp
+    ta, temp = t_time_array(module, number_of_outputs, m_id)
+    s += temp
+
+    # Instantiates module queue template
+    module_queue = STR_MODULE_QUEUE + str(m_id)
+    s += module_queue + " = ModuleQueue(" \
+         + str(m_id) + ", " \
+         + str(get_init_index()) + ", " \
+         + str(module.queue_length) + ", " \
+         + wa + ", " \
+         + str(module.allow_passthrough).lower() \
+         + ");\n"
+
+    # Instantiates module worker template
+    module_worker = STR_MODULE_WORKER + str(m_id)
+    s += module_worker + " = ModuleWorker(" \
+         + str(m_id) + ", " \
+         + str(get_init_index()) + ", " \
+         + wa + ", " \
+         + pa \
+         + ");\n"
+
+    # Instantiates module transporter template
+    module_transporter = STR_MODULE_TRANSPORTER + str(m_id)
+    s += module_transporter + " = ModuleTransporter(" \
+         + str(m_id) + ", " \
+         + str(get_init_index()) + ", " \
+         + ta + ", " \
+         + na + ", " + str(module.allow_passthrough).lower() \
+         + ");\n\n"
+
+    return s, module_queue, module_worker, module_transporter
+
+
+def work_array(module, number_of_worktypes, m_id):
+    """
+    :param module:  Module for which we create a work array
+    :param number_of_worktypes: Amount of unique work types total
+    :return: The name of the var and a string of code that declares the var
+    """
+
+    varname = STR_WA + str(m_id)  # array name
+    w_ids = [w_id_dict[id] for id in module.w_type]  # mapped work ids
+
+    s = "const bool " + varname + "[" + STR_NUMBER_OF_WORKTYPES + "] = {"
+    s += ",".join(["true" if x in w_ids
+                   else "false" for x in range(number_of_worktypes)])
+    s += "};\n"
+
+    return varname, s
+
+
+def p_time_array(module, number_of_worktypes, m_id):
+    """
+    :param module: Module object
+    :param number_of_worktypes: total number of work types across recipe
+    :return: string instantiating p_time array.
+    """
+    varname = STR_PA + str(m_id)
+    w_ids = [w_id_dict[id] for id in module.w_type]  # mapped work ids
+
+    s = "const int " + varname + "[" + STR_NUMBER_OF_WORKTYPES + "] = {"
+    s += ",".join([str(module.p_time[inverted_w_id_dict[x]]) if x in w_ids
+                   else "0" for x in range(number_of_worktypes)])
+    s += "};\n"
+
+    return varname, s
+
+
+def next_array(module, number_of_outputs, m_id):
+    """
+    :param module: Module object
+    :param number_of_outputs: Number of neighbours a module can have
+    :return: string of array describing module's neighbours
+    """
+    varname = STR_NA + str(m_id)
+
+    s = "const mid_t " + varname + "[" + STR_NUMBER_OF_OUTPUTS + "] = {"
+    s += ",".join([str(m_id_dict[module.connections[x].m_id]) if module.connections[x]
+                   else "-1" for x in range(number_of_outputs)])
+    s += "};\n"
+    return varname, s
+
+
+def t_time_array(module, number_of_outputs, m_id):
+    """
+    :param module: Module object
+    :param number_of_outputs: Number of total work types across recipe
+    :return: string instantiating t_time array
+    """
+    varname = STR_TA + str(m_id)
+
+    # Find traveling times when entering from each direction
+    sub_arrays = []
+    for i in range(number_of_outputs):
+        sub_array = []
+        for j in range(number_of_outputs):
+            sub_array.append(str(module.t_time[i][j]))
+        sub_arrays.append("{" + ",".join(sub_array) + "}")
+
+    s = "const int " + varname + "[" + STR_NUMBER_OF_OUTPUTS + "][" + STR_NUMBER_OF_OUTPUTS + "] = {"
+    s += ",".join(sub_arrays)
+    s += "};\n"
+    return varname, s
 
 
 def generate_recipe_declaration(id, recipe, number_of_worktypes):
@@ -345,10 +480,36 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
     """
 
     size = STR_NUMBER_OF_WORKTYPES
+    node_strings, number_of_nodes = generate_nodes(recipe, number_of_worktypes)
+
+    s = "// Recipe " + str(id) + "\n"
+
+    # Creates all recipe nodes
+    node_names = []
+    for index, node in enumerate(node_strings):
+        name = "r" + str(id) + "node" + str(index)
+        node_names.append(name)
+        s += "const node " + name + " = " + str(node) + "; \n"
+
+    # Puts nodes into list
+    func_dep_string = "func_dep" + str(id)
+    s += "node " + func_dep_string + "[" + size + "] = {" + ",".join(node_names) + "}; \n"
+
+    # Declares number of nodes
+    number_of_nodes_string = "number_of_nodes" + str(id)
+    s += "const int " + number_of_nodes_string + " = " + str(number_of_nodes) + "; \n"
+
+    # Instantiates recipe template
+    s += "recipe" + str(id) + " = Recipe(" + str(id) + ", " + str(m_id_dict[recipe.start_module]) + \
+         ", " + func_dep_string + ", " + number_of_nodes_string + ", " + str(recipe.start_direction) + ");\n\n"
+
+    return s
+
+
+def generate_nodes(recipe, number_of_worktypes):
     nodes = []
+    child_mapping = {-1: -1}
 
-
-    child_mapping = {}
     # For each node add information to the initialization lists
     for index, entry in enumerate(recipe.items()):
         node = {}
@@ -357,9 +518,9 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
 
         node['work'] = work
         node['number_of_parents'] = len(deps)
-        children = []
 
         # Gets children of node
+        children = []
         for node_id, parents in recipe.items():
             if work in parents:
                 mapped_id = w_id_dict[node_id]
@@ -378,7 +539,6 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
 
         nodes.append(node)
 
-    child_mapping[-1] = -1
 
     node_strings = []
     for node in nodes:
@@ -391,169 +551,26 @@ def generate_recipe_declaration(id, recipe, number_of_worktypes):
                       ", " + children_string + ", " + str(node['number_of_children']) + "}"
         node_strings.append(node_string)
 
-
     number_of_nodes = len(node_strings)
 
     # Fills up remaining array with empty nodes
     while len(node_strings) < number_of_worktypes:
         node_strings.append(generate_empty_node(number_of_worktypes))
 
-    # Creates actual declaration string
-    varname = STR_RECIPE_NAME + str(id)
-
-    s = "// Recipe " + str(id) + "\n"
-
-    # Creates all recipe nodes
-    node_names = []
-    for index, node in enumerate(node_strings):
-        name = "r" + str(id) + "node" + str(index)
-        node_names.append(name)
-        s += "const node " + name + " = " + str(node) + "; \n"
-
-    # Puts nodes into list
-    func_dep_string = "func_dep" + str(id)
-    s += "node " + func_dep_string + "[" + STR_NUMBER_OF_WORKTYPES + "] = {" + ",".join(node_names) + "}; \n"
-
-    # Declares number of nodes
-    number_of_nodes_string = "number_of_nodes" + str(id)
-    s += "const int " + number_of_nodes_string + " = " + str(number_of_nodes) + "; \n"
-
-    # Instantiates recipe template
-    s += "recipe" + str(id) + " = Recipe(" + str(id) + ", " + str(m_id_dict[recipe.start_module]) + \
-         ", " + func_dep_string + ", " + number_of_nodes_string + ", " + str(recipe.start_direction) + ");\n\n"
-
-    return varname, s
+    return node_strings, number_of_nodes
 
 
-def generate_module_declaration(module, number_of_worktypes, number_of_outputs):
+def generate_empty_node(number_of_worktypes):
     """
-    Creates a declration for a module
-    :param module: Module object
-    :param number_of_worktypes: Total number of worktypes across recipe
-    :param number_of_outputs: Number of output directions for modules
-    :return: strings declaring module
+    Creates an empty nodes for recipe declaration.
+    :param number_of_worktypes: total number of worktypes across recipes
+    :return: string to instantiate an empty node
     """
-    id = m_id_dict[module.m_id]
-
-    s = "// Module " + str(id) + "\n"
-    wa, temp = work_array(module, number_of_worktypes)
-    s += temp
-    pa, temp = p_time_array(module, number_of_worktypes)
-    s += temp
-    na, temp = next_array(module, number_of_outputs)
-    s += temp
-    ta, temp = t_time_array(module, number_of_outputs)
-    s += temp
-
-    # Instantiates module queue template
-    mq = STR_MODULE_QUEUE + str(id)
-    s += mq + " = ModuleQueue(" + str(id) + ", " + str(get_init_index()) + ", "
-    s += str(module.queue_length) + ", " + wa + ", "
-    s += str(module.allow_passthrough).lower() + ");\n"
-
-    # Instantiates module worker template
-    mw = STR_MODULE_WORKER + str(id)
-    s += mw + " = ModuleWorker(" + str(id) + ", " \
-         + str(get_init_index()) + ", " + wa + ", " + pa + ");\n"
-
-    # instantiates module transporter template
-    mt = STR_MODULE_TRANSPORTER + str(id)
-    s += mt + " = ModuleTransporter(" + str(id) + ", " + str(get_init_index()) + ", " + ta + ", " + na
-    s += ", " + str(module.allow_passthrough).lower() + ");\n\n"
-
-    return mq, mw, mt, s
+    children = [-1 for x in range(number_of_worktypes)]
+    return "{ -1, -1, {" + ",".join(map(str, children)) + "}, -1}"
 
 
-def work_array(module, number_of_worktypes):
-    """
-    :param module:  Module for which we create a work array
-    :param number_of_worktypes: Amount of unique work types total
-    :return: The name of the var and a string of code that declares the var
-    """
-
-    id = m_id_dict[module.m_id]
-    varname = STR_WA + str(id)
-    s = "const bool " + varname + "[" + STR_NUMBER_OF_WORKTYPES + "] = {"
-    for w_type in range(number_of_worktypes):
-
-        if w_type in [w_id_dict[id] for id in module.w_type]:
-            s += "true"
-        else:
-            s += "false"
-        if w_type != number_of_worktypes - 1:
-            s += ", "
-    s += "};\n"
-
-    return varname, s
-
-
-def p_time_array(module, number_of_worktypes):
-    """
-    :param module: Module object
-    :param number_of_worktypes: total number of work types across recipe
-    :return: string instantiating p_time array.
-    """
-
-    id = m_id_dict[module.m_id]
-    varname = STR_PA + str(id)
-    s = "const int " + varname + "[" + STR_NUMBER_OF_WORKTYPES + "] = {"
-    for w_type in range(number_of_worktypes):
-        if w_type in [w_id_dict[id] for id in module.w_type]:
-            original_id = inverted_w_id_dict[w_type]
-            s += str(module.p_time[original_id])
-        else:
-            s += "0"
-        if w_type != number_of_worktypes - 1:
-            s += ", "
-    s += "};\n"
-    return varname, s
-
-
-def next_array(module, number_of_outputs):
-    """
-    :param module: Module object
-    :param number_of_outputs: Number of neighbours a module can have
-    :return: string of array describing module's neighbours
-    """
-
-    id = m_id_dict[module.m_id]
-    varname = STR_NA + str(id)
-    s = "const mid_t " + varname + "[" + STR_NUMBER_OF_OUTPUTS + "] = {"
-    for i in range(number_of_outputs):
-        if module.connections[i]:
-            s += str(m_id_dict[module.connections[i].m_id])
-        else:
-            s += "-1"
-        if i != number_of_outputs - 1:
-            s += ", "
-    s += "};\n"
-    return varname, s
-
-
-def t_time_array(module, number_of_outputs):
-    """
-    :param module: Module object
-    :param number_of_outputs: Number of total work types across recipe
-    :return: string instantiating t_time array
-    """
-
-    id = m_id_dict[module.m_id]
-    varname = STR_TA + str(id)
-    s = "const int " + varname + "[" + STR_NUMBER_OF_OUTPUTS + "][" + STR_NUMBER_OF_OUTPUTS + "] = {"
-    for i in range(number_of_outputs):
-        s += "{"
-        for j in range(number_of_outputs):
-            s += str(module.t_time[i][j])
-            if j != number_of_outputs - 1:
-                s += ", "
-        s += "}"
-        if i != number_of_outputs - 1:
-            s += ", "
-    s += "};\n"
-    return varname, s
-
-
-def generate_system_declaration(system_list):
+def generate_system_instance(system_list):
     """
     To system declaration, generates a string including all modules and recipes
     :param number_of_modules: total number of FESTO modules
@@ -580,4 +597,3 @@ def create_query(recipe_names, q_name="test.q"):
     f = open(q_name, 'w')
     f.write(s)
     f.close()
-
