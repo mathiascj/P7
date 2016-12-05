@@ -189,7 +189,7 @@ def generate_xml(template_file, modules, recipes, xml_name="test.xml", q_name="t
     for id, r in enumerate(recipes):
         system_string += str(id)
         if id < len(recipes) - 1:
-            system_string += "< "
+            system_string += ", "
     system_string += "};\n"
 
     system_string += "rqueue = RecipeQueue(rqa, " + str(get_init_index()) + ");"
