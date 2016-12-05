@@ -1,3 +1,4 @@
+
 \chapter{UPPAAL model}\label{ch:uppaalmodel}
 In order to decide upon a factory configuration in a given case, we must be able to evaluate configurations against each other. However, physcially setting up configurations to compare them is in no way practical. Instead we choose to simulate individual factory configurations and virtually compare them. For simulation we need an abstract model of the modular factory and the items that are processed by it. With such a model in place, we should be able to simulate a specific set of items being produced on a specific configuration. In addition we would like to get the best schedule for producing a set of items on a configuration. A schedule is a sequence of actions, instructing how to go from having no items, to having produced all items. Comparing schedules between configurations producing the same items helps choose, which configuration should be used for production. A configuration schedule may also be used as a jumping off point for generating KLR code.
 
@@ -13,6 +14,7 @@ In this chapter we will explain how we modelled configurations and items in UPPA
 
 \input{sections/uppaalmodel/recipe.tex}
 \input{sections/uppaalmodel/module.tex}
+\input{sections/uppaalmodel/evaluation.tex}
 
 %\section{Running UPPAAL CORA through Python}
 %Having defined our model, we can now use UPPAAL to instantiate a specific factory configuration and generate a best cost trace. However, we are are interested in comparing several configurations and from those pick the one with the best performance. Manually instantiating each configuration and developing a trace would be very time consuming. Instead, we work with our UPPAAL CORA models in a programmatic manner. This way we may write scripts for generating configurations and for each of these configurations, we can use UPPAAL CORA to generate a trace. Through the script we can then use the generated traces to pick the best configuration.

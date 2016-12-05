@@ -1,13 +1,11 @@
-<<<<<<< HEAD
-E<> recipe0.done and recipe1.done and recipe2.done and recipe3.done and recipe4.done
-=======
-<nta><declaration>// Global Declarations
+<nta>
+	<declaration>// Global Declarations
 // Constants
-const int NUMBER_OF_MODULES = 7;
-const int NUMBER_OF_RECIPES = 2;
-const int NUMBER_OF_WORKTYPES = 8;
+const int NUMBER_OF_MODULES = 6;
+const int NUMBER_OF_RECIPES = 80;
+const int NUMBER_OF_WORKTYPES = 7;
 const int NUMBER_OF_OUTPUTS = 4;
-const int NUMBER_OF_INITS = 23;
+const int NUMBER_OF_INITS = 20;
 
 // User defined types.
 // Safe means that we cannot go to -1.
@@ -39,7 +37,7 @@ chan handshake[NUMBER_OF_RECIPES];
 chan work[NUMBER_OF_WORKTYPES];
 chan initialize[NUMBER_OF_INITS];
 urgent chan urg;
-
+chan priority transport_dequeue &lt; work_dequeue &lt; intern &lt; handshake &lt; work &lt; enqueue &lt; default &lt; rstart &lt; remove &lt; urg;
 // Global clock
 clock global_c;
 
@@ -85,7 +83,11 @@ bool can_work(bool worktype[NUMBER_OF_WORKTYPES], rid_safe_t rid){
 bool full_modules[NUMBER_OF_MODULES];
 bool idle_workers[NUMBER_OF_MODULES];
 bool idle_transporters[NUMBER_OF_MODULES];
-</declaration><template><name x="8" y="8">ModuleQueue</name><parameter>const mid_safe_t mid, int init_id, const int length, const bool worktype[NUMBER_OF_WORKTYPES], const bool pass_through</parameter><declaration>// Place local declarations here.
+</declaration>
+	<template>
+		<name x="8" y="8">ModuleQueue</name>
+		<parameter>const mid_safe_t mid, int init_id, const int length, const bool worktype[NUMBER_OF_WORKTYPES], const bool pass_through</parameter>
+		<declaration>// Place local declarations here.
 rid_t queue[length]; //Queue for recipes waiting to be processed
 did_t origin_queue[length]; //Queue for direction from which the recipes come
 rid_t lock = -1;
@@ -179,16 +181,69 @@ void if_full(){
 
 bool synchable(){
     return (can_work(worktype, queue[0]) &amp;&amp; idle_workers[mid]) ||
-    (!can_work(worktype, queue[0]) &amp;&amp; (idle_workers[mid] || idle_transporters[mid]));
-}</declaration><location id="id0" x="120" y="-24"><committed /></location><location id="id1" x="-176" y="-240"><committed /></location><location id="id2" x="-176" y="-24" /><init ref="id1" /><transition><source ref="id0" /><target ref="id2" /><label kind="guard" x="-104" y="72">pass_through &amp;&amp; 
-!can_work(worktype, lock)</label><label kind="synchronisation" x="-104" y="104">transport_dequeue[mid]!</label><label kind="assignment" x="-104" y="120">var = lock, var2 = origin,
-full_modules[mid] = false</label><nail x="120" y="64" /><nail x="-120" y="64" /></transition><transition><source ref="id0" /><target ref="id2" /><label kind="guard" x="-104" y="-216">!(pass_through &amp;&amp; !can_work(worktype, lock))</label><label kind="synchronisation" x="-104" y="-200">work_dequeue[mid]!</label><label kind="assignment" x="-104" y="-184">var = lock, var2 = origin, 
-full_modules[mid] = false</label><nail x="120" y="-144" /><nail x="-128" y="-144" /></transition><transition><source ref="id2" /><target ref="id0" /><label kind="guard" x="-112" y="-128">not_empty() &amp;&amp;
+    (!can_work(worktype, queue[0]) &amp;&amp; (idle_workers[mid] &amp;&amp; !pass_through || idle_transporters[mid] &amp;&amp; pass_through));
+}</declaration>
+		<location id="id0" x="120" y="-24">
+			<committed />
+		</location>
+		<location id="id1" x="-176" y="-240">
+			<committed />
+		</location>
+		<location id="id2" x="-176" y="-24">
+		</location>
+		<init ref="id1" />
+		<transition>
+			<source ref="id0" />
+			<target ref="id2" />
+			<label kind="guard" x="-104" y="72">pass_through &amp;&amp; 
+!can_work(worktype, lock)</label>
+			<label kind="synchronisation" x="-104" y="104">transport_dequeue[mid]!</label>
+			<label kind="assignment" x="-104" y="120">var = lock, var2 = origin,
+full_modules[mid] = false</label>
+			<nail x="120" y="64" />
+			<nail x="-120" y="64" />
+		</transition>
+		<transition>
+			<source ref="id0" />
+			<target ref="id2" />
+			<label kind="synchronisation" x="-104" y="-200">work_dequeue[mid]!</label>
+			<label kind="assignment" x="-104" y="-184">var = lock, var2 = origin, 
+full_modules[mid] = false</label>
+			<nail x="120" y="-144" />
+			<nail x="-128" y="-144" />
+		</transition>
+		<transition>
+			<source ref="id2" />
+			<target ref="id0" />
+			<label kind="guard" x="-112" y="-128">not_empty() &amp;&amp;
 synchable() &amp;&amp;
-!can_add_recipe</label><label kind="synchronisation" x="-112" y="-80">urg!</label><label kind="assignment" x="-112" y="-64">lock = pop(),
-origin = origin_pop()</label></transition><transition><source ref="id1" /><target ref="id2" /><label kind="synchronisation" x="-304" y="-160">initialize[init_id]!</label><label kind="assignment" x="-280" y="-144">init_queues()</label></transition><transition><source ref="id2" /><target ref="id2" /><label kind="guard" x="-520" y="8">not_full()</label><label kind="synchronisation" x="-520" y="24">enqueue[mid]?</label><label kind="assignment" x="-520" y="40">add(var),
+!can_add_recipe</label>
+			<label kind="synchronisation" x="-112" y="-80">urg!</label>
+			<label kind="assignment" x="-112" y="-64">lock = pop(),
+origin = origin_pop()</label>
+		</transition>
+		<transition>
+			<source ref="id1" />
+			<target ref="id2" />
+			<label kind="synchronisation" x="-304" y="-160">initialize[init_id]!</label>
+			<label kind="assignment" x="-280" y="-144">init_queues()</label>
+		</transition>
+		<transition>
+			<source ref="id2" />
+			<target ref="id2" />
+			<label kind="guard" x="-520" y="8">not_full()</label>
+			<label kind="synchronisation" x="-520" y="24">enqueue[mid]?</label>
+			<label kind="assignment" x="-520" y="40">add(var),
 origin_add(var2),
-if_full()</label><nail x="-344" y="40" /><nail x="-344" y="-72" /></transition></template><template><name>ModuleTransporter</name><parameter>const mid_safe_t mid, int init_id, const int t_time[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS], const mid_t next[NUMBER_OF_OUTPUTS], bool pass_through</parameter><declaration>clock local_c;
+if_full()</label>
+			<nail x="-344" y="40" />
+			<nail x="-344" y="-72" />
+		</transition>
+	</template>
+	<template>
+		<name>ModuleTransporter</name>
+		<parameter>const mid_safe_t mid, int init_id, const int t_time[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS], const mid_t next[NUMBER_OF_OUTPUTS], bool pass_through</parameter>
+		<declaration>clock local_c;
 did_t origin; //Direction where recipe came from
 did_t succ; //Direction in which recipe is going
 rid_t lock = -1; //Recipe being worked on
@@ -214,20 +269,90 @@ else if(direction == 2)
     return 0;
 else
     return 1;
-}  </declaration><location id="id3" x="-40" y="168" /><location id="id4" x="-424" y="-176"><committed /></location><location id="id5" x="232" y="-24"><name x="222" y="-54">Transporting</name><label kind="invariant" x="248" y="-16">local_c &lt;= t_time[origin][succ]</label></location><location id="id6" x="-64" y="-24"><name x="-80" y="-8">Selector</name><committed /></location><location id="id7" x="-424" y="-24"><name x="-472" y="-32">Idle</name></location><init ref="id4" /><transition><source ref="id5" /><target ref="id3" /><label kind="guard" x="232" y="64">t_time[origin][succ] == local_c</label><nail x="232" y="168" /></transition><transition><source ref="id3" /><target ref="id7" /><label kind="synchronisation" x="-240" y="184">enqueue[next[succ]]!</label><label kind="assignment" x="-240" y="200">var = lock, 
+}  </declaration>
+		<location id="id3" x="-40" y="168">
+		</location>
+		<location id="id4" x="-424" y="-176">
+			<committed />
+		</location>
+		<location id="id5" x="232" y="-24">
+			<name x="222" y="-54">Transporting</name>
+			<label kind="invariant" x="248" y="-16">local_c &lt;= t_time[origin][succ]</label>
+		</location>
+		<location id="id6" x="-64" y="-24">
+			<name x="-80" y="-8">Selector</name>
+			<committed />
+		</location>
+		<location id="id7" x="-424" y="-24">
+			<name x="-472" y="-32">Idle</name>
+		</location>
+		<init ref="id4" />
+		<transition>
+			<source ref="id5" />
+			<target ref="id3" />
+			<label kind="guard" x="232" y="64">t_time[origin][succ] == local_c</label>
+			<nail x="232" y="168" />
+		</transition>
+		<transition>
+			<source ref="id3" />
+			<target ref="id7" />
+			<label kind="synchronisation" x="-240" y="184">enqueue[next[succ]]!</label>
+			<label kind="assignment" x="-240" y="200">var = lock, 
 var2 = inverse(succ),
-idle_transporters[mid] = true</label><nail x="-424" y="168" /></transition><transition><source ref="id4" /><target ref="id7" /><label kind="synchronisation" x="-544" y="-128">initialize[init_id]!</label><label kind="assignment" x="-632" y="-104">idle_transporters[mid] = true</label></transition><transition><source ref="id6" /><target ref="id7" /><label kind="guard" x="-288" y="-72">lock != -1 &amp;&amp;
-is_done(lock)</label><label kind="synchronisation" x="-284" y="-47">remove[lock]!</label><label kind="assignment" x="-304" y="-24">idle_transporters[mid] = true</label></transition><transition><source ref="id6" /><target ref="id5" /><label kind="select" x="24" y="-120">e: did_safe_t</label><label kind="guard" x="24" y="-104">next[e] != -1 &amp;&amp;
+idle_transporters[mid] = true</label>
+			<nail x="-424" y="168" />
+		</transition>
+		<transition>
+			<source ref="id4" />
+			<target ref="id7" />
+			<label kind="synchronisation" x="-544" y="-128">initialize[init_id]!</label>
+			<label kind="assignment" x="-632" y="-104">idle_transporters[mid] = true</label>
+		</transition>
+		<transition>
+			<source ref="id6" />
+			<target ref="id7" />
+			<label kind="guard" x="-288" y="-72">lock != -1 &amp;&amp;
+is_done(lock)</label>
+			<label kind="synchronisation" x="-284" y="-47">remove[lock]!</label>
+			<label kind="assignment" x="-304" y="-24">idle_transporters[mid] = true</label>
+		</transition>
+		<transition>
+			<source ref="id6" />
+			<target ref="id5" />
+			<label kind="select" x="24" y="-120">e: did_safe_t</label>
+			<label kind="guard" x="24" y="-104">next[e] != -1 &amp;&amp;
 lock != -1 &amp;&amp;
 !is_done(lock) &amp;&amp;
-can_continue</label><label kind="assignment" x="24" y="-64">succ = e,
-local_c = 0</label></transition><transition><source ref="id7" /><target ref="id6" /><label kind="synchronisation" x="-280" y="48">intern[mid]?</label><label kind="assignment" x="-384" y="32">lock = var,
+can_continue</label>
+			<label kind="assignment" x="24" y="-64">succ = e,
+local_c = 0</label>
+		</transition>
+		<transition>
+			<source ref="id7" />
+			<target ref="id6" />
+			<label kind="synchronisation" x="-280" y="48">intern[mid]?</label>
+			<label kind="assignment" x="-384" y="32">lock = var,
 origin = var2,
 local_c = 0,
-idle_transporters[mid] = false</label><nail x="-248" y="48" /></transition><transition><source ref="id7" /><target ref="id6" /><label kind="guard" x="-288" y="-192">pass_through</label><label kind="synchronisation" x="-288" y="-176">transport_dequeue[mid]?</label><label kind="assignment" x="-288" y="-160">lock = var,
+idle_transporters[mid] = false</label>
+			<nail x="-248" y="48" />
+		</transition>
+		<transition>
+			<source ref="id7" />
+			<target ref="id6" />
+			<label kind="guard" x="-288" y="-192">pass_through</label>
+			<label kind="synchronisation" x="-288" y="-176">transport_dequeue[mid]?</label>
+			<label kind="assignment" x="-288" y="-160">lock = var,
 origin = var2,
 local_c = 0,
-idle_transporters[mid] = false</label><nail x="-248" y="-112" /></transition></template><template><name>ModuleWorker</name><parameter>const mid_safe_t mid,  int init_id, const bool worktype[NUMBER_OF_WORKTYPES],  const int p_time[NUMBER_OF_WORKTYPES]</parameter><declaration>clock local_c;
+idle_transporters[mid] = false</label>
+			<nail x="-248" y="-112" />
+		</transition>
+	</template>
+	<template>
+		<name>ModuleWorker</name>
+		<parameter>const mid_safe_t mid,  int init_id, const bool worktype[NUMBER_OF_WORKTYPES],  const int p_time[NUMBER_OF_WORKTYPES]</parameter>
+		<declaration>clock local_c;
 did_t origin = -1; //Direction from which recipe came from
 rid_t lock = -1; //Recipe being worked on
 int work_index; //Work being performed  
@@ -242,16 +367,94 @@ void init_unworked(){
         unworked[i] = true;
 }
 
-</declaration><location id="id8" x="-560" y="48"><committed /></location><location id="id9" x="0" y="56"><committed /></location><location id="id10" x="-424" y="48"><committed /></location><location id="id11" x="-288" y="48"><name x="-304" y="64">Idle</name></location><location id="id12" x="0" y="-248"><name x="-10" y="-278">Handshaking</name><committed /></location><location id="id13" x="-424" y="-248"><name x="-432" y="-280">Done</name></location><location id="id14" x="0" y="-96"><name x="-24" y="-64">Working</name><label kind="invariant" x="32" y="-112">local_c &lt;= p_time[work_index]</label></location><init ref="id8" /><transition><source ref="id8" /><target ref="id10" /><label kind="synchronisation" x="-576" y="64">initialize[init_id]!</label><label kind="assignment" x="-576" y="72">can_continue = false</label></transition><transition><source ref="id9" /><target ref="id14" /><label kind="select" x="40" y="-32">e: wid_safe_t</label><label kind="guard" x="40" y="-16">worktype[e] &amp;&amp;
-unworked[e]</label><label kind="assignment" x="40" y="16">work_index = e,
-local_c = 0</label></transition><transition><source ref="id13" /><target ref="id9" /><label kind="guard" x="-288" y="-176">can_work(worktype,lock)</label><label kind="synchronisation" x="-216" y="-144">urg!</label></transition><transition><source ref="id11" /><target ref="id13" /><label kind="synchronisation" x="-288" y="-24">work_dequeue[mid]?</label><label kind="assignment" x="-280" y="-8">lock = var,
+</declaration>
+		<location id="id8" x="-560" y="48">
+			<committed />
+		</location>
+		<location id="id9" x="0" y="56">
+			<committed />
+		</location>
+		<location id="id10" x="-424" y="48">
+			<committed />
+		</location>
+		<location id="id11" x="-288" y="48">
+			<name x="-304" y="64">Idle</name>
+		</location>
+		<location id="id12" x="0" y="-248">
+			<name x="-10" y="-278">Handshaking</name>
+			<committed />
+		</location>
+		<location id="id13" x="-424" y="-248">
+			<name x="-432" y="-280">Done</name>
+		</location>
+		<location id="id14" x="0" y="-96">
+			<name x="-24" y="-64">Working</name>
+			<label kind="invariant" x="32" y="-112">local_c &lt;= p_time[work_index]</label>
+		</location>
+		<init ref="id8" />
+		<transition>
+			<source ref="id8" />
+			<target ref="id10" />
+			<label kind="synchronisation" x="-576" y="64">initialize[init_id]!</label>
+			<label kind="assignment" x="-576" y="72">can_continue = false</label>
+		</transition>
+		<transition>
+			<source ref="id9" />
+			<target ref="id14" />
+			<label kind="select" x="40" y="-32">e: wid_safe_t</label>
+			<label kind="guard" x="40" y="-16">worktype[e] &amp;&amp;
+unworked[e]</label>
+			<label kind="assignment" x="40" y="16">work_index = e,
+local_c = 0</label>
+		</transition>
+		<transition>
+			<source ref="id13" />
+			<target ref="id9" />
+			<label kind="guard" x="-288" y="-176">can_work(worktype,lock)</label>
+			<label kind="synchronisation" x="-216" y="-144">urg!</label>
+		</transition>
+		<transition>
+			<source ref="id11" />
+			<target ref="id13" />
+			<label kind="synchronisation" x="-288" y="-24">work_dequeue[mid]?</label>
+			<label kind="assignment" x="-280" y="-8">lock = var,
 origin = var2,
-idle_workers[mid] = false</label></transition><transition><source ref="id10" /><target ref="id11" /><label kind="assignment" x="-416" y="72">init_unworked(),
+idle_workers[mid] = false</label>
+		</transition>
+		<transition>
+			<source ref="id10" />
+			<target ref="id11" />
+			<label kind="assignment" x="-416" y="72">init_unworked(),
 can_continue = true,
-idle_workers[mid] = true</label></transition><transition><source ref="id13" /><target ref="id10" /><label kind="guard" x="-640" y="-192">!can_work(worktype,lock) &amp;&amp;
-idle_transporters[mid]</label><label kind="synchronisation" x="-600" y="-160">intern[mid]!</label><label kind="assignment" x="-592" y="-128">var = lock,
+idle_workers[mid] = true</label>
+		</transition>
+		<transition>
+			<source ref="id13" />
+			<target ref="id10" />
+			<label kind="guard" x="-640" y="-192">!can_work(worktype,lock) &amp;&amp;
+idle_transporters[mid]</label>
+			<label kind="synchronisation" x="-600" y="-160">intern[mid]!</label>
+			<label kind="assignment" x="-592" y="-128">var = lock,
 var2 = origin,
-can_continue = false</label></transition><transition><source ref="id12" /><target ref="id13" /><label kind="synchronisation" x="-272" y="-288">work[work_index]!</label><label kind="assignment" x="-304" y="-272">unworked[work_index] = false</label></transition><transition><source ref="id14" /><target ref="id12" /><label kind="guard" x="24" y="-200">local_c == p_time[work_index]</label><label kind="synchronisation" x="24" y="-184">handshake[lock]?</label></transition></template><template><name>Recipe</name><parameter>rid_safe_t rid, mid_t mid_start, node&amp; func_dep[NUMBER_OF_WORKTYPES], const int length, did_safe_t origin</parameter><declaration>bool done = false; //Indicates when we are done with recipe; 
+can_continue = false</label>
+		</transition>
+		<transition>
+			<source ref="id12" />
+			<target ref="id13" />
+			<label kind="synchronisation" x="-272" y="-288">work[work_index]!</label>
+			<label kind="assignment" x="-304" y="-272">unworked[work_index] = false</label>
+		</transition>
+		<transition>
+			<source ref="id14" />
+			<target ref="id12" />
+			<label kind="guard" x="24" y="-200">local_c == p_time[work_index]</label>
+			<label kind="synchronisation" x="24" y="-184">handshake[lock]?</label>
+		</transition>
+	</template>
+	<template>
+		<name>Recipe</name>
+		<parameter>rid_safe_t rid, mid_t mid_start, node&amp; func_dep[NUMBER_OF_WORKTYPES], const int length, did_safe_t origin</parameter>
+		<declaration>bool done = false; //Indicates when we are done with recipe; 
 node current_nodes[length]; //Keeps track of currently accessible nodes, which can be worked 
 int c_length = 0; // Length of current array to consider
 node called_node; // Node being worked on
@@ -341,11 +544,49 @@ void no_more_nodes(){
 	done = true;      
         ra_done[rid] = true; 
     }
-}</declaration><location id="id15" x="-176" y="-160"><name x="-160" y="-168">Handshaking</name><committed /></location><location id="id16" x="-400" y="-160"><name x="-496" y="-168">InProgress</name></location><location id="id17" x="-400" y="-296"><name x="-410" y="-326">Start</name></location><init ref="id17" /><transition><source ref="id15" /><target ref="id16" /><label kind="select" x="-272" y="-96">e:wid_safe_t</label><label kind="guard" x="-272" y="-80">is_callable(e)</label><label kind="synchronisation" x="-272" y="-64">work[e]?</label><label kind="assignment" x="-272" y="-48">set_called_node(e),
+}</declaration>
+		<location id="id15" x="-176" y="-160">
+			<name x="-160" y="-168">Handshaking</name>
+			<committed />
+		</location>
+		<location id="id16" x="-400" y="-160">
+			<name x="-496" y="-168">InProgress</name>
+		</location>
+		<location id="id17" x="-400" y="-296">
+			<name x="-410" y="-326">Start</name>
+		</location>
+		<init ref="id17" />
+		<transition>
+			<source ref="id15" />
+			<target ref="id16" />
+			<label kind="select" x="-272" y="-96">e:wid_safe_t</label>
+			<label kind="guard" x="-272" y="-80">is_callable(e)</label>
+			<label kind="synchronisation" x="-272" y="-64">work[e]?</label>
+			<label kind="assignment" x="-272" y="-48">set_called_node(e),
 update_current_nodes(),
-no_more_nodes()</label><nail x="-288" y="-96" /></transition><transition><source ref="id16" /><target ref="id15" /><label kind="guard" x="-336" y="-256">done != true</label><label kind="synchronisation" x="-336" y="-240">handshake[rid]!</label><nail x="-288" y="-216" /></transition><transition><source ref="id17" /><target ref="id16" /><label kind="synchronisation" x="-552" y="-256">rstart[rid]!</label><label kind="assignment" x="-552" y="-240">var = mid_start,
+no_more_nodes()</label>
+			<nail x="-288" y="-96" />
+		</transition>
+		<transition>
+			<source ref="id16" />
+			<target ref="id15" />
+			<label kind="guard" x="-336" y="-256">done != true</label>
+			<label kind="synchronisation" x="-336" y="-240">handshake[rid]!</label>
+			<nail x="-288" y="-216" />
+		</transition>
+		<transition>
+			<source ref="id17" />
+			<target ref="id16" />
+			<label kind="synchronisation" x="-552" y="-256">rstart[rid]!</label>
+			<label kind="assignment" x="-552" y="-240">var = mid_start,
 var2 = origin,
-get_upper_nodes()</label></transition></template><template><name>RecipeQueue</name><parameter>rid_t &amp;queue[NUMBER_OF_RECIPES],  int init_id</parameter><declaration>rid_t r = -1; //Recipe being worked on
+get_upper_nodes()</label>
+		</transition>
+	</template>
+	<template>
+		<name>RecipeQueue</name>
+		<parameter>rid_t &amp;queue[NUMBER_OF_RECIPES],  int init_id</parameter>
+		<declaration>rid_t r = -1; //Recipe being worked on
 mid_t start = -1; //Module queuing into
 did_t origin; //Direction from which recipe came
 
@@ -370,101 +611,1164 @@ bool not_empty(){
         return true;
     else
         return false;
-}</declaration><location id="id18" x="-472" y="-184" /><location id="id19" x="-480" y="88" /><location id="id20" x="-664" y="88"><committed /></location><location id="id21" x="-664" y="0"><committed /></location><location id="id22" x="-664" y="-288"><committed /></location><location id="id23" x="-664" y="-184" /><location id="id24" x="-664" y="-96"><committed /></location><init ref="id22" /><transition><source ref="id23" /><target ref="id18" /><label kind="guard" x="-632" y="-256">!not_empty()</label><label kind="synchronisation" x="-632" y="-240">urg!</label><label kind="assignment" x="-632" y="-224">can_add_recipe = false</label></transition><transition><source ref="id19" /><target ref="id20" /><label kind="guard" x="-640" y="96">!full_modules[start]</label><label kind="synchronisation" x="-640" y="112">urg!</label><label kind="assignment" x="-640" y="128">can_add_recipe = true</label></transition><transition><source ref="id21" /><target ref="id19" /><label kind="guard" x="-608" y="-8">full_modules[start]</label><label kind="assignment" x="-608" y="8">can_add_recipe = false</label></transition><transition><source ref="id20" /><target ref="id23" /><label kind="synchronisation" x="-1008" y="-64">enqueue[start]!</label><label kind="assignment" x="-1048" y="-48">var = r, var2 = origin</label><nail x="-892" y="88" /><nail x="-892" y="-184" /></transition><transition><source ref="id21" /><target ref="id20" /><label kind="guard" x="-816" y="24">!full_modules[start]</label></transition><transition><source ref="id24" /><target ref="id21" /><label kind="synchronisation" x="-760" y="-72">rstart[r]?</label><label kind="assignment" x="-768" y="-56">start = var,
-origin = var2</label></transition><transition><source ref="id22" /><target ref="id23" /><label kind="synchronisation" x="-804" y="-223">initialize[init_id]!</label><label kind="assignment" x="-824" y="-240">init_current_works()</label></transition><transition><source ref="id23" /><target ref="id24" /><label kind="guard" x="-768" y="-168">not_empty()</label><label kind="synchronisation" x="-744" y="-152">urg!</label><label kind="assignment" x="-760" y="-136">r = pop()</label></transition></template><template><name>Remover</name><parameter> int init_id</parameter><location id="id25" x="-384" y="-120"><committed /></location><location id="id26" x="-224" y="-120" /><init ref="id25" /><transition><source ref="id25" /><target ref="id26" /><label kind="synchronisation" x="-364" y="-135">initialize[init_id]!</label><label kind="assignment" x="-352" y="-112">init_ra_done()</label></transition><transition><source ref="id26" /><target ref="id26" /><label kind="select" x="-152" y="-144">e: rid_safe_t</label><label kind="synchronisation" x="-152" y="-128">remove[e]?</label><nail x="-160" y="-184" /><nail x="-160" y="-64" /></transition></template><template><name>Initializer</name><declaration>int counter = 0;
-</declaration><location id="id27" x="-336" y="24" /><location id="id28" x="-336" y="-56"><committed /></location><init ref="id28" /><transition><source ref="id28" /><target ref="id27" /><label kind="guard" x="-576" y="-8">counter &gt;= NUMBER_OF_INITS</label></transition><transition><source ref="id28" /><target ref="id28" /><label kind="guard" x="-192" y="-152">counter &lt; NUMBER_OF_INITS &amp;&amp; 
-can_continue</label><label kind="synchronisation" x="-192" y="-176">initialize[counter]?</label><label kind="assignment" x="-192" y="-112">counter += 1</label><nail x="-200" y="-56" /><nail x="-200" y="-176" /><nail x="-336" y="-176" /></transition></template><template><name>Urgent</name><location id="id29" x="-176" y="-64" /><init ref="id29" /><transition><source ref="id29" /><target ref="id29" /><label kind="synchronisation" x="-264" y="-88">urg?</label><nail x="-304" y="-64" /><nail x="-304" y="-136" /><nail x="-176" y="-136" /></transition></template><system>// Module 0
-const bool work_array0[NUMBER_OF_WORKTYPES] = {true, false, false, false, false, false, false, false};
-const int ptime_array0[NUMBER_OF_WORKTYPES] = {582, 0, 0, 0, 0, 0, 0, 0};
-const mid_t next_array0[NUMBER_OF_OUTPUTS] = {-1, 1, -1, -1};
+}</declaration>
+		<location id="id18" x="-472" y="-184">
+		</location>
+		<location id="id19" x="-480" y="88">
+		</location>
+		<location id="id20" x="-664" y="88">
+			<committed />
+		</location>
+		<location id="id21" x="-664" y="0">
+			<committed />
+		</location>
+		<location id="id22" x="-664" y="-288">
+			<committed />
+		</location>
+		<location id="id23" x="-664" y="-184">
+		</location>
+		<location id="id24" x="-664" y="-96">
+			<committed />
+		</location>
+		<init ref="id22" />
+		<transition>
+			<source ref="id23" />
+			<target ref="id18" />
+			<label kind="guard" x="-632" y="-256">!not_empty()</label>
+			<label kind="synchronisation" x="-632" y="-240">urg!</label>
+			<label kind="assignment" x="-632" y="-224">can_add_recipe = false</label>
+		</transition>
+		<transition>
+			<source ref="id19" />
+			<target ref="id20" />
+			<label kind="guard" x="-640" y="96">!full_modules[start]</label>
+			<label kind="synchronisation" x="-640" y="112">urg!</label>
+			<label kind="assignment" x="-640" y="128">can_add_recipe = true</label>
+		</transition>
+		<transition>
+			<source ref="id21" />
+			<target ref="id19" />
+			<label kind="guard" x="-608" y="-8">full_modules[start]</label>
+			<label kind="assignment" x="-608" y="8">can_add_recipe = false</label>
+		</transition>
+		<transition>
+			<source ref="id20" />
+			<target ref="id23" />
+			<label kind="synchronisation" x="-1008" y="-64">enqueue[start]!</label>
+			<label kind="assignment" x="-1048" y="-48">var = r, var2 = origin</label>
+			<nail x="-892" y="88" />
+			<nail x="-892" y="-184" />
+		</transition>
+		<transition>
+			<source ref="id21" />
+			<target ref="id20" />
+			<label kind="guard" x="-816" y="24">!full_modules[start]</label>
+		</transition>
+		<transition>
+			<source ref="id24" />
+			<target ref="id21" />
+			<label kind="synchronisation" x="-760" y="-72">rstart[r]?</label>
+			<label kind="assignment" x="-768" y="-56">start = var,
+origin = var2</label>
+		</transition>
+		<transition>
+			<source ref="id22" />
+			<target ref="id23" />
+			<label kind="synchronisation" x="-804" y="-223">initialize[init_id]!</label>
+			<label kind="assignment" x="-824" y="-240">init_current_works()</label>
+		</transition>
+		<transition>
+			<source ref="id23" />
+			<target ref="id24" />
+			<label kind="guard" x="-768" y="-168">not_empty()</label>
+			<label kind="synchronisation" x="-744" y="-152">urg!</label>
+			<label kind="assignment" x="-760" y="-136">r = pop()</label>
+		</transition>
+	</template>
+	<template>
+		<name>Remover</name>
+		<parameter> int init_id</parameter>
+		<location id="id25" x="-384" y="-120">
+			<committed />
+		</location>
+		<location id="id26" x="-224" y="-120">
+		</location>
+		<init ref="id25" />
+		<transition>
+			<source ref="id25" />
+			<target ref="id26" />
+			<label kind="synchronisation" x="-364" y="-135">initialize[init_id]!</label>
+			<label kind="assignment" x="-352" y="-112">init_ra_done()</label>
+		</transition>
+		<transition>
+			<source ref="id26" />
+			<target ref="id26" />
+			<label kind="select" x="-152" y="-144">e: rid_safe_t</label>
+			<label kind="synchronisation" x="-152" y="-128">remove[e]?</label>
+			<nail x="-160" y="-184" />
+			<nail x="-160" y="-64" />
+		</transition>
+	</template>
+	<template>
+		<name>Initializer</name>
+		<declaration>int counter = 0;
+</declaration>
+		<location id="id27" x="-336" y="24">
+		</location>
+		<location id="id28" x="-336" y="-56">
+			<committed />
+		</location>
+		<init ref="id28" />
+		<transition>
+			<source ref="id28" />
+			<target ref="id27" />
+			<label kind="guard" x="-576" y="-8">counter &gt;= NUMBER_OF_INITS</label>
+		</transition>
+		<transition>
+			<source ref="id28" />
+			<target ref="id28" />
+			<label kind="guard" x="-192" y="-152">counter &lt; NUMBER_OF_INITS &amp;&amp; 
+can_continue</label>
+			<label kind="synchronisation" x="-192" y="-176">initialize[counter]?</label>
+			<label kind="assignment" x="-192" y="-112">counter += 1</label>
+			<nail x="-200" y="-56" />
+			<nail x="-200" y="-176" />
+			<nail x="-336" y="-176" />
+		</transition>
+	</template>
+	<template>
+		<name>Urgent</name>
+		<location id="id29" x="-176" y="-64">
+		</location>
+		<init ref="id29" />
+		<transition>
+			<source ref="id29" />
+			<target ref="id29" />
+			<label kind="synchronisation" x="-264" y="-88">urg?</label>
+			<nail x="-304" y="-64" />
+			<nail x="-304" y="-136" />
+			<nail x="-176" y="-136" />
+		</transition>
+	</template>
+	<system>// Module 0
+const bool work_array0[NUMBER_OF_WORKTYPES] = {true, true, false, false, false, false, false};
+const int ptime_array0[NUMBER_OF_WORKTYPES] = {60, 0, 0, 0, 0, 0, 0};
+const mid_t next_array0[NUMBER_OF_OUTPUTS] = {1, -1, -1, -1};
 const int ttime_array0[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue0 = ModuleQueue(0, 0, 3, work_array0, true);
+mqueue0 = ModuleQueue(0, 0, 3, work_array0, false);
 mworker0 = ModuleWorker(0, 1, work_array0, ptime_array0);
-mtransporter0 = ModuleTransporter(0, 2, ttime_array0, next_array0, true);
+mtransporter0 = ModuleTransporter(0, 2, ttime_array0, next_array0, false);
 
 // Module 1
-const bool work_array1[NUMBER_OF_WORKTYPES] = {false, true, false, false, false, false, false, false};
-const int ptime_array1[NUMBER_OF_WORKTYPES] = {0, 20, 0, 0, 0, 0, 0, 0};
-const mid_t next_array1[NUMBER_OF_OUTPUTS] = {-1, 2, -1, -1};
+const bool work_array1[NUMBER_OF_WORKTYPES] = {false, false, true, false, false, false, false};
+const int ptime_array1[NUMBER_OF_WORKTYPES] = {0, 0, 106, 0, 0, 0, 0};
+const mid_t next_array1[NUMBER_OF_OUTPUTS] = {2, -1, -1, -1};
 const int ttime_array1[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
 mqueue1 = ModuleQueue(1, 3, 3, work_array1, false);
 mworker1 = ModuleWorker(1, 4, work_array1, ptime_array1);
 mtransporter1 = ModuleTransporter(1, 5, ttime_array1, next_array1, false);
 
 // Module 2
-const bool work_array2[NUMBER_OF_WORKTYPES] = {false, false, true, true, false, false, false, false};
-const int ptime_array2[NUMBER_OF_WORKTYPES] = {0, 0, 60, 0, 0, 0, 0, 0};
-const mid_t next_array2[NUMBER_OF_OUTPUTS] = {-1, 3, -1, -1};
+const bool work_array2[NUMBER_OF_WORKTYPES] = {false, false, false, true, false, false, false};
+const int ptime_array2[NUMBER_OF_WORKTYPES] = {0, 0, 0, 582, 0, 0, 0};
+const mid_t next_array2[NUMBER_OF_OUTPUTS] = {3, -1, -1, -1};
 const int ttime_array2[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue2 = ModuleQueue(2, 6, 3, work_array2, false);
+mqueue2 = ModuleQueue(2, 6, 3, work_array2, true);
 mworker2 = ModuleWorker(2, 7, work_array2, ptime_array2);
-mtransporter2 = ModuleTransporter(2, 8, ttime_array2, next_array2, false);
+mtransporter2 = ModuleTransporter(2, 8, ttime_array2, next_array2, true);
 
 // Module 3
-const bool work_array3[NUMBER_OF_WORKTYPES] = {false, false, false, false, true, false, false, false};
-const int ptime_array3[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 106, 0, 0, 0};
-const mid_t next_array3[NUMBER_OF_OUTPUTS] = {-1, 4, -1, -1};
+const bool work_array3[NUMBER_OF_WORKTYPES] = {false, false, false, false, true, false, false};
+const int ptime_array3[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 20, 0, 0};
+const mid_t next_array3[NUMBER_OF_OUTPUTS] = {4, -1, -1, -1};
 const int ttime_array3[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
 mqueue3 = ModuleQueue(3, 9, 3, work_array3, false);
 mworker3 = ModuleWorker(3, 10, work_array3, ptime_array3);
 mtransporter3 = ModuleTransporter(3, 11, ttime_array3, next_array3, false);
 
 // Module 4
-const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, true, false, false};
-const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 68, 0, 0};
-const mid_t next_array4[NUMBER_OF_OUTPUTS] = {-1, 5, -1, -1};
+const bool work_array4[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, true, false};
+const int ptime_array4[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 68, 0};
+const mid_t next_array4[NUMBER_OF_OUTPUTS] = {5, -1, -1, -1};
 const int ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
 mqueue4 = ModuleQueue(4, 12, 3, work_array4, true);
 mworker4 = ModuleWorker(4, 13, work_array4, ptime_array4);
 mtransporter4 = ModuleTransporter(4, 14, ttime_array4, next_array4, true);
 
 // Module 5
-const bool work_array5[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, false, true, false};
-const int ptime_array5[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 0, 68, 0};
-const mid_t next_array5[NUMBER_OF_OUTPUTS] = {-1, 6, -1, -1};
+const bool work_array5[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, false, true};
+const int ptime_array5[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 0, 68};
+const mid_t next_array5[NUMBER_OF_OUTPUTS] = {-1, -1, -1, -1};
 const int ttime_array5[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
 mqueue5 = ModuleQueue(5, 15, 3, work_array5, true);
 mworker5 = ModuleWorker(5, 16, work_array5, ptime_array5);
 mtransporter5 = ModuleTransporter(5, 17, ttime_array5, next_array5, true);
 
-// Module 6
-const bool work_array6[NUMBER_OF_WORKTYPES] = {false, false, false, false, false, false, false, true};
-const int ptime_array6[NUMBER_OF_WORKTYPES] = {0, 0, 0, 0, 0, 0, 0, 68};
-const mid_t next_array6[NUMBER_OF_OUTPUTS] = {-1, -1, -1, -1};
-const int ttime_array6[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = {{100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}, {100, 100, 100, 100}};
-mqueue6 = ModuleQueue(6, 18, 3, work_array6, true);
-mworker6 = ModuleWorker(6, 19, work_array6, ptime_array6);
-mtransporter6 = ModuleTransporter(6, 20, ttime_array6, next_array6, true);
-
 // Recipe 0
-const node r0node0 = {2, 0, {5, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node1 = {4, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node2 = {5, 1, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node3 = {6, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node4 = {7, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node r0node5 = {3, 1, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r0node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r0node7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-node func_dep0[NUMBER_OF_WORKTYPES] = {r0node0,r0node1,r0node2,r0node3,r0node4,r0node5,r0node6,r0node7}; 
+const node r0node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r0node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r0node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep0[NUMBER_OF_WORKTYPES] = {r0node0,r0node1,r0node2,r0node3,r0node4,r0node5,r0node6}; 
 const int number_of_nodes0 = 6; 
-recipe0 = Recipe(0, 2, func_dep0, number_of_nodes0, 3);
+recipe0 = Recipe(0, 0, func_dep0, number_of_nodes0, 0);
 
 // Recipe 1
-const node r1node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r1node1 = {1, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r1node2 = {6, 1, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node r1node3 = {7, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node r1node4 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r1node5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r1node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node r1node7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-node func_dep1[NUMBER_OF_WORKTYPES] = {r1node0,r1node1,r1node2,r1node3,r1node4,r1node5,r1node6,r1node7}; 
-const int number_of_nodes1 = 4; 
-recipe1 = Recipe(1, 0, func_dep1, number_of_nodes1, 3);
+const node r1node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r1node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r1node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep1[NUMBER_OF_WORKTYPES] = {r1node0,r1node1,r1node2,r1node3,r1node4,r1node5,r1node6}; 
+const int number_of_nodes1 = 6; 
+recipe1 = Recipe(1, 0, func_dep1, number_of_nodes1, 0);
 
-rid_t rqa[NUMBER_OF_RECIPES] = {0, 1};
-rqueue = RecipeQueue(rqa, 21);rem = Remover(22);
+// Recipe 2
+const node r2node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r2node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r2node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r2node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r2node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r2node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r2node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep2[NUMBER_OF_WORKTYPES] = {r2node0,r2node1,r2node2,r2node3,r2node4,r2node5,r2node6}; 
+const int number_of_nodes2 = 6; 
+recipe2 = Recipe(2, 0, func_dep2, number_of_nodes2, 0);
+
+// Recipe 3
+const node r3node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r3node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r3node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r3node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r3node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r3node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r3node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep3[NUMBER_OF_WORKTYPES] = {r3node0,r3node1,r3node2,r3node3,r3node4,r3node5,r3node6}; 
+const int number_of_nodes3 = 6; 
+recipe3 = Recipe(3, 0, func_dep3, number_of_nodes3, 0);
+
+// Recipe 4
+const node r4node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r4node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r4node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r4node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r4node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r4node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r4node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep4[NUMBER_OF_WORKTYPES] = {r4node0,r4node1,r4node2,r4node3,r4node4,r4node5,r4node6}; 
+const int number_of_nodes4 = 6; 
+recipe4 = Recipe(4, 0, func_dep4, number_of_nodes4, 0);
+
+// Recipe 5
+const node r5node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r5node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r5node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r5node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r5node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r5node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r5node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep5[NUMBER_OF_WORKTYPES] = {r5node0,r5node1,r5node2,r5node3,r5node4,r5node5,r5node6}; 
+const int number_of_nodes5 = 6; 
+recipe5 = Recipe(5, 0, func_dep5, number_of_nodes5, 0);
+
+// Recipe 6
+const node r6node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r6node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r6node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r6node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r6node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r6node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r6node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep6[NUMBER_OF_WORKTYPES] = {r6node0,r6node1,r6node2,r6node3,r6node4,r6node5,r6node6}; 
+const int number_of_nodes6 = 6; 
+recipe6 = Recipe(6, 0, func_dep6, number_of_nodes6, 0);
+
+// Recipe 7
+const node r7node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r7node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r7node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r7node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r7node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r7node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r7node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep7[NUMBER_OF_WORKTYPES] = {r7node0,r7node1,r7node2,r7node3,r7node4,r7node5,r7node6}; 
+const int number_of_nodes7 = 6; 
+recipe7 = Recipe(7, 0, func_dep7, number_of_nodes7, 0);
+
+// Recipe 8
+const node r8node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r8node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r8node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r8node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r8node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r8node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r8node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep8[NUMBER_OF_WORKTYPES] = {r8node0,r8node1,r8node2,r8node3,r8node4,r8node5,r8node6}; 
+const int number_of_nodes8 = 6; 
+recipe8 = Recipe(8, 0, func_dep8, number_of_nodes8, 0);
+
+// Recipe 9
+const node r9node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r9node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r9node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r9node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r9node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r9node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r9node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep9[NUMBER_OF_WORKTYPES] = {r9node0,r9node1,r9node2,r9node3,r9node4,r9node5,r9node6}; 
+const int number_of_nodes9 = 6; 
+recipe9 = Recipe(9, 0, func_dep9, number_of_nodes9, 0);
+
+// Recipe 10
+const node r10node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r10node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r10node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r10node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r10node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r10node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r10node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep10[NUMBER_OF_WORKTYPES] = {r10node0,r10node1,r10node2,r10node3,r10node4,r10node5,r10node6}; 
+const int number_of_nodes10 = 6; 
+recipe10 = Recipe(10, 0, func_dep10, number_of_nodes10, 0);
+
+// Recipe 11
+const node r11node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r11node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r11node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r11node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r11node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r11node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r11node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep11[NUMBER_OF_WORKTYPES] = {r11node0,r11node1,r11node2,r11node3,r11node4,r11node5,r11node6}; 
+const int number_of_nodes11 = 6; 
+recipe11 = Recipe(11, 0, func_dep11, number_of_nodes11, 0);
+
+// Recipe 12
+const node r12node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r12node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r12node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r12node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r12node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r12node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r12node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep12[NUMBER_OF_WORKTYPES] = {r12node0,r12node1,r12node2,r12node3,r12node4,r12node5,r12node6}; 
+const int number_of_nodes12 = 6; 
+recipe12 = Recipe(12, 0, func_dep12, number_of_nodes12, 0);
+
+// Recipe 13
+const node r13node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r13node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r13node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r13node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r13node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r13node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r13node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep13[NUMBER_OF_WORKTYPES] = {r13node0,r13node1,r13node2,r13node3,r13node4,r13node5,r13node6}; 
+const int number_of_nodes13 = 6; 
+recipe13 = Recipe(13, 0, func_dep13, number_of_nodes13, 0);
+
+// Recipe 14
+const node r14node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r14node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r14node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r14node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r14node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r14node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r14node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep14[NUMBER_OF_WORKTYPES] = {r14node0,r14node1,r14node2,r14node3,r14node4,r14node5,r14node6}; 
+const int number_of_nodes14 = 6; 
+recipe14 = Recipe(14, 0, func_dep14, number_of_nodes14, 0);
+
+// Recipe 15
+const node r15node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r15node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r15node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r15node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r15node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r15node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r15node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep15[NUMBER_OF_WORKTYPES] = {r15node0,r15node1,r15node2,r15node3,r15node4,r15node5,r15node6}; 
+const int number_of_nodes15 = 6; 
+recipe15 = Recipe(15, 0, func_dep15, number_of_nodes15, 0);
+
+// Recipe 16
+const node r16node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r16node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r16node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r16node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r16node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r16node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r16node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep16[NUMBER_OF_WORKTYPES] = {r16node0,r16node1,r16node2,r16node3,r16node4,r16node5,r16node6}; 
+const int number_of_nodes16 = 6; 
+recipe16 = Recipe(16, 0, func_dep16, number_of_nodes16, 0);
+
+// Recipe 17
+const node r17node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r17node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r17node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r17node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r17node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r17node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r17node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep17[NUMBER_OF_WORKTYPES] = {r17node0,r17node1,r17node2,r17node3,r17node4,r17node5,r17node6}; 
+const int number_of_nodes17 = 6; 
+recipe17 = Recipe(17, 0, func_dep17, number_of_nodes17, 0);
+
+// Recipe 18
+const node r18node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r18node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r18node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r18node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r18node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r18node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r18node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep18[NUMBER_OF_WORKTYPES] = {r18node0,r18node1,r18node2,r18node3,r18node4,r18node5,r18node6}; 
+const int number_of_nodes18 = 6; 
+recipe18 = Recipe(18, 0, func_dep18, number_of_nodes18, 0);
+
+// Recipe 19
+const node r19node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r19node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r19node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r19node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r19node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r19node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r19node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep19[NUMBER_OF_WORKTYPES] = {r19node0,r19node1,r19node2,r19node3,r19node4,r19node5,r19node6}; 
+const int number_of_nodes19 = 6; 
+recipe19 = Recipe(19, 0, func_dep19, number_of_nodes19, 0);
+
+// Recipe 20
+const node r20node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r20node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r20node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r20node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r20node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r20node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r20node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep20[NUMBER_OF_WORKTYPES] = {r20node0,r20node1,r20node2,r20node3,r20node4,r20node5,r20node6}; 
+const int number_of_nodes20 = 6; 
+recipe20 = Recipe(20, 0, func_dep20, number_of_nodes20, 0);
+
+// Recipe 21
+const node r21node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r21node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r21node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r21node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r21node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r21node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r21node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep21[NUMBER_OF_WORKTYPES] = {r21node0,r21node1,r21node2,r21node3,r21node4,r21node5,r21node6}; 
+const int number_of_nodes21 = 6; 
+recipe21 = Recipe(21, 0, func_dep21, number_of_nodes21, 0);
+
+// Recipe 22
+const node r22node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r22node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r22node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r22node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r22node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r22node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r22node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep22[NUMBER_OF_WORKTYPES] = {r22node0,r22node1,r22node2,r22node3,r22node4,r22node5,r22node6}; 
+const int number_of_nodes22 = 6; 
+recipe22 = Recipe(22, 0, func_dep22, number_of_nodes22, 0);
+
+// Recipe 23
+const node r23node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r23node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r23node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r23node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r23node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r23node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r23node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep23[NUMBER_OF_WORKTYPES] = {r23node0,r23node1,r23node2,r23node3,r23node4,r23node5,r23node6}; 
+const int number_of_nodes23 = 6; 
+recipe23 = Recipe(23, 0, func_dep23, number_of_nodes23, 0);
+
+// Recipe 24
+const node r24node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r24node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r24node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r24node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r24node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r24node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r24node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep24[NUMBER_OF_WORKTYPES] = {r24node0,r24node1,r24node2,r24node3,r24node4,r24node5,r24node6}; 
+const int number_of_nodes24 = 6; 
+recipe24 = Recipe(24, 0, func_dep24, number_of_nodes24, 0);
+
+// Recipe 25
+const node r25node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r25node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r25node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r25node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r25node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r25node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r25node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep25[NUMBER_OF_WORKTYPES] = {r25node0,r25node1,r25node2,r25node3,r25node4,r25node5,r25node6}; 
+const int number_of_nodes25 = 6; 
+recipe25 = Recipe(25, 0, func_dep25, number_of_nodes25, 0);
+
+// Recipe 26
+const node r26node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r26node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r26node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r26node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r26node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r26node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r26node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep26[NUMBER_OF_WORKTYPES] = {r26node0,r26node1,r26node2,r26node3,r26node4,r26node5,r26node6}; 
+const int number_of_nodes26 = 6; 
+recipe26 = Recipe(26, 0, func_dep26, number_of_nodes26, 0);
+
+// Recipe 27
+const node r27node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r27node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r27node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r27node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r27node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r27node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r27node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep27[NUMBER_OF_WORKTYPES] = {r27node0,r27node1,r27node2,r27node3,r27node4,r27node5,r27node6}; 
+const int number_of_nodes27 = 6; 
+recipe27 = Recipe(27, 0, func_dep27, number_of_nodes27, 0);
+
+// Recipe 28
+const node r28node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r28node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r28node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r28node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r28node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r28node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r28node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep28[NUMBER_OF_WORKTYPES] = {r28node0,r28node1,r28node2,r28node3,r28node4,r28node5,r28node6}; 
+const int number_of_nodes28 = 6; 
+recipe28 = Recipe(28, 0, func_dep28, number_of_nodes28, 0);
+
+// Recipe 29
+const node r29node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r29node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r29node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r29node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r29node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r29node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r29node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep29[NUMBER_OF_WORKTYPES] = {r29node0,r29node1,r29node2,r29node3,r29node4,r29node5,r29node6}; 
+const int number_of_nodes29 = 6; 
+recipe29 = Recipe(29, 0, func_dep29, number_of_nodes29, 0);
+
+// Recipe 30
+const node r30node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r30node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r30node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r30node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r30node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r30node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r30node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep30[NUMBER_OF_WORKTYPES] = {r30node0,r30node1,r30node2,r30node3,r30node4,r30node5,r30node6}; 
+const int number_of_nodes30 = 6; 
+recipe30 = Recipe(30, 0, func_dep30, number_of_nodes30, 0);
+
+// Recipe 31
+const node r31node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r31node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r31node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r31node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r31node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r31node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r31node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep31[NUMBER_OF_WORKTYPES] = {r31node0,r31node1,r31node2,r31node3,r31node4,r31node5,r31node6}; 
+const int number_of_nodes31 = 6; 
+recipe31 = Recipe(31, 0, func_dep31, number_of_nodes31, 0);
+
+// Recipe 32
+const node r32node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r32node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r32node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r32node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r32node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r32node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r32node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep32[NUMBER_OF_WORKTYPES] = {r32node0,r32node1,r32node2,r32node3,r32node4,r32node5,r32node6}; 
+const int number_of_nodes32 = 6; 
+recipe32 = Recipe(32, 0, func_dep32, number_of_nodes32, 0);
+
+// Recipe 33
+const node r33node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r33node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r33node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r33node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r33node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r33node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r33node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep33[NUMBER_OF_WORKTYPES] = {r33node0,r33node1,r33node2,r33node3,r33node4,r33node5,r33node6}; 
+const int number_of_nodes33 = 6; 
+recipe33 = Recipe(33, 0, func_dep33, number_of_nodes33, 0);
+
+// Recipe 34
+const node r34node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r34node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r34node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r34node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r34node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r34node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r34node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep34[NUMBER_OF_WORKTYPES] = {r34node0,r34node1,r34node2,r34node3,r34node4,r34node5,r34node6}; 
+const int number_of_nodes34 = 6; 
+recipe34 = Recipe(34, 0, func_dep34, number_of_nodes34, 0);
+
+// Recipe 35
+const node r35node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r35node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r35node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r35node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r35node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r35node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r35node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep35[NUMBER_OF_WORKTYPES] = {r35node0,r35node1,r35node2,r35node3,r35node4,r35node5,r35node6}; 
+const int number_of_nodes35 = 6; 
+recipe35 = Recipe(35, 0, func_dep35, number_of_nodes35, 0);
+
+// Recipe 36
+const node r36node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r36node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r36node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r36node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r36node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r36node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r36node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep36[NUMBER_OF_WORKTYPES] = {r36node0,r36node1,r36node2,r36node3,r36node4,r36node5,r36node6}; 
+const int number_of_nodes36 = 6; 
+recipe36 = Recipe(36, 0, func_dep36, number_of_nodes36, 0);
+
+// Recipe 37
+const node r37node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r37node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r37node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r37node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r37node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r37node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r37node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep37[NUMBER_OF_WORKTYPES] = {r37node0,r37node1,r37node2,r37node3,r37node4,r37node5,r37node6}; 
+const int number_of_nodes37 = 6; 
+recipe37 = Recipe(37, 0, func_dep37, number_of_nodes37, 0);
+
+// Recipe 38
+const node r38node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r38node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r38node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r38node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r38node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r38node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r38node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep38[NUMBER_OF_WORKTYPES] = {r38node0,r38node1,r38node2,r38node3,r38node4,r38node5,r38node6}; 
+const int number_of_nodes38 = 6; 
+recipe38 = Recipe(38, 0, func_dep38, number_of_nodes38, 0);
+
+// Recipe 39
+const node r39node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r39node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r39node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r39node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r39node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r39node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r39node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep39[NUMBER_OF_WORKTYPES] = {r39node0,r39node1,r39node2,r39node3,r39node4,r39node5,r39node6}; 
+const int number_of_nodes39 = 6; 
+recipe39 = Recipe(39, 0, func_dep39, number_of_nodes39, 0);
+
+// Recipe 40
+const node r40node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r40node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r40node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r40node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r40node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r40node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r40node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep40[NUMBER_OF_WORKTYPES] = {r40node0,r40node1,r40node2,r40node3,r40node4,r40node5,r40node6}; 
+const int number_of_nodes40 = 6; 
+recipe40 = Recipe(40, 0, func_dep40, number_of_nodes40, 0);
+
+// Recipe 41
+const node r41node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r41node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r41node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r41node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r41node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r41node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r41node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep41[NUMBER_OF_WORKTYPES] = {r41node0,r41node1,r41node2,r41node3,r41node4,r41node5,r41node6}; 
+const int number_of_nodes41 = 6; 
+recipe41 = Recipe(41, 0, func_dep41, number_of_nodes41, 0);
+
+// Recipe 42
+const node r42node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r42node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r42node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r42node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r42node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r42node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r42node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep42[NUMBER_OF_WORKTYPES] = {r42node0,r42node1,r42node2,r42node3,r42node4,r42node5,r42node6}; 
+const int number_of_nodes42 = 6; 
+recipe42 = Recipe(42, 0, func_dep42, number_of_nodes42, 0);
+
+// Recipe 43
+const node r43node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r43node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r43node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r43node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r43node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r43node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r43node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep43[NUMBER_OF_WORKTYPES] = {r43node0,r43node1,r43node2,r43node3,r43node4,r43node5,r43node6}; 
+const int number_of_nodes43 = 6; 
+recipe43 = Recipe(43, 0, func_dep43, number_of_nodes43, 0);
+
+// Recipe 44
+const node r44node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r44node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r44node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r44node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r44node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r44node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r44node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep44[NUMBER_OF_WORKTYPES] = {r44node0,r44node1,r44node2,r44node3,r44node4,r44node5,r44node6}; 
+const int number_of_nodes44 = 6; 
+recipe44 = Recipe(44, 0, func_dep44, number_of_nodes44, 0);
+
+// Recipe 45
+const node r45node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r45node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r45node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r45node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r45node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r45node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r45node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep45[NUMBER_OF_WORKTYPES] = {r45node0,r45node1,r45node2,r45node3,r45node4,r45node5,r45node6}; 
+const int number_of_nodes45 = 6; 
+recipe45 = Recipe(45, 0, func_dep45, number_of_nodes45, 0);
+
+// Recipe 46
+const node r46node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r46node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r46node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r46node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r46node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r46node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r46node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep46[NUMBER_OF_WORKTYPES] = {r46node0,r46node1,r46node2,r46node3,r46node4,r46node5,r46node6}; 
+const int number_of_nodes46 = 6; 
+recipe46 = Recipe(46, 0, func_dep46, number_of_nodes46, 0);
+
+// Recipe 47
+const node r47node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r47node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r47node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r47node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r47node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r47node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r47node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep47[NUMBER_OF_WORKTYPES] = {r47node0,r47node1,r47node2,r47node3,r47node4,r47node5,r47node6}; 
+const int number_of_nodes47 = 6; 
+recipe47 = Recipe(47, 0, func_dep47, number_of_nodes47, 0);
+
+// Recipe 48
+const node r48node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r48node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r48node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r48node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r48node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r48node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r48node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep48[NUMBER_OF_WORKTYPES] = {r48node0,r48node1,r48node2,r48node3,r48node4,r48node5,r48node6}; 
+const int number_of_nodes48 = 6; 
+recipe48 = Recipe(48, 0, func_dep48, number_of_nodes48, 0);
+
+// Recipe 49
+const node r49node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r49node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r49node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r49node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r49node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r49node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r49node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep49[NUMBER_OF_WORKTYPES] = {r49node0,r49node1,r49node2,r49node3,r49node4,r49node5,r49node6}; 
+const int number_of_nodes49 = 6; 
+recipe49 = Recipe(49, 0, func_dep49, number_of_nodes49, 0);
+
+// Recipe 50
+const node r50node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r50node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r50node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r50node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r50node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r50node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r50node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep50[NUMBER_OF_WORKTYPES] = {r50node0,r50node1,r50node2,r50node3,r50node4,r50node5,r50node6}; 
+const int number_of_nodes50 = 6; 
+recipe50 = Recipe(50, 0, func_dep50, number_of_nodes50, 0);
+
+// Recipe 51
+const node r51node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r51node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r51node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r51node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r51node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r51node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r51node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep51[NUMBER_OF_WORKTYPES] = {r51node0,r51node1,r51node2,r51node3,r51node4,r51node5,r51node6}; 
+const int number_of_nodes51 = 6; 
+recipe51 = Recipe(51, 0, func_dep51, number_of_nodes51, 0);
+
+// Recipe 52
+const node r52node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r52node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r52node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r52node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r52node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r52node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r52node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep52[NUMBER_OF_WORKTYPES] = {r52node0,r52node1,r52node2,r52node3,r52node4,r52node5,r52node6}; 
+const int number_of_nodes52 = 6; 
+recipe52 = Recipe(52, 0, func_dep52, number_of_nodes52, 0);
+
+// Recipe 53
+const node r53node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r53node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r53node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r53node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r53node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r53node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r53node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep53[NUMBER_OF_WORKTYPES] = {r53node0,r53node1,r53node2,r53node3,r53node4,r53node5,r53node6}; 
+const int number_of_nodes53 = 6; 
+recipe53 = Recipe(53, 0, func_dep53, number_of_nodes53, 0);
+
+// Recipe 54
+const node r54node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r54node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r54node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r54node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r54node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r54node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r54node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep54[NUMBER_OF_WORKTYPES] = {r54node0,r54node1,r54node2,r54node3,r54node4,r54node5,r54node6}; 
+const int number_of_nodes54 = 6; 
+recipe54 = Recipe(54, 0, func_dep54, number_of_nodes54, 0);
+
+// Recipe 55
+const node r55node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r55node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r55node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r55node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r55node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r55node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r55node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep55[NUMBER_OF_WORKTYPES] = {r55node0,r55node1,r55node2,r55node3,r55node4,r55node5,r55node6}; 
+const int number_of_nodes55 = 6; 
+recipe55 = Recipe(55, 0, func_dep55, number_of_nodes55, 0);
+
+// Recipe 56
+const node r56node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r56node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r56node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r56node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r56node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r56node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r56node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep56[NUMBER_OF_WORKTYPES] = {r56node0,r56node1,r56node2,r56node3,r56node4,r56node5,r56node6}; 
+const int number_of_nodes56 = 6; 
+recipe56 = Recipe(56, 0, func_dep56, number_of_nodes56, 0);
+
+// Recipe 57
+const node r57node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r57node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r57node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r57node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r57node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r57node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r57node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep57[NUMBER_OF_WORKTYPES] = {r57node0,r57node1,r57node2,r57node3,r57node4,r57node5,r57node6}; 
+const int number_of_nodes57 = 6; 
+recipe57 = Recipe(57, 0, func_dep57, number_of_nodes57, 0);
+
+// Recipe 58
+const node r58node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r58node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r58node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r58node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r58node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r58node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r58node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep58[NUMBER_OF_WORKTYPES] = {r58node0,r58node1,r58node2,r58node3,r58node4,r58node5,r58node6}; 
+const int number_of_nodes58 = 6; 
+recipe58 = Recipe(58, 0, func_dep58, number_of_nodes58, 0);
+
+// Recipe 59
+const node r59node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r59node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r59node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r59node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r59node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r59node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r59node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep59[NUMBER_OF_WORKTYPES] = {r59node0,r59node1,r59node2,r59node3,r59node4,r59node5,r59node6}; 
+const int number_of_nodes59 = 6; 
+recipe59 = Recipe(59, 0, func_dep59, number_of_nodes59, 0);
+
+// Recipe 60
+const node r60node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r60node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r60node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r60node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r60node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r60node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r60node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep60[NUMBER_OF_WORKTYPES] = {r60node0,r60node1,r60node2,r60node3,r60node4,r60node5,r60node6}; 
+const int number_of_nodes60 = 6; 
+recipe60 = Recipe(60, 0, func_dep60, number_of_nodes60, 0);
+
+// Recipe 61
+const node r61node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r61node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r61node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r61node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r61node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r61node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r61node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep61[NUMBER_OF_WORKTYPES] = {r61node0,r61node1,r61node2,r61node3,r61node4,r61node5,r61node6}; 
+const int number_of_nodes61 = 6; 
+recipe61 = Recipe(61, 0, func_dep61, number_of_nodes61, 0);
+
+// Recipe 62
+const node r62node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r62node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r62node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r62node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r62node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r62node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r62node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep62[NUMBER_OF_WORKTYPES] = {r62node0,r62node1,r62node2,r62node3,r62node4,r62node5,r62node6}; 
+const int number_of_nodes62 = 6; 
+recipe62 = Recipe(62, 0, func_dep62, number_of_nodes62, 0);
+
+// Recipe 63
+const node r63node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r63node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r63node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r63node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r63node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r63node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r63node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep63[NUMBER_OF_WORKTYPES] = {r63node0,r63node1,r63node2,r63node3,r63node4,r63node5,r63node6}; 
+const int number_of_nodes63 = 6; 
+recipe63 = Recipe(63, 0, func_dep63, number_of_nodes63, 0);
+
+// Recipe 64
+const node r64node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r64node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r64node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r64node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r64node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r64node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r64node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep64[NUMBER_OF_WORKTYPES] = {r64node0,r64node1,r64node2,r64node3,r64node4,r64node5,r64node6}; 
+const int number_of_nodes64 = 6; 
+recipe64 = Recipe(64, 0, func_dep64, number_of_nodes64, 0);
+
+// Recipe 65
+const node r65node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r65node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r65node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r65node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r65node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r65node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r65node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep65[NUMBER_OF_WORKTYPES] = {r65node0,r65node1,r65node2,r65node3,r65node4,r65node5,r65node6}; 
+const int number_of_nodes65 = 6; 
+recipe65 = Recipe(65, 0, func_dep65, number_of_nodes65, 0);
+
+// Recipe 66
+const node r66node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r66node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r66node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r66node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r66node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r66node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r66node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep66[NUMBER_OF_WORKTYPES] = {r66node0,r66node1,r66node2,r66node3,r66node4,r66node5,r66node6}; 
+const int number_of_nodes66 = 6; 
+recipe66 = Recipe(66, 0, func_dep66, number_of_nodes66, 0);
+
+// Recipe 67
+const node r67node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r67node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r67node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r67node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r67node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r67node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r67node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep67[NUMBER_OF_WORKTYPES] = {r67node0,r67node1,r67node2,r67node3,r67node4,r67node5,r67node6}; 
+const int number_of_nodes67 = 6; 
+recipe67 = Recipe(67, 0, func_dep67, number_of_nodes67, 0);
+
+// Recipe 68
+const node r68node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r68node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r68node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r68node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r68node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r68node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r68node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep68[NUMBER_OF_WORKTYPES] = {r68node0,r68node1,r68node2,r68node3,r68node4,r68node5,r68node6}; 
+const int number_of_nodes68 = 6; 
+recipe68 = Recipe(68, 0, func_dep68, number_of_nodes68, 0);
+
+// Recipe 69
+const node r69node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r69node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r69node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r69node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r69node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r69node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r69node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep69[NUMBER_OF_WORKTYPES] = {r69node0,r69node1,r69node2,r69node3,r69node4,r69node5,r69node6}; 
+const int number_of_nodes69 = 6; 
+recipe69 = Recipe(69, 0, func_dep69, number_of_nodes69, 0);
+
+// Recipe 70
+const node r70node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r70node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r70node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r70node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r70node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r70node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r70node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep70[NUMBER_OF_WORKTYPES] = {r70node0,r70node1,r70node2,r70node3,r70node4,r70node5,r70node6}; 
+const int number_of_nodes70 = 6; 
+recipe70 = Recipe(70, 0, func_dep70, number_of_nodes70, 0);
+
+// Recipe 71
+const node r71node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r71node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r71node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r71node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r71node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r71node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r71node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep71[NUMBER_OF_WORKTYPES] = {r71node0,r71node1,r71node2,r71node3,r71node4,r71node5,r71node6}; 
+const int number_of_nodes71 = 6; 
+recipe71 = Recipe(71, 0, func_dep71, number_of_nodes71, 0);
+
+// Recipe 72
+const node r72node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r72node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r72node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r72node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r72node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r72node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r72node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep72[NUMBER_OF_WORKTYPES] = {r72node0,r72node1,r72node2,r72node3,r72node4,r72node5,r72node6}; 
+const int number_of_nodes72 = 6; 
+recipe72 = Recipe(72, 0, func_dep72, number_of_nodes72, 0);
+
+// Recipe 73
+const node r73node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r73node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r73node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r73node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r73node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r73node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r73node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep73[NUMBER_OF_WORKTYPES] = {r73node0,r73node1,r73node2,r73node3,r73node4,r73node5,r73node6}; 
+const int number_of_nodes73 = 6; 
+recipe73 = Recipe(73, 0, func_dep73, number_of_nodes73, 0);
+
+// Recipe 74
+const node r74node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r74node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r74node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r74node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r74node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r74node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r74node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep74[NUMBER_OF_WORKTYPES] = {r74node0,r74node1,r74node2,r74node3,r74node4,r74node5,r74node6}; 
+const int number_of_nodes74 = 6; 
+recipe74 = Recipe(74, 0, func_dep74, number_of_nodes74, 0);
+
+// Recipe 75
+const node r75node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r75node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r75node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r75node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r75node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r75node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r75node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep75[NUMBER_OF_WORKTYPES] = {r75node0,r75node1,r75node2,r75node3,r75node4,r75node5,r75node6}; 
+const int number_of_nodes75 = 6; 
+recipe75 = Recipe(75, 0, func_dep75, number_of_nodes75, 0);
+
+// Recipe 76
+const node r76node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r76node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r76node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r76node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r76node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r76node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r76node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep76[NUMBER_OF_WORKTYPES] = {r76node0,r76node1,r76node2,r76node3,r76node4,r76node5,r76node6}; 
+const int number_of_nodes76 = 6; 
+recipe76 = Recipe(76, 0, func_dep76, number_of_nodes76, 0);
+
+// Recipe 77
+const node r77node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r77node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r77node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r77node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r77node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r77node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r77node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep77[NUMBER_OF_WORKTYPES] = {r77node0,r77node1,r77node2,r77node3,r77node4,r77node5,r77node6}; 
+const int number_of_nodes77 = 6; 
+recipe77 = Recipe(77, 0, func_dep77, number_of_nodes77, 0);
+
+// Recipe 78
+const node r78node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r78node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r78node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r78node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r78node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r78node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r78node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep78[NUMBER_OF_WORKTYPES] = {r78node0,r78node1,r78node2,r78node3,r78node4,r78node5,r78node6}; 
+const int number_of_nodes78 = 6; 
+recipe78 = Recipe(78, 0, func_dep78, number_of_nodes78, 0);
+
+// Recipe 79
+const node r79node0 = {0, 0, {1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r79node1 = {2, 1, {2, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r79node2 = {3, 1, {3, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r79node3 = {4, 1, {4, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r79node4 = {5, 1, {5, -1, -1, -1, -1, -1, -1}, 1}; 
+const node r79node5 = {6, 1, {-1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node r79node6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1}, -1}; 
+node func_dep79[NUMBER_OF_WORKTYPES] = {r79node0,r79node1,r79node2,r79node3,r79node4,r79node5,r79node6}; 
+const int number_of_nodes79 = 6; 
+recipe79 = Recipe(79, 0, func_dep79, number_of_nodes79, 0);
+
+rid_t rqa[NUMBER_OF_RECIPES] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79};
+rqueue = RecipeQueue(rqa, 18);rem = Remover(19);
 initer = Initializer();
 urge = Urgent();
-system mqueue0, mworker0, mtransporter0, mqueue1, mworker1, mtransporter1, mqueue2, mworker2, mtransporter2, mqueue3, mworker3, mtransporter3, mqueue4, mworker4, mtransporter4, mqueue5, mworker5, mtransporter5, mqueue6, mworker6, mtransporter6, rqueue, rem, initer, urge, recipe0, recipe1;</system></nta>
->>>>>>> 715cf337923a52f2d5eacfc9eb619ab62f0799d4
+system mqueue0, mworker0, mtransporter0, mqueue1, mworker1, mtransporter1, mqueue2, mworker2, mtransporter2, mqueue3, mworker3, mtransporter3, mqueue4, mworker4, mtransporter4, mqueue5, mworker5, mtransporter5, rqueue, rem, initer, urge, recipe0, recipe1, recipe2, recipe3, recipe4, recipe5, recipe6, recipe7, recipe8, recipe9, recipe10, recipe11, recipe12, recipe13, recipe14, recipe15, recipe16, recipe17, recipe18, recipe19, recipe20, recipe21, recipe22, recipe23, recipe24, recipe25, recipe26, recipe27, recipe28, recipe29, recipe30, recipe31, recipe32, recipe33, recipe34, recipe35, recipe36, recipe37, recipe38, recipe39, recipe40, recipe41, recipe42, recipe43, recipe44, recipe45, recipe46, recipe47, recipe48, recipe49, recipe50, recipe51, recipe52, recipe53, recipe54, recipe55, recipe56, recipe57, recipe58, recipe59, recipe60, recipe61, recipe62, recipe63, recipe64, recipe65, recipe66, recipe67, recipe68, recipe69, recipe70, recipe71, recipe72, recipe73, recipe74, recipe75, recipe76, recipe77, recipe78, recipe79;</system>
+	<queries>
+	</queries>
+</nta>
