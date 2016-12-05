@@ -1,4 +1,3 @@
-
 from UPPAAL.verifytaAPI import run_verifyta, get_trace_time, pprint
 from UPPAAL.xml_generator import generate_xml
 

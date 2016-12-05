@@ -1,4 +1,7 @@
 from module import SquareModule
+from recipe import Recipe
+import networkx as nx
+
 
 def create_transporters(amount, time, queue_size):
     transporters = []
@@ -8,13 +11,12 @@ def create_transporters(amount, time, queue_size):
     return transporters
 
 
-
 def get_factorial_list(nodes):
     n = []
     for i in range(1, len(nodes) + 1):
         n.append({x for j, x in enumerate(nodes) if j < i})
-
     return n
+
 
 def initial_configuration(recipes, modules, transporters=None):
     G = Recipe.get_flow_graph(recipes)

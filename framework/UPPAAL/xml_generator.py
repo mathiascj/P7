@@ -561,11 +561,7 @@ def generate_system_declaration(system_list):
     :return: string to add all recipes and modules to system
     """
     s = "system "
-    for i, item in enumerate(system_list):
-        s += item
-        if i != len(system_list) - 1:
-            s += ", "
-
+    s += "< ".join(system_list)
     s += ";"
     return s
 

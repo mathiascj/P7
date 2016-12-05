@@ -1,8 +1,8 @@
 from UPPAAL.verifytaAPI import run_verifyta, pprint
 from time import time
-from Generation.xml_generator import generate_xml
-from framework.module import SquareModule
-from framework.recipe import Recipe
+from UPPAAL.xml_generator import generate_xml
+from module import SquareModule
+from recipe import Recipe
 import re
 
 
@@ -51,7 +51,7 @@ func_deps = {0: set(), 1: {0}, 2: {1}, 3: {2}, 4:  {3}, 5: {4}}
 for i in range(0, 100):
     recipes.append(Recipe(func_deps, 0, 0))
 
-for i in range(10, 101, 10):
+for i in range(10, 11):
     try:
         generate_xml(template, modules, recipes[:i], xml_name=temp_XML, q_name=temp_Q)
         start = time()
