@@ -107,3 +107,49 @@ def neighbours_swap(frontier, recipes):
             neighbours.append(swap(old, new))
     return neighbours
 
+def get_travsersal_info(trace_file, module_map, recipe_map):
+    worked_on = {}
+    transported_through = {}
+
+    with open(trace_file) as f:
+        for line in f:
+            if line == "Transitions:\n":
+                    lines = []
+                    counter = 0
+                    for line in f:
+                        lines.append(line)
+                        counter += 1
+                        if counter == 2:
+                            break
+                    counter = 0
+                    if "handshake" in lines[0]:
+                        r_id = int(re.findall("\d+", lines[0])[0])
+
+                        m_id = int(re.findall("\d+", lines[1])[0])
+                        m_id = module_map[m_id]
+
+                        if m_id not in worked_on:
+                            worked_on[m_id] = set()
+
+                        worked_on[m_id].add((recipe_map[r_id]))
+
+                    elif "enqueue" in lines[0] and "mtransporter" in lines[0]:
+                        m_id = int(re.findall("\d+", lines[0])[0])
+                        m_id = module_map[m_id]
+
+                        state_line = ""
+                        counter = 0
+                        for line in f:
+                            counter += 1
+                            if counter == 5:
+                                state_line = line
+                                break
+
+                        r_id = int(re.findall("var=(\d+)", state_line)[0])
+
+                        if m_id not in transported_through:
+                            transported_through[m_id] = set()
+
+                        transported_through[m_id].add(recipe_map[r_id])
+
+    return worked_on, transported_through
