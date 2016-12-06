@@ -2,7 +2,7 @@ from module import SquareModule
 from UPPAAL.uppaalAPI import get_best_time
 import re
 
-VERIFYTA = '/home/beta/uppaal64-4.1.19/bin-Linux/verifyta'
+VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.1.xml"
 
 
@@ -18,7 +18,7 @@ def tabu_search(recipes, modules, init_func, iters=50):
         :return: A list of tuples, where the first element of the tuple is a string representing a configuration and
         the second element its evaluation.
         """
-        return swap_neighbours(frontier, recipes)
+        return neighbours_func(swap_neighbours, frontier, recipes, short_term_memory)
 
     init_modules = init_func(recipes, modules, None)
     free_modules = [m for m in modules if m not in init_modules]
@@ -42,13 +42,31 @@ def tabu_search(recipes, modules, init_func, iters=50):
 
     return current_best
 
+def neighbours_func(get_neighbours_func, frontier, recipes, short_term_memory):
+    """
+    :param foo:
+    :param frontier:
+    :param recipes:
+    :return:
+    """
+    SquareModule.make_configuration(frontier[0])
+    neighbours = get_neighbours_func(frontier, recipes)
+    neighbours = [config for config in neighbours if config not in short_term_memory]
+    result = []
+    for config in neighbours:
+        SquareModule.make_configuration(config)
+        modules = SquareModule.modules_in_config(config)
+        evaluation = get_best_time(recipes, modules, XML_TEMPLATE, VERIFYTA)
+        result.append((config, evaluation))
+
+    return result
 
 def swap_neighbours(frontier, recipes):
     """
     :param config_str:
     :return:
     """
-    def eval_swap(old, new):
+    def swap(old, new):
         """
         :param old: The modules you wish to swap out
         :param new: The module that you wish to swap in
@@ -70,21 +88,17 @@ def swap_neighbours(frontier, recipes):
 
         l.sort()    # TODO: I think text based sorting works, I am not sure.
         new_config_str = ':'.join(l)
+        return new_config_str
 
-        new_config_modules = SquareModule.modules_in_config(new_config_str)
-        SquareModule.make_configuration(new_config_str) # We set up the new configuration in our module objects
-        result = get_best_time(recipes, new_config_modules, XML_TEMPLATE, VERIFYTA)
-        return (new_config_str, result)
-
-    def swappable_modules(config_m, free_modules):
+    def swappable_modules(config_module, free_modules):
         """
-        :param config_m:
+        :param config_module:
         :param free_modules:
         :return:
         """
         L = []
         for fm in free_modules:
-            if config_m.active_w_type <= fm.w_type:
+            if config_module.active_w_type <= fm.w_type:
                 L.append(fm)
         return L
 
@@ -94,10 +108,10 @@ def swap_neighbours(frontier, recipes):
 
     neighbours = []
 
-    for config_m in config_modules:
-        swappable = swappable_modules(config_m, free_modules)
+    for config_module in config_modules:
+        swappable = [fm for fm in free_modules if config_module.active_w_type <= fm.w_type]
         for free_m in swappable:
-            neighbours.append(eval_swap(config_m, free_m))
+            neighbours.append(swap(config_module, free_m))
 
     return neighbours
 
