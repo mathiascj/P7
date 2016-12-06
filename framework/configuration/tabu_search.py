@@ -51,6 +51,7 @@ def tabu_search(recipes, modules, init_func, iters=50):
     # Here begins the actual search
     for _ in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
         # TODO: Actually start doing Tabu like search stuff here, i.e. use memories, backtrace and shit.
+        SquareModule.make_configuration(frontier[0])
         neighbours = get_neighbours()
         neighbours_to_eval = [config for config in neighbours if config not in dynamic_memory]
         for config in neighbours_to_eval:
