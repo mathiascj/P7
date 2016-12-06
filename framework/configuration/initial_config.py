@@ -17,6 +17,30 @@ def get_factorial_list(nodes):
         n.append({x for j, x in enumerate(nodes) if j < i})
     return n
 
+# def find_best_module(G, modules):
+#
+#     # Gets all nodes without predecesors in Graph G
+#     top_nodes = []
+#     G_copy = G.copy()
+#
+#     for node in G_copy:
+#         no_preds = True
+#         predecessors = G_copy.predecessors_iter(node)
+# 
+#         for n in predecessors:
+#             no_preds = False
+#             break
+#
+#         if no_preds:
+#             top_nodes.append(node)
+#
+#     for node in top_nodes:
+#         mods = [m for m in modules if node in m.w_type]
+#         if mods:
+#             find_best_module()
+#
+
+
 
 def initial_configuration(recipes, modules, transporters=None):
     G = Recipe.get_flow_graph(recipes)
