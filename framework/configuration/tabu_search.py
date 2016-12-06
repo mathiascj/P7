@@ -19,7 +19,17 @@ def tabu_search(recipes, modules, init_func, iters=50):
         :return: A list of tuples, where the first element of the tuple is a string representing a configuration and
         the second element its evaluation.
         """
-        return neighbours_func(neighbours_swap, frontier, recipes, dynamic_memory)
+        return neighbours_swap(frontier, recipes)
+
+    def evaluate_config(config):
+        """ Evaluates a configuration
+        :param config: A string representing a configuration
+        :return: An integer representing the evaluation of the config.
+        """
+        SquareModule.make_configuration(config)     # SIDE EFFECT: Makes loads of changes to modules
+        modules = SquareModule.modules_in_config(config)
+        evaluation = get_best_time(recipes, modules, XML_TEMPLATE, VERIFYTA)
+        return evaluation
 
     # Memory used for remembering evalutations, used so we dont have to evaluate the same configuration twice.
     dynamic_memory = {}
@@ -41,36 +51,19 @@ def tabu_search(recipes, modules, init_func, iters=50):
     # Here begins the actual search
     for _ in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
         # TODO: Actually start doing Tabu like search stuff here, i.e. use memories, backtrace and shit.
+        SquareModule.make_configuration(frontier[0])
         neighbours = get_neighbours()
+        neighbours_to_eval = [config for config in neighbours if config not in dynamic_memory]
+        for config in neighbours_to_eval:
+            evaluation = evaluate_config(config)
+            dynamic_memory[config] = evaluation
         neighbour_evaluations = [(config, dynamic_memory[config]) for config in neighbours]
-        best = min(neighbour_evaluations, key=(lambda x: x[1])) # Finds the now best neighbour
+        best = min(neighbour_evaluations, key=(lambda x: x[1])) # Finds the best neighbour
         if best[1] < overall_best[1]:
             overall_best = best
         frontier = best
 
     return overall_best
-
-
-def neighbours_func(get_neighbours_func, frontier, recipes, dynamic_memory):
-    """ High order function that does some stuff that all neighbour finding functions need to do, such as evaluating
-    the neighbours.
-    :param get_neighbours_func: The function that actually finds neighbours. Must take a frontier and recipes as
-    arguments
-    :param frontier: The config that the tabu search is currently finding neighbours for
-    :param recipes: A list of Recipe objects
-    :param dynamic_memory: A dictionary of config, evalutation pairs. Here the evaluations of the neighbours are saved
-    and it is also used so that we don't evaluate the same configuration twice.
-    :return: A list of configurations, that is the neighbours.
-    """
-    SquareModule.make_configuration(frontier[0])
-    neighbours = get_neighbours_func(frontier, recipes)
-    neighbours_to_eval = [config for config in neighbours if config not in dynamic_memory]
-    for config in neighbours_to_eval:
-        SquareModule.make_configuration(config)             # SIDE EFFECT: Makes loads of changes to modules
-        modules = SquareModule.modules_in_config(config)
-        evaluation = get_best_time(recipes, modules, XML_TEMPLATE, VERIFYTA)
-        dynamic_memory[config] = evaluation                 # SIDE EFFECT: Makes changes to the dynamic_memory argument
-    return neighbours
 
 
 def neighbours_swap(frontier, recipes):
