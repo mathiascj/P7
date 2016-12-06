@@ -59,6 +59,17 @@ class SquareModule(Module):
 
 
         # Checks
+        if not isinstance(m_id, str):
+            raise TypeError("m_id must be a string")
+
+        for key in wp_time.keys():
+            if not isinstance(key, str):
+                raise TypeError("Work types must be strings")
+
+        for value in wp_time.values():
+            if not isinstance(value, int):
+                raise TypeError("Work processing times must be an integer")
+
         if str(m_id) in self.modules_dictionary:
             raise KeyError('m_id is not unique, a ' + str(self.modules_dictionary[str(m_id)]) + ' already exists')
         else:
@@ -198,17 +209,6 @@ class SquareModule(Module):
         elif module not in grid.keys():
             return direction not in grid.values()
 
-    def swap(self, module):
-        module.up = self.up
-        self.__up = None
-        module.right = self.right
-        self.__right = None
-        module.down = self.down
-        self.__down = None
-        module.left = self.left
-        self.__left = None
-        self.active_w_type = set()
-
     def find_connected_modules(self, ignore={None}):
         ignore_c = ignore.copy()
         ignore_c.add(self)
@@ -221,18 +221,19 @@ class SquareModule(Module):
                 L += m.find_connected_modules(ignore_c)
         return L
 
+    def module_str(self):
+        s = str(self.m_id) + '{' + ','.join(map(str, self.active_w_type)) + '}'
+        s += '[' + ','.join(map(str, map(lambda x: x.m_id if x else '_', self.connections))) + ']'
+        return s
+
+
     @staticmethod
     def configuration_str(module):
         configuration = module.find_connected_modules()
         configuration.sort(key=lambda m: m.m_id)        # Sorts the list based on m_id
 
-        L = []
-        for m in configuration:
-            s = str(m.m_id) + '{' + ','.join(map(str, m.active_w_type)) + '}'
-            s += '[' + ','.join(map(str, map(lambda x: x.m_id if x else '_', m.connections))) + ']'
-            L.append(s)
-
-        return ':'.join(L)
+        l = [m.module_str() for m in configuration]
+        return ':'.join(l)
 
     @staticmethod
     def make_configuration(configuration_str):
@@ -258,6 +259,30 @@ class SquareModule(Module):
             SquareModule.modules_dictionary[m_id].down = connections[2]
             SquareModule.modules_dictionary[m_id].left = connections[3]
 
+    @staticmethod
+    def modules_in_config(configuration_str):
+        """ Creates a list of modules that are in the configuration string.
+        :param Configuration_str: A string representing a configuration, retrived by the configuration_str method
+        :return: A list of modules that are in configuration_str
+        """
+        if not isinstance(configuration_str, str):
+            raise ValueError("configuration_str should be a string!")
+        result = []
+        L = configuration_str.split(sep=':')
+        for ms in L:
+            m_id = re.search('(.*)(?=\{)', ms).group(0)  #
+            result.append(SquareModule.modules_dictionary[m_id])
+
+        return result
+
+    @staticmethod
+    def modules_not_in_config(configuration_str):
+        """ The inverse of modules_in_config
+        :param configuration_str: A string representing a configuration, retrived by the configuration_str method
+        :return: All modules that are not in the configuration_str
+        """
+        in_str = SquareModule.modules_in_config(configuration_str)
+        return [m for m in SquareModule.modules_dictionary.values() if m not in in_str]
 
     def pprint(self):
         """ Pretty Prints a module

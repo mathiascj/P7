@@ -8,8 +8,8 @@ import re
 
 template = '../../Modeler/iter3.4.2.xml'
 
-temp_XML = 'test.xml'
-temp_Q = 'test.q'
+temp_XML = 'temp.xml'
+temp_Q = 'temp.q'
 
 V = '/home/beta/uppaal64-4.1.19/bin-Linux/verifyta'
 
@@ -19,17 +19,17 @@ t = [[100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100]]
 
-m0 = SquareModule(0, {0: 60, 9: 0},  t, 3)
+m0 = SquareModule('0', {0: 60, 9: 0},  t, 3)
 
-m1 = SquareModule(1, {1: 106},  t, 3)
+m1 = SquareModule('1', {1: 106},  t, 3)
 
-m2 = SquareModule(2, {2: 582},  t, 3, allow_passthrough=True)
+m2 = SquareModule('2', {2: 582},  t, 3, allow_passthrough=True)
 
-m3 = SquareModule(3, {3: 20}, t, 3)
+m3 = SquareModule('3', {3: 20}, t, 3)
 
-m4 = SquareModule(4, {4: 68},  t, 3, allow_passthrough=True)
+m4 = SquareModule('4', {4: 68},  t, 3, allow_passthrough=True)
 
-m5 = SquareModule(5, {5: 68},  t, 3, allow_passthrough=True)
+m5 = SquareModule('5', {5: 68},  t, 3, allow_passthrough=True)
 
 m0.up = m1
 m1.up = m2

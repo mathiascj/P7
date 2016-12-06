@@ -16,6 +16,6 @@ def get_best_time(recipes, modules, template_file, verifyta):
     :return: The best cost of the configuration
     """
     generate_xml(template_file=template_file, modules=modules, recipes=recipes, xml_name=XML_FILE, q_name=Q_FILE)
-    result, trace = run_verifyta(XML_FILE, Q_FILE, "-t 2 -o 3", verifyta=verifyta)
+    result, trace = run_verifyta(XML_FILE, Q_FILE, "-t 2", "-o 3", "-y", verifyta=verifyta)
     time = get_trace_time(trace)
     return time
