@@ -200,7 +200,7 @@ class SquareModule(Module):
     def can_connect(self, module, direction):
         """ Checks whether or not a module can be connect to this one in a good ol' practical way.
         :param module: The module you wish to connect
-        :param direction: The direction in which you wish to connect it
+        :param direction: The direction in which you wish to connect it. Given as a position.
         :return: A boolean, stating whether or not the module could be practically connected
         """
         grid = self.make_grid()
