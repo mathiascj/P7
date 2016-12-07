@@ -226,62 +226,12 @@ class SquareModule(Module):
         s += '[' + ','.join(map(str, map(lambda x: x.m_id if x else '_', self.connections))) + ']'
         return s
 
-
-    def configuration_str(self):
+    def modules_str(self):
         configuration = self.find_connected_modules()
         configuration.sort(key=lambda m: m.m_id)        # Sorts the list based on m_id
 
         l = [m.module_str() for m in configuration]
         return ':'.join(l)
-
-    @staticmethod
-    def make_configuration(configuration_str):
-        if not isinstance(configuration_str, str):
-            raise ValueError("configuration_str should be a string!")
-        for m in SquareModule.modules_dictionary.values():
-            m.up = None
-            m.right = None
-            m.down = None
-            m.left = None
-            m.active_w_type = set()
-
-        L = configuration_str.split(sep=':')
-        for ms in L:
-            m_id = re.search('(.*)(?=\{)', ms).group(0) # (?=...) is a lookahead assertion
-            active_w_type = set(re.search('.*\{(.*)\}.*', ms).group(1).split(sep=','))
-            temp = re.search('.*\[(.*)\].*', ms).group(1).split(sep=',')
-            connections = [SquareModule.modules_dictionary[conn_id] if conn_id != '_' else None for conn_id in temp]
-
-            SquareModule.modules_dictionary[m_id].active_w_type = active_w_type
-            SquareModule.modules_dictionary[m_id].up = connections[0]
-            SquareModule.modules_dictionary[m_id].right = connections[1]
-            SquareModule.modules_dictionary[m_id].down = connections[2]
-            SquareModule.modules_dictionary[m_id].left = connections[3]
-
-    @staticmethod
-    def modules_in_config(configuration_str):
-        """ Creates a list of modules that are in the configuration string.
-        :param Configuration_str: A string representing a configuration, retrived by the configuration_str method
-        :return: A list of modules that are in configuration_str
-        """
-        if not isinstance(configuration_str, str):
-            raise ValueError("configuration_str should be a string!")
-        result = []
-        L = configuration_str.split(sep=':')
-        for ms in L:
-            m_id = re.search('(.*)(?=\{)', ms).group(0)  #
-            result.append(SquareModule.modules_dictionary[m_id])
-
-        return result
-
-    @staticmethod
-    def modules_not_in_config(configuration_str):
-        """ The inverse of modules_in_config
-        :param configuration_str: A string representing a configuration, retrived by the configuration_str method
-        :return: All modules that are not in the configuration_str
-        """
-        in_str = SquareModule.modules_in_config(configuration_str)
-        return [m for m in SquareModule.modules_dictionary.values() if m not in in_str]
 
     def pprint(self):
         """ Pretty Prints a module

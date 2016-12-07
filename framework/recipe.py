@@ -76,6 +76,9 @@ class Recipe:
         """
         return self.list_to_Digraph(nx.topological_sort(self.to_DiGraph()))
 
+    def recipe_str(self):
+        return self.name + "@" + self.start_module + "&" + str(self.start_direction)
+
     @staticmethod
     def get_flow_graph(recipes):
         """

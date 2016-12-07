@@ -1,9 +1,10 @@
-from module import SquareModule
-from UPPAAL.uppaalAPI import get_best_time
 import re
 
+from UPPAAL.uppaalAPI import get_best_time
+from configuration.config_string_handler import ConfigStringHandler
+
 VERIFYTA = '../UPPAAL/verifyta'
-XML_TEMPLATE = "../../Modeler/iter3.4.1.xml"
+XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
 
 
 def tabu_search(recipes, modules, init_func, iters=50):
@@ -19,18 +20,20 @@ def tabu_search(recipes, modules, init_func, iters=50):
         :return: A list of tuples, where the first element of the tuple is a string representing a configuration and
         the second element its evaluation.
         """
-        return neighbours_swap(frontier, recipes)
+        return neighbours_swap(frontier, recipes, csh)
 
     def evaluate_config(config):
         """ Evaluates a configuration
         :param config: A string representing a configuration
         :return: An integer representing the evaluation of the config.
         """
-        SquareModule.make_configuration(config)     # SIDE EFFECT: Makes loads of changes to modules
-        modules = SquareModule.modules_in_config(config)
-        evaluation, worked_on, transported_through = get_best_time(recipes, modules, XML_TEMPLATE, VERIFYTA)
+        csh.make_configuration(config)     # SIDE EFFECT: Makes loads of changes to modules
+        modules_in_config = csh.modules_in_config(config)
+        evaluation, _, _ = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
         return evaluation
 
+
+    csh = ConfigStringHandler(recipes, modules)
     # Memory used for remembering evalutations, used so we dont have to evaluate the same configuration twice.
     dynamic_memory = {}
 
@@ -41,8 +44,8 @@ def tabu_search(recipes, modules, init_func, iters=50):
 
     # Creating the initial configuration and evalutates it
     init_config = init_func(recipes, modules, None)
-    init_modules = SquareModule.modules_in_config(init_config)
-    init_time,worked_on, transported_through = get_best_time(recipes, init_modules, XML_TEMPLATE, VERIFYTA)
+    init_modules = csh.modules_in_config(init_config)
+    init_time, worked_on, transported_through = get_best_time(recipes, init_modules, XML_TEMPLATE, VERIFYTA)
     dynamic_memory[init_config] = init_time
 
     overall_best = (init_config, init_time)
@@ -51,7 +54,7 @@ def tabu_search(recipes, modules, init_func, iters=50):
     # Here begins the actual search
     for _ in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
         # TODO: Actually start doing Tabu like search stuff here, i.e. use memories, backtrace and shit.
-        SquareModule.make_configuration(frontier[0])
+        csh.make_configuration(frontier[0])
         neighbours = get_neighbours()
         neighbours_to_eval = [config for config in neighbours if config not in dynamic_memory]
         for config in neighbours_to_eval:
@@ -66,7 +69,7 @@ def tabu_search(recipes, modules, init_func, iters=50):
     return overall_best
 
 
-def neighbours_swap(frontier, recipes):
+def neighbours_swap(frontier, recipes, csh):
     """ Finds all neighbours where we can swap modules out, but still retain the same active works
     :param frontier: The config that the tabu search is currently finding neighbours for
     :param recipes: A list of Recipe objects
@@ -78,27 +81,28 @@ def neighbours_swap(frontier, recipes):
         :param new: The module that you wish to swap in
         :return: A new configuration string, where we swapped old with new
         """
-        config_str = SquareModule.configuration_str(old)
-        l = config_str.split(sep=':')
-        for i, m_str in enumerate(l):
+        config_str = csh.configuration_str()
+        S = config_str.split('|')
+        M = S[1].split(sep=':')
+        for i, m_str in enumerate(M):
             m_str_id = re.search('(.*)(?=\{)', m_str).group(0)
             if str(old.m_id) == m_str_id:
                 new_half = new.module_str().split('{')[0]
                 old_half = old.module_str().split('{')[1]
-                l[i] = new_half + '{' + old_half # Everything  old could do, new now can do
+                M[i] = new_half + '{' + old_half # Everything  old could do, new now can do
             else:
                 split = m_str.find('[')
                 s = m_str[:split]
                 s += m_str[split:].replace(old.m_id, new.m_id)  # We replace all instances of the old mid with the new
-                l[i] = s
+                M[i] = s
 
-        l.sort()    # TODO: I think text based sorting works, I am not sure.
-        new_config_str = ':'.join(l)
+        M.sort()    # TODO: I think text based sorting works, I am not sure.
+        new_config_str = S[0] + '|' + ':'.join(M)
         return new_config_str
 
     config_str = frontier[0]
-    config_modules = SquareModule.modules_in_config(config_str)
-    free_modules = SquareModule.modules_not_in_config(config_str)
+    config_modules = csh.modules_in_config(config_str)
+    free_modules = csh.modules_not_in_config(config_str)
 
     neighbours = []
     for old in config_modules:
