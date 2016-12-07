@@ -292,7 +292,7 @@ def generate_system_declaration(modules, number_of_worktypes, recipes, m_id_dict
         recipe_names = recipe_names + names
         recipe_counter += r.amount
         s += decl_string
-        r_id_dict = {**r_id_dict, **dic}
+        r_id_dict.update(dic)
 
 
     # Declaring recipe queue

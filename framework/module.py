@@ -227,9 +227,8 @@ class SquareModule(Module):
         return s
 
 
-    @staticmethod
-    def configuration_str(module):
-        configuration = module.find_connected_modules()
+    def configuration_str(self):
+        configuration = self.find_connected_modules()
         configuration.sort(key=lambda m: m.m_id)        # Sorts the list based on m_id
 
         l = [m.module_str() for m in configuration]
