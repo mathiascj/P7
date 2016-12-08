@@ -219,7 +219,8 @@ class SquareModule(Module):
         for m in self.__in_connections:
             if m not in ignore_c:
                 L += m.find_connected_modules(ignore_c)
-        return L
+        return list(set(L))
+
 
     def module_str(self):
         s = str(self.m_id) + '{' + ','.join(map(str, self.active_w_type)) + '}'

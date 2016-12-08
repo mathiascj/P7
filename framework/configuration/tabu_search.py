@@ -2,12 +2,13 @@ import re
 
 from UPPAAL.uppaalAPI import get_best_time
 from configuration.config_string_handler import ConfigStringHandler
+from configuration.initial_config import initial_configuration_generator
 
 VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
 
 
-def tabu_search(recipes, modules, init_func, iters=50):
+def tabu_search(recipes, modules, iters=50):
     """ Tabu Search
     :param recipes: A list of Recipe objects
     :param modules: A list of module objects
@@ -27,13 +28,22 @@ def tabu_search(recipes, modules, init_func, iters=50):
         :param config: A string representing a configuration
         :return: An integer representing the evaluation of the config.
         """
-        csh.make_configuration(config)     # SIDE EFFECT: Makes loads of changes to modules
-        modules_in_config = csh.modules_in_config(config)
-        evaluation, _, _ = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
-        return evaluation
+
+        if config in dynamic_memory:
+            return dynamic_memory[config]
+        else:
+            csh.make_configuration(config)     # SIDE EFFECT: Makes loads of changes to modules
+            modules_in_config = csh.modules_in_config(config)
+            evaluation, _, _ = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
+            dynamic_memory[config] = evaluation
+            return evaluation
 
 
     csh = ConfigStringHandler(recipes, modules)
+    generator = initial_configuration_generator(recipes, modules, csh)
+
+
+
     # Memory used for remembering evalutations, used so we dont have to evaluate the same configuration twice.
     dynamic_memory = {}
 
@@ -42,31 +52,83 @@ def tabu_search(recipes, modules, init_func, iters=50):
     intermediate_memory = []
     short_term_memory = []
 
-    # Creating the initial configuration and evalutates it
-    init_config = init_func(recipes, modules, None)
-    init_modules = csh.modules_in_config(init_config)
-    init_time, worked_on, transported_through = get_best_time(recipes, init_modules, XML_TEMPLATE, VERIFYTA)
-    dynamic_memory[init_config] = init_time
+    for config in generator:
+        evaluate_config(config) # Updates dynamic memory
+        long_term_memory.append(config)
 
-    overall_best = (init_config, init_time)
-    frontier = (init_config, init_time)
+    # Creating the initial configuration and evalutates it
+    long_term_memory.sort(key=(lambda x: dynamic_memory[x]))
+    overall_best = long_term_memory[0]
+    frontier = long_term_memory[0]
+
 
     # Here begins the actual search
     for _ in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
-        # TODO: Actually start doing Tabu like search stuff here, i.e. use memories, backtrace and shit.
+        # TODO: Actually start doing Tabu like search stuff here, i.e. use memories, backtrace and
+
         csh.make_configuration(frontier[0])
         neighbours = get_neighbours()
-        neighbours_to_eval = [config for config in neighbours if config not in dynamic_memory]
-        for config in neighbours_to_eval:
-            evaluation = evaluate_config(config)
-            dynamic_memory[config] = evaluation
-        neighbour_evaluations = [(config, dynamic_memory[config]) for config in neighbours]
+        neighbour_evaluations = map(evaluate_config, neighbours)
         best = min(neighbour_evaluations, key=(lambda x: x[1])) # Finds the best neighbour
         if best[1] < overall_best[1]:
             overall_best = best
         frontier = best
 
     return overall_best
+
+
+def path_setter(start, path, end, up):
+    start.up = path[0]
+    path[-1].down = end
+    connect_module_list(path)
+
+    #path[-1].right = None
+
+def connect_module_list(list):
+    for i, m in enumerate(list):
+        if i + 1 < len(list):
+            m.right = list[i + 1]
+
+
+def anti_serialize(start, path, end, csh):
+    grid = csh.make_grid()
+
+    current = start
+    remaining = [start]
+    while current.right:
+        current = current.right
+        if current not in path:
+            remaining.append(current)
+        if current == end:
+            break
+
+
+    # Path is equal to the length between start and end
+    if current == end:
+        while len(remaining) > len(path):
+            path.append(csh.take_transport_module())
+
+        end = remaining[-1]
+        remaining.remove(end)
+        while len(remaining) < len(path) - 1:
+            remaining.append(csh.take_transport_module())
+        remaining.append(end)
+
+        connect_module_list(remaining)
+        for m in path:
+            m.right = None
+
+        path_setter(start, path, end, True)
+        if not csh.grid_conflicts():
+            return csh.configuration_str()
+
+        path_setter(start, path, end, False)
+        if not csh.grid_conflicts:
+            return csh.configuration_str()
+
+    return ""
+
+
 
 
 def neighbours_swap(frontier, recipes, csh):

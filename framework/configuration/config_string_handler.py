@@ -1,15 +1,22 @@
 import re
+from copy import deepcopy
 
 class ConfigStringHandler:
-    def __init__(self, recipes, all_modules, initial_configuration=""):
+    def __init__(self, recipes, all_modules, transport_module, initial_configuration=""):
         self.all_modules = all_modules
         self.recipes = recipes
+        self.transport_module = transport_module
 
         self.free_modules = all_modules
+
         self.current_modules = []
+
+        self.free_transporters = []
 
         self.module_dictionary = {m.m_id: m for m in all_modules}
         self.recipe_dictionary = {r.name: r for r in recipes}
+
+        self.transport_id = 0
 
         if initial_configuration:
             self.make_configuration(initial_configuration)
@@ -30,12 +37,7 @@ class ConfigStringHandler:
         if not isinstance(configuration_str, str):
             raise ValueError("configuration_str should be a string!")
         self.current_modules = []
-        for m in self.all_modules:
-            m.up = None
-            m.right = None
-            m.down = None
-            m.left = None
-            m.active_w_type = set()
+        self.reset_modules()
 
         S = configuration_str.split(sep="|")
         R = S[0].split(sep='$')
@@ -90,3 +92,54 @@ class ConfigStringHandler:
         """
         in_str = self.modules_in_config(configuration_str)
         return [m for m in self.module_dictionary.values() if m not in in_str]
+
+    def reset_modules(self):
+        for m in self.all_modules:
+            m.up = None
+            m.right = None
+            m.down = None
+            m.left = None
+            m.active_w_type = set()
+
+    def make_grid(self):
+        if self.current_modules:
+            return self.current_modules[0].make_grid()
+        else:
+            return {}
+
+
+    def grid_conflicts(self):
+
+        def invert_dict(d):
+            res = {}
+            for k in d:
+                res.setdefault(d[k], set()).add(k)
+            return res
+
+        grid = self.make_grid()
+        inverted_grid = invert_dict(grid)
+        conflicts = {k: v for k, v in inverted_grid.items() if len(v) > 1}
+        return conflicts
+
+    def take_transport_module(self):
+        if self.free_transporters:
+            t = self.free_transporters[0]
+            self.free_transporters.remove(t)
+        else:
+            t = deepcopy(self.transport_module)
+            t.m_id = "transporter" + str(self.transport_id)
+            self.module_dictionary[t.m_id] = t
+            self.transport_id += 1
+            self.all_modules.append(t)
+
+        self.current_modules.append(t)
+
+        return  t
+
+    def free_transport_module(self, t):
+        self.current_modules.remove(t)
+        self.free_transporters.append(t)
+
+
+
+
