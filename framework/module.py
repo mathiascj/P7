@@ -234,6 +234,30 @@ class SquareModule(Module):
         l = [m.module_str() for m in configuration]
         return ':'.join(l)
 
+    def traverse_in_left(self):
+        current = self
+        mods = [self]
+
+        while current.__in_left:
+            current = current.__in_left
+            mods.append(current)
+
+        return mods
+
+    def traverse_right(self, end=None):
+        current = self
+        mods = [self]
+
+        while current.right:
+            current = current.right
+            mods.append(current)
+            if current == end:
+                break
+
+        return mods
+
+
+
     def pprint(self):
         """ Pretty Prints a module
         """

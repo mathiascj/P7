@@ -78,11 +78,15 @@ def tabu_search(recipes, modules, iters=50):
 
 
 def path_setter(start, path, end, up):
-    start.up = path[0]
-    path[-1].down = end
+    if up:
+        start.up = path[0]
+        path[-1].down = end
+    else:
+        start.down = path[0]
+        path[-1].up = end
+
     connect_module_list(path)
 
-    #path[-1].right = None
 
 def connect_module_list(list):
     for i, m in enumerate(list):
@@ -93,41 +97,78 @@ def connect_module_list(list):
 def anti_serialize(start, path, end, csh):
     grid = csh.make_grid()
 
-    current = start
-    remaining = [start]
-    while current.right:
-        current = current.right
-        if current not in path:
-            remaining.append(current)
-        if current == end:
-            break
 
-
-    # Path is equal to the length between start and end
-    if current == end:
+    if start and end:
+        mods = start.traverse_right(end)
+        remaining = [x for x in mods if x not in path]
+        # When path is too short
         while len(remaining) > len(path):
             path.append(csh.take_transport_module())
 
+        # When path is too long
         end = remaining[-1]
         remaining.remove(end)
         while len(remaining) < len(path) - 1:
             remaining.append(csh.take_transport_module())
         remaining.append(end)
 
+        # Reconnect original line
         connect_module_list(remaining)
+
+        # Reset connections in new line
         for m in path:
             m.right = None
 
+        # Tries to set new line above
         path_setter(start, path, end, True)
         if not csh.grid_conflicts():
             return csh.configuration_str()
 
+        # Tries to set new line below
         path_setter(start, path, end, False)
         if not csh.grid_conflicts:
             return csh.configuration_str()
 
-    return ""
+    elif end:
+        mods = end.traverse_in_left()
+        remaining = [x for x in mods if x not in path]
+        remaining.reverse()
+        connect_module_list(remaining)
 
+        for m in path:
+            m.right = None
+        connect_module_list(path)
+
+        path[-1].down = end
+        path[-1].right = None
+        if not csh.grid_conflicts():
+            return csh.configuration_str()
+
+        path[-1].down = None
+        path[-1].up = end
+        if not csh.grid_conflicts():
+            return csh.configuration_str()
+
+    elif start:
+        mods = start.traverse_right()
+        remaining = [x for x in mods if x not in path]
+        connect_module_list(remaining)
+
+        for m in path:
+            m.right = None
+        connect_module_list(path)
+        start.up =  path[0]
+
+        if not csh.grid_conflicts():
+            return csh.configuration_str()
+
+        start.up = None
+        start.down = path[0]
+        if not csh.grid_conflicts():
+            return csh.configuration_str()
+
+
+    return ""
 
 
 
@@ -172,4 +213,80 @@ def neighbours_swap(frontier, recipes, csh):
         for new in swappable:
             neighbours.append(swap(old, new))
     return neighbours
+
+def neighbours_anti_serialized(worked, transported, line, csh):
+    #Todo: Handle different lines. Handle that we have to antiserialize even on outer lines
+
+    def invert_dict(d):
+        """
+        Inverts a dictionary many to many
+        :param d: dictionary
+        :return: inverted dictionary
+        """
+        res = {}
+        for k in d:
+            for v in d[k]:
+                res.setdefault(v, set()).add(k)
+
+        return res
+
+
+    def anti_serialize_args(recipe_name, modules, csh, end_group=False):
+        """
+        Given a sequence of modules, finds which the anti-serialization should start and end on
+        :param recipe_name: Name of recipe object
+        :param modules: module sequence we wish to anti serialize
+        :param csh: config_string_handler object
+        :param end_group: If true, allows for end to be None so that we may branch off at end
+        :return: list of arguments to anti_serialize
+        """
+
+        # Set start
+        if csh.recipe_dictionary[recipe_name].start_module == modules[0]:
+            start = None
+        elif modules._in_left :
+            start = modules._in_left
+        else:
+            return None #TODO: Return something so we don't throw exceptions
+
+        # Set end
+        if end_group:
+            end = None
+        else:
+            end = modules.right
+
+        # Set up args
+        return [start, modules, end, csh]
+
+
+    # Get dict where each recipe is a key to the modules worked on by it
+    iworked = invert_dict(worked)
+
+
+    r0_name, r0 = iworked.items()[0]
+    r1_name, r1 = iworked.items()[1]
+    split_groups = []
+    current_group = []
+
+    for m in line:
+        # When m is a common module between r0 and r1
+        if m in r0 and m in r1 and not current_group:
+                # Finds start and end modules for the path
+                split_groups.append(anti_serialize_args(r0_name, current_group, csh))
+                current_group = []
+
+        # If m is only in r0 we append it to the current_group
+        elif m in r0:
+            current_group.append(m)
+
+    # Gets start and end for last path found
+    # Also allows for end to be set to None
+    if current_group:
+        split_groups.append(anti_serialize_args(r0_name, current_group, csh, True))
+
+
+    # Call arguments of each split on anti_serialize.
+    for splits in split_groups:
+        print(anti_serialize(*splits))
+
 
