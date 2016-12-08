@@ -25,14 +25,29 @@ m3 = SquareModule('super-skruer', {'skrue': 4}, t, 3)
 m4 = SquareModule('super-pakker', {'pakke': 2}, t, 3)
 
 
-m0.up = m1
+m0.up = m3
+m3.up = m1
 m1.up = m2
 
 r0 = Recipe('chokolade', {'hammer': set(), 'mere hammer': {'hammer'}, 'skrue': {'mere hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 4)
 r1 = Recipe('kage', {'hammer': set(), 'mere hammer': {'hammer'}, 'skrue': {'mere hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 4)
 
-s = r0.recipe_str() + '|' + m0.configuration_str()
+s = r0.recipe_str() + '|' + m0.modules_str()
 
 c = ConfigStringHandler([r0, r1], [m0, m1, m2, m3, m4], s)
 
-time, worked_on, travel_through = get_best_time([r0], [m0, m1, m2], XML_TEMPLATE, VERIFYTA)
+time, worked, traveled = get_best_time([r0], [m0, m1, m2, m3], XML_TEMPLATE, VERIFYTA)
+
+def invert_dict(d):
+    res = {}
+    for k in d:
+        for v in d[k]:
+            res.setdefault(v, set()).add(k)
+
+    return res
+
+def something(worked, traveled):
+    iworked = invert_dict(worked)
+    itraveled = invert_dict(traveled)
+    return {key: itraveled[key] - iworked[key] for key in iworked}
+
