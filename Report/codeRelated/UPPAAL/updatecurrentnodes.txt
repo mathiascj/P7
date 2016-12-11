@@ -1,0 +1,41 @@
+// Updates the current_nodes array,
+// to reflect that work has been done.
+void update_current_nodes(){
+    node new_nodes[length];
+    int i;
+    int j = 0;
+	
+    current_works[rid][called_node.work] = false;
+
+    // Collects all elements of current_nodes,
+    // except for the node just worked on.
+    // Decrements the size of array by 1
+    for(i = 0; i < c_length; i++){
+        if(current_nodes[i] != called_node){
+            new_nodes[j] = current_nodes[i]; 
+            j++;
+        }
+    }
+    c_length--;
+
+    // Finds all children on the node that has been worked on
+    // and decrements their number of parents by 1
+    for(i = 0; i < called_node.number_of_children; i++){  
+        
+	node child = func_dep[called_node.children[i]];
+	int res;
+	res = --child.number_of_parents;
+	
+        // If child has lost all it's parents :-(
+        // It is added to the array of current nodes
+        if(res == 0){
+            new_nodes[c_length] = child;
+            current_works[rid][child.work] = true;
+            c_length++;
+        }
+    }
+    
+    // Overwrite the old current array with new one
+    for(i = 0; i < c_length; i++)
+        current_nodes[i] = new_nodes[i];  
+} 

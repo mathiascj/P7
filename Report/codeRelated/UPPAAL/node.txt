@@ -1,0 +1,6 @@
+typedef struct {
+	wid_t work;
+	int number_of_parents;
+	int children[NUMBER_OF_WORKTYPES];
+	int number_of_children;
+} node;
