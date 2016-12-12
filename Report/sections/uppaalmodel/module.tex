@@ -3,8 +3,7 @@
 Since a configuration is made up of individual modules, it seems natural to model it as a set of synchronizing module instances. In this section we will first show off the initial design of the module template. Then discuss how we got more concrete with the final version.
 
 \subsection{Early module template}
-In our early design work we viewed the individual module in a very abstract way, inspired by initial observations of the FESTO CP-Learning Factory set-up at Aalborg university. It can receive and send recipes to any module connected to it. It may perform one type of work on a recipe and only one recipe may be located on it at any given time. Recipes may pass through modules without being worked on. This all 
-
+In our early design work we viewed the individual module in a very abstract way, inspired by initial observations of the FESTO CP-Learning Factory set-up at Aalborg University. It can receive and send recipes to any module connected to it. It may perform one type of work on a recipe and only one recipe may be located on it at any given time. Recipes may pass through modules without being worked on. 
 These basic ideas turned into our first version of the module template, which can be seen in \cref{fig:earlymodule}.
 
 
@@ -41,13 +40,13 @@ As in the earlier version, a recipe is moved between instances by proxy of its i
 
 
 \subsubsection{ModuleWorker}\label{subs:moduleworker}
-The \emph{ModuleWorker} template can be seen in \cref{fig:moduleworker}. An instance of this template may apply several different types of work upon a recipe. In the idle location, the worker waits to synchronize with the module's \emph{ModuleQueue} instance. If the module can perform some work, it will move into the \emph{Working} location. Here it will wait for \emph{p\_time}. When the wait is over, it will try to synchronize with the recipe through the \emph{handshake} and \emph{work} channels as in the earlier version. Arriving at the \emph{Done} location, we may choose to work the recipe further if possible. Otherwise we perform a synchronization on the module's \emph{intern} channel. This passes the item over to the module's \emph{ModuleTransporter} instance. Synchronization on the intern channel may also occur, if the module cannot perform any work on the recipe. 
+The \emph{ModuleWorker} template can be seen in \cref{fig:moduleworker}. An instance of this template may apply several different types of work upon a recipe. In the idle location, the worker waits to synchronize with the module's \emph{ModuleQueue} instance. If the module can perform some work, it will move into the \emph{Working} location. Here it will wait for \emph{p\_time}, symbolising the time it takes to perform the work. When the wait is over, it will try to synchronize with the recipe through the \emph{handshake} and \emph{work} channels as in the earlier version. Arriving at the \emph{Done} \todo{Maybe call this location something other than Done. In general get names on all the locations} location, we may choose to work the recipe further if possible. Otherwise we perform a synchronization on the module's \emph{intern} channel. This passes the item over to the module's \emph{ModuleTransporter} instance. Synchronization on the intern channel may also occur, if the module cannot perform any work on the recipe. 
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{moduleworker.pdf}
 \caption{The ModuleWorker template}
-\label{subs:recipe}
+\label{fig:moduleworker}
 \end{figure}
 
 \subsubsection{ModuleTransporter}
@@ -55,7 +54,7 @@ The \emph{ModuleTransporter} template can be seen in \cref{fig:moduletransporter
 
 Once in the \emph{Selector} location a recipe may go to \emph{Idle} or \emph{Transporting}. If the recipe is done, it has to go back to idle and be removed from the production line by synchronizing on the \emph{remove} channel, as opposed to the \emph{transport[0]} in the earlier version.
 
-If the recipe is not done, it may look for a neighbouring module to be passed onto A module may have up to four neighbours, one on each side. These are stored in the local \emph{next} array, their index indicating their placement relative to the module. When moving to \emph{Transporting} location, the recipe will choose a possible neighbour. In \emph{Transporting} we wait to simulate the time taken to transport a recipe over the module. This time varies according to where the recipe enters the module, and where it leaves. The different transport times are stored in the 4 by 4 multidimensional \emph{t\_time} array. Given that we at this point know the direction, which the recipe entered from \emph{origin} and the direction on which it will leave \emph{succ}, we can look up the exact time to wait in \emph{t\_time}. Once the wait is over we move to the \emph{Queuing} location. If the neighbour's queue is full, we wait here until there is room. When possible we synchronize with the neighbours instance of \emph{ModuleQueue} using the \emph{enqueue} channel. At the same time we use the local \emph{inverse} function to calculate, from which side the recipe enters the neighbouring module. This is sent with the global \emph{var2} variable and is later saved into the neighbour's \emph{origin} variable. 
+If the recipe is not done, it may look for a neighbouring module to be passed onto. A module may have up to four neighbours, one on each side. These are stored in the local \emph{next} array, their index indicating their placement relative to the module. When moving to \emph{Transporting} location, the recipe will choose a possible neighbour. In \emph{Transporting} we wait to simulate the time taken to transport a recipe over the module. This time varies according to where the recipe enters the module, and where it leaves. The different transport times are stored in the 4 by 4 multidimensional \emph{t\_time} array. Given that we at this point know the direction, which the recipe entered from \emph{origin} and the direction on which it will leave \emph{succ}, we can look up the exact time to wait in \emph{t\_time}. Once the wait is over we move to the \emph{Queuing} location. If the neighbour's queue is full, we wait here until there is room. When possible we synchronize with the neighbours instance of \emph{ModuleQueue} using the \emph{enqueue} channel. At the same time we use the local \emph{inverse} function to calculate, from which side the recipe enters the neighbouring module. This is sent with the global \emph{var2} variable and is later saved into the neighbour's \emph{origin} variable. 
 
 \begin{figure}[h]
 \centering

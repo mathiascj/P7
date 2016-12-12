@@ -1,7 +1,7 @@
 \section{Recipe}\label{sec:recipe}
 Looking into earlier projects developed using UPPAAL, an item being produced is often implemented as a sequence of actions, which must be taken in order to complete the item. Therefore items are often referred to as recipes. We will do the same from this point on. 
 
-There are of course different ways of implementing a recipe. The simplest variant is a list of actions, which must be performed linearly. However, we find it more flexible to implement a recipe as a dependency graph. This is because we often do not care for the precise sequence of actions, just that some actions are performed before others. This is easily described using a dependency graph as seen in \cref{fig:dependency-graph}. This recipe describes that it needs to be hammered and screwed before it is packaged. Yet, it cares not in which order the hammering and screwing takes place. 
+There are of course different ways of implementing a recipe. The simplest variant is a list of actions, which must be performed linearly. However, we find it more flexible to implement a recipe as an acyclic dependency graph. This is because we often do not care for the precise sequence of actions, just that some actions are performed before others. This is easily described using a dependency graph as seen in \cref{fig:dependency-graph}. This recipe describes that it needs to be hammered and screwed before it is packaged. Yet, it cares not in which order the hammering and screwing takes place. 
 
 \begin{figure}[h]
 \centering
@@ -10,7 +10,7 @@ There are of course different ways of implementing a recipe. The simplest varian
 \label{fig:dependency-graph}
 \end{figure}
 
-We know that in some real life systems, a single item may be created through the aggregation of parts, which are individually produced. To escape this complexity, we only consider items, whose production is never distributed. That is, the production of an item starts at one single point and ends at another point never splitting up. As we represent recipes as dependency graphs, it also means that the same work can not be applied on a recipe several times, as this would produce cycles in graph. 
+We know that in some real life systems, a single item may be created through the aggregation of parts, which are individually produced. To escape this complexity, we only consider items, whose production is never distributed. That is, the production of an item starts at one single point and ends at another point never splitting up. As we represent recipes as dependency graphs, it also means that the same work can not be applied on a recipe several times, as this would produce cycles in the graph. 
 
 In the following we describe how we handle recipes in our model through the use of the \emph{Recipe} and \emph{RecipeQueue} templates.
 
