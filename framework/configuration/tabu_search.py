@@ -1,4 +1,5 @@
 import re
+from random import choice
 
 from UPPAAL.uppaalAPI import get_best_time
 from configuration.config_string_handler import ConfigStringHandler
@@ -16,6 +17,7 @@ def tabu_search(recipes, modules, iters=50):
     :param iters: How many iterations of Tabu search
     :return: The best configuration found by the search
     """
+
     def get_neighbours():
         """ Gets the neighbours of the current frontier.
         :return: A list of tuples, where the first element of the tuple is a string representing a configuration and
@@ -32,17 +34,14 @@ def tabu_search(recipes, modules, iters=50):
         if config in dynamic_memory:
             return dynamic_memory[config]
         else:
-            csh.make_configuration(config)     # SIDE EFFECT: Makes loads of changes to modules
+            csh.make_configuration(config)  # SIDE EFFECT: Makes loads of changes to modules
             modules_in_config = csh.modules_in_config(config)
             evaluation, _, _ = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
             dynamic_memory[config] = evaluation
             return evaluation
 
-
     csh = ConfigStringHandler(recipes, modules)
     generator = initial_configuration_generator(recipes, modules, csh)
-
-
 
     # Memory used for remembering evalutations, used so we dont have to evaluate the same configuration twice.
     dynamic_memory = {}
@@ -53,14 +52,13 @@ def tabu_search(recipes, modules, iters=50):
     short_term_memory = []
 
     for config in generator:
-        evaluate_config(config) # Updates dynamic memory
+        evaluate_config(config)  # Updates dynamic memory
         long_term_memory.append(config)
 
     # Creating the initial configuration and evalutates it
     long_term_memory.sort(key=(lambda x: dynamic_memory[x]))
     overall_best = long_term_memory[0]
     frontier = long_term_memory[0]
-
 
     # Here begins the actual search
     for _ in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
@@ -69,7 +67,7 @@ def tabu_search(recipes, modules, iters=50):
         csh.make_configuration(frontier[0])
         neighbours = get_neighbours()
         neighbour_evaluations = map(evaluate_config, neighbours)
-        best = min(neighbour_evaluations, key=(lambda x: x[1])) # Finds the best neighbour
+        best = min(neighbour_evaluations, key=(lambda x: x[1]))  # Finds the best neighbour
         if best[1] < overall_best[1]:
             overall_best = best
         frontier = best
@@ -85,6 +83,7 @@ def path_setter(start, path, end, up):
         start.down = path[0]
         path[-1].up = end
 
+    path[-1].right = None
     connect_module_list(path)
 
 
@@ -97,15 +96,21 @@ def connect_module_list(list):
 def anti_serialize(start, path, end, csh):
     grid = csh.make_grid()
 
-
     if start and end:
         mods = start.traverse_right(end)
         remaining = [x for x in mods if x not in path]
+        start_connector =  start.in_left
+        end_connector = end.right
+
+        # Wipe left and right modules for each module
+        for m in mods:
+            m.horizontal_wipe()
+
         # When path is too short
         while len(remaining) > len(path):
             path.append(csh.take_transport_module())
 
-        # When path is too long
+        # When path is too long TODO: Should not fucking happen in our case
         end = remaining[-1]
         remaining.remove(end)
         while len(remaining) < len(path) - 1:
@@ -114,10 +119,10 @@ def anti_serialize(start, path, end, csh):
 
         # Reconnect original line
         connect_module_list(remaining)
-
-        # Reset connections in new line
-        for m in path:
-            m.right = None
+        if start_connector:
+            start_connector.right = start
+        if end_connector:
+            end.right = end_connector
 
         # Tries to set new line above
         path_setter(start, path, end, True)
@@ -130,20 +135,28 @@ def anti_serialize(start, path, end, csh):
             return csh.configuration_str()
 
     elif end:
-        mods = end.traverse_in_left()
-        remaining = [x for x in mods if x not in path]
-        remaining.reverse()
+        mods = end.traverse_in_left()  # All modules located to the left of end
+        remaining = [x for x in mods if x not in path]  # All modules not to be branched off
+        end_connector = end.right
+
+        # Wipe left and right modules for each module
+        for m in mods:
+            m.horizontal_wipe()
+
+        # Reconnect main line
         connect_module_list(remaining)
+        if end_connector:
+            end.right = end_connector
 
-        for m in path:
-            m.right = None
+        #  Try to connect new line to main from top
         connect_module_list(path)
-
         path[-1].down = end
         path[-1].right = None
+
         if not csh.grid_conflicts():
             return csh.configuration_str()
 
+        # Try to connect new line to main from bottom
         path[-1].down = None
         path[-1].up = end
         if not csh.grid_conflicts():
@@ -152,12 +165,19 @@ def anti_serialize(start, path, end, csh):
     elif start:
         mods = start.traverse_right()
         remaining = [x for x in mods if x not in path]
-        connect_module_list(remaining)
+        start_connector = start.in_left
 
-        for m in path:
-            m.right = None
+        # Wipe left and right modules for each module
+        for m in mods:
+            m.horizontal_wipe()
+
+        connect_module_list(remaining)
+        if start_connector:
+            start_connector.right = start
+
         connect_module_list(path)
-        start.up =  path[0]
+        path[-1].right = None
+        start.up = path[0]
 
         if not csh.grid_conflicts():
             return csh.configuration_str()
@@ -167,9 +187,7 @@ def anti_serialize(start, path, end, csh):
         if not csh.grid_conflicts():
             return csh.configuration_str()
 
-
     return ""
-
 
 
 def neighbours_swap(frontier, recipes, csh):
@@ -178,6 +196,7 @@ def neighbours_swap(frontier, recipes, csh):
     :param recipes: A list of Recipe objects
     :return:
     """
+
     def swap(old, new):
         """ Does the actual swap in the configuration
         :param old: The modules you wish to swap out
@@ -192,14 +211,14 @@ def neighbours_swap(frontier, recipes, csh):
             if str(old.m_id) == m_str_id:
                 new_half = new.module_str().split('{')[0]
                 old_half = old.module_str().split('{')[1]
-                M[i] = new_half + '{' + old_half # Everything  old could do, new now can do
+                M[i] = new_half + '{' + old_half  # Everything  old could do, new now can do
             else:
                 split = m_str.find('[')
                 s = m_str[:split]
                 s += m_str[split:].replace(old.m_id, new.m_id)  # We replace all instances of the old mid with the new
                 M[i] = s
 
-        M.sort()    # TODO: I think text based sorting works, I am not sure.
+        M.sort()  # TODO: I think text based sorting works, I am not sure.
         new_config_str = S[0] + '|' + ':'.join(M)
         return new_config_str
 
@@ -214,9 +233,8 @@ def neighbours_swap(frontier, recipes, csh):
             neighbours.append(swap(old, new))
     return neighbours
 
-def neighbours_anti_serialized(worked, transported, line, csh):
-    #Todo: Handle different lines. Handle that we have to antiserialize even on outer lines
 
+def neighbours_anti_serialized(worked, line, csh):
     def invert_dict(d):
         """
         Inverts a dictionary many to many
@@ -230,8 +248,7 @@ def neighbours_anti_serialized(worked, transported, line, csh):
 
         return res
 
-
-    def anti_serialize_args(recipe_name, modules, csh, end_group=False):
+    def anti_serialize_args(recipe_name, modules, last_common, csh, end_group=False):
         """
         Given a sequence of modules, finds which the anti-serialization should start and end on
         :param recipe_name: Name of recipe object
@@ -242,51 +259,108 @@ def neighbours_anti_serialized(worked, transported, line, csh):
         """
 
         # Set start
-        if csh.recipe_dictionary[recipe_name].start_module == modules[0]:
+        if csh.recipe_dictionary[recipe_name].start_module == modules[0] or not modules[0].in_left:
             start = None
-        elif modules._in_left :
-            start = modules._in_left
+
         else:
-            return None #TODO: Return something so we don't throw exceptions
+            start = last_common
 
         # Set end
         if end_group:
             end = None
         else:
-            end = modules.right
+            end = modules[-1].right
 
         # Set up args
         return [start, modules, end, csh]
 
-
     # Get dict where each recipe is a key to the modules worked on by it
     iworked = invert_dict(worked)
 
+    recipes = {}
+    # Get recipes worked on the line
+    for name, mods in iworked.items():
+        for m in mods:
+            if csh.module_dictionary[m] in line:
+                recipes[name] = mods
+                break
 
-    r0_name, r0 = iworked.items()[0]
-    r1_name, r1 = iworked.items()[1]
+    # Get random recipe to anti-serialize
+    chosen_recipe_name = choice(list(recipes.keys()))
+    chosen_recipe_mods = iworked[chosen_recipe_name]
+
+    # Remove chosen recipe and get all modules used by the other recipes
+    recipes.pop(chosen_recipe_name)
+    other_recipe_mods = set().union(*recipes.values())
+
     split_groups = []
-    current_group = []
+    current_split = []
+    last_common = None
 
-    for m in line:
-        # When m is a common module between r0 and r1
-        if m in r0 and m in r1 and not current_group:
-                # Finds start and end modules for the path
-                split_groups.append(anti_serialize_args(r0_name, current_group, csh))
-                current_group = []
+    for mod in line:
+        # Common module
+        if mod.m_id in chosen_recipe_mods and mod.m_id in other_recipe_mods:
+            # If we have found modules to anti serialize, we add it to the split group
+            if current_split:
+                split_groups.append(anti_serialize_args(chosen_recipe_name, current_split, last_common, csh))
+                current_split = []
+            last_common = mod
 
-        # If m is only in r0 we append it to the current_group
-        elif m in r0:
-            current_group.append(m)
+        # Uncommon module
+        elif mod.m_id in chosen_recipe_mods:
+            current_split.append(mod)
 
-    # Gets start and end for last path found
-    # Also allows for end to be set to None
-    if current_group:
-        split_groups.append(anti_serialize_args(r0_name, current_group, csh, True))
+    # If a common module was not at the end, we try to branch out
+    if current_split:
+        split_groups.append(anti_serialize_args(chosen_recipe_name, current_split, csh, True))
 
-
-    # Call arguments of each split on anti_serialize.
+    # Call em all!
     for splits in split_groups:
+        # TODO call only if possible
         print(anti_serialize(*splits))
 
 
+def find_lines(csh):
+    lines = []
+    for mod in csh.current_modules:
+        mod_in_line = False
+        for l in lines:
+            if mod in l:
+                mod_in_line = True
+
+        if not mod_in_line:
+            all_left = mod.traverse_in_left()
+            all_left.remove(all_left[-1])
+            all_right = mod.traverse_right()
+            lines.append(all_left + all_right)
+
+    # main_line = max(lines, key=len)
+    main_line = lines[0]
+
+    down_lines = []
+    up_lines = []
+
+    c_lines = lines.copy()
+
+    # Categorize lines starting on main line
+    for mod in main_line:
+        if mod.up:
+            for l in c_lines:
+                if l[0] == mod.up:
+                    up_lines.append(l)
+                    c_lines.remove(l)
+
+        if mod.down:
+            for l in c_lines:
+                if l[0] == mod.down:
+                    down_lines.append(l)
+                    c_lines.remove(l)
+
+    # Categorize lines that only end on main line
+    for l in c_lines:
+        if l[-1].down in main_line:
+            up_lines.append(l)
+        elif l[-1].up in main_line:
+            down_lines.append(l)
+
+    return main_line, up_lines, down_lines

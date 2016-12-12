@@ -155,6 +155,22 @@ class SquareModule(Module):
             right.__in_left = self
         self.__right = right
 
+    @property
+    def in_up(self):
+        return self.__in_up
+
+    @property
+    def in_right(self):
+        return self.__in_right
+
+    @property
+    def in_down(self):
+        return self.__in_down
+
+    @property
+    def in_left(self):
+        return self.__in_left
+
     def make_grid(self, pos=(0, 0), ignore={None}):
         """ Makes a grid with the current module as its center, i.e. coordinates (0, 0)
         :param pos: Position that a module is relative to module who started the call. The module that starts the call
@@ -242,6 +258,8 @@ class SquareModule(Module):
             current = current.__in_left
             mods.append(current)
 
+        mods.reverse()
+
         return mods
 
     def traverse_right(self, end=None):
@@ -255,6 +273,12 @@ class SquareModule(Module):
                 break
 
         return mods
+
+    def horizontal_wipe(self):
+        self.right = None
+        self.__in_right = None
+        self.left = None
+        self.__in_left = None
 
 
 
