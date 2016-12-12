@@ -48,6 +48,9 @@ class SquareModule(Module):
         self.queue_length = queue_length
         self.allow_passthrough = allow_passthrough
         self.w_type = set(wp_time.keys())
+        self.shadowed = False
+        self.is_start = False
+        self.is_end = False
 
         # Properties
         self.up = up

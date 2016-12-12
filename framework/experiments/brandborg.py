@@ -1,6 +1,6 @@
 from module import SquareModule
 from recipe import Recipe
-from configuration.tabu_search import tabu_search, anti_serialize, find_lines, neighbours_anti_serialized
+from configuration.tabu_search import tabu_search, anti_serialize, neighbours_anti_serialized
 from UPPAAL.uppaalAPI import get_best_time
 from networkx import nx
 from random import shuffle
@@ -43,7 +43,7 @@ r1 = Recipe('FuckMigUp', {'smadre': set()}, 'balh', 0, 2)
 r2 = Recipe('chokolade', {'hammer': set(), 'skrue': {'hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 2)
 r3 = Recipe('menneske', {'spise': set(), 'sove': {'spise'}, 'pakke': {'sove'}}, 'hammer-maskine', 0, 2)
 
-recipes = [r0, r2]
+recipes = [r2, r3]
 modules = [m0,m1, m2, m3, m4, m7,m8]
 
 csh = ConfigStringHandler(recipes, modules, transporter)
@@ -60,16 +60,15 @@ m1.right = m2
 csh.current_modules = modules
 print(csh.configuration_str())
 
-# s = anti_serialize(None, [m7, m3, m4, m8], m2, csh)
+s = anti_serialize(m1, [m7, m3, m4, m8], m2, csh)
+print(s)
+
+# time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
+# main_line, up_line, down_line = csh.find_lines()
+# s = neighbours_anti_serialized(worked, main_line, csh)[0]
 # print(s)
-
-# csh.make_configuration(s)
-
-time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
-main_line, up_line, down_line =find_lines(csh)
-
-neighbours_anti_serialized(worked, main_line, csh)
-
+csh.make_configuration(s)
+pass
 
 
 

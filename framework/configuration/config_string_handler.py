@@ -68,6 +68,52 @@ class ConfigStringHandler:
             self.current_modules.append(module)
 
         self.free_modules = [m for m in self.all_modules if m not in self.current_modules]
+        main_line, up_line, down_line = self.find_lines()
+
+
+        for mod in self.all_modules:
+            mod.shadowed = False
+            mod.is_start = False
+            mod.is_end = False
+
+        up_module = None
+        down_module = None
+        potential_up_shadow = []
+        potential_down_shadow = []
+
+        for mod in main_line:
+           if mod.up:
+               up_module = mod
+               potential_up_shadow = [up_module]
+               mod.is_start = True
+           elif mod.in_up:
+               up_module = None
+               mod.is_end = True
+               potential_up_shadow.append(mod)
+
+
+               for m in potential_up_shadow:
+                   m.is_shadow = True
+               potential_up_shadow = []
+
+           elif up_module:
+               potential_up_shadow.append(mod)
+
+           if mod.down:
+                down_module = mod
+                potential_down_shadow = [down_module]
+                mod.is_start = True
+           elif mod.in_down:
+                down_module = None
+                mod.is_end = True
+                potential_down_shadow.append(mod)
+                for m in potential_down_shadow:
+                    m.is_shadow = True
+                potential_down_shadow = []
+
+           elif down_module:
+                potential_down_shadow.append(mod)
+
 
     def modules_in_config(self, configuration_str):
         """ Creates a list of modules that are in the configuration string.
@@ -142,4 +188,48 @@ class ConfigStringHandler:
 
 
 
+    def find_lines(self):
+        lines = []
+        for mod in self.current_modules:
+            mod_in_line = False
+            for l in lines:
+                if mod in l:
+                    mod_in_line = True
+
+            if not mod_in_line:
+                all_left = mod.traverse_in_left()
+                all_left.remove(all_left[-1])
+                all_right = mod.traverse_right()
+                lines.append(all_left + all_right)
+
+        # main_line = max(lines, key=len)
+        main_line = lines[0]
+
+        down_lines = []
+        up_lines = []
+
+        c_lines = lines.copy()
+
+        # Categorize lines starting on main line
+        for mod in main_line:
+            if mod.up:
+                for l in c_lines:
+                    if l[0] == mod.up:
+                        up_lines.append(l)
+                        c_lines.remove(l)
+
+            if mod.down:
+                for l in c_lines:
+                    if l[0] == mod.down:
+                        down_lines.append(l)
+                        c_lines.remove(l)
+
+        # Categorize lines that only end on main line
+        for l in c_lines:
+            if l[-1].down in main_line:
+                up_lines.append(l)
+            elif l[-1].up in main_line:
+                down_lines.append(l)
+
+        return main_line, up_lines, down_lines
 

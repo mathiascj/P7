@@ -314,53 +314,12 @@ def neighbours_anti_serialized(worked, line, csh):
     if current_split:
         split_groups.append(anti_serialize_args(chosen_recipe_name, current_split, csh, True))
 
+    neighbours = []
     # Call em all!
     for splits in split_groups:
         # TODO call only if possible
-        print(anti_serialize(*splits))
+        neighbours.append(anti_serialize(*splits))
+
+    return neighbours
 
 
-def find_lines(csh):
-    lines = []
-    for mod in csh.current_modules:
-        mod_in_line = False
-        for l in lines:
-            if mod in l:
-                mod_in_line = True
-
-        if not mod_in_line:
-            all_left = mod.traverse_in_left()
-            all_left.remove(all_left[-1])
-            all_right = mod.traverse_right()
-            lines.append(all_left + all_right)
-
-    # main_line = max(lines, key=len)
-    main_line = lines[0]
-
-    down_lines = []
-    up_lines = []
-
-    c_lines = lines.copy()
-
-    # Categorize lines starting on main line
-    for mod in main_line:
-        if mod.up:
-            for l in c_lines:
-                if l[0] == mod.up:
-                    up_lines.append(l)
-                    c_lines.remove(l)
-
-        if mod.down:
-            for l in c_lines:
-                if l[0] == mod.down:
-                    down_lines.append(l)
-                    c_lines.remove(l)
-
-    # Categorize lines that only end on main line
-    for l in c_lines:
-        if l[-1].down in main_line:
-            up_lines.append(l)
-        elif l[-1].up in main_line:
-            down_lines.append(l)
-
-    return main_line, up_lines, down_lines
