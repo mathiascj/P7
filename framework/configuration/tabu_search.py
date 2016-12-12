@@ -93,12 +93,23 @@ def connect_module_list(list):
             m.right = list[i + 1]
 
 
+
 def anti_serialize(start, path, end, csh):
+    def remaining_modules(modules):
+        remaining = []
+        for m in modules:
+            if m not in path:
+                remaining.append(m)
+            elif m.shadowed:
+                remaining.append(csh.take_transport_module())
+
+        return remaining
+
     grid = csh.make_grid()
 
     if start and end:
         mods = start.traverse_right(end)
-        remaining = [x for x in mods if x not in path]
+        remaining = remaining_modules(mods)
         start_connector = start.in_left
         end_connector = end.right
 
@@ -110,7 +121,7 @@ def anti_serialize(start, path, end, csh):
         while len(remaining) > len(path):
             path.append(csh.take_transport_module())
 
-        # When path is too long TODO: Should not fucking happen in our case
+        # When path is too long
         end = remaining[-1]
         remaining.remove(end)
         while len(remaining) < len(path) - 1:
@@ -136,7 +147,7 @@ def anti_serialize(start, path, end, csh):
 
     elif end:
         mods = end.traverse_in_left()  # All modules located to the left of end
-        remaining = [x for x in mods if x not in path]  # All modules not to be branched off
+        remaining = remaining_modules(mods)  # All modules not to be branched off
         end_connector = end.right
 
         # Wipe left and right modules for each module
@@ -164,7 +175,7 @@ def anti_serialize(start, path, end, csh):
 
     elif start:
         mods = start.traverse_right()
-        remaining = [x for x in mods if x not in path]
+        remaining = remaining_modules(mods)
         start_connector = start.in_left
 
         # Wipe left and right modules for each module
