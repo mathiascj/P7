@@ -99,7 +99,7 @@ def anti_serialize(start, path, end, csh):
     if start and end:
         mods = start.traverse_right(end)
         remaining = [x for x in mods if x not in path]
-        start_connector =  start.in_left
+        start_connector = start.in_left
         end_connector = end.right
 
         # Wipe left and right modules for each module

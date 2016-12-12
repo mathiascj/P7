@@ -41,10 +41,10 @@ r0 = Recipe('chokolade', {'hammer': set(), 'mere hammer': {'hammer'}, 'skrue': {
 r1 = Recipe('FuckMigUp', {'smadre': set()}, 'balh', 0, 2)
 
 r2 = Recipe('chokolade', {'hammer': set(), 'skrue': {'hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 2)
-r3 = Recipe('menneske', {'spise': set(), 'sove': {'spise'}, 'pakke': {'sove'}}, 'hammer-maskine', 0, 2)
+r3 = Recipe('menneske', {'hammer': set(), 'spise': {'hammer'}, 'sove': {'spise'}, 'pakke': {'sove'}}, 'hammer-maskine', 0, 2)
 
 recipes = [r2, r3]
-modules = [m0,m1, m2, m3, m4, m7,m8]
+modules = [m0, m1, m2, m7, m8]
 
 csh = ConfigStringHandler(recipes, modules, transporter)
 
@@ -52,15 +52,14 @@ csh = ConfigStringHandler(recipes, modules, transporter)
 
 m0.right = m7
 m7.right = m8
-m8.right = m3
-m3.right = m4
-m4.right = m1
+m8.right = m1
 m1.right = m2
 
-csh.current_modules = modules
-print(csh.configuration_str())
 
-s = anti_serialize(m1, [m7, m3, m4, m8], m2, csh)
+csh.current_modules = modules
+#print(csh.configuration_str())
+
+s = anti_serialize(m0, [m7, m8], None, csh)
 print(s)
 
 # time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
@@ -68,6 +67,7 @@ print(s)
 # s = neighbours_anti_serialized(worked, main_line, csh)[0]
 # print(s)
 csh.make_configuration(s)
+
 pass
 
 

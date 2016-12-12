@@ -85,6 +85,7 @@ class ConfigStringHandler:
            if mod.up:
                up_module = mod
                potential_up_shadow = [up_module]
+               mod.shadowed = True
                mod.is_start = True
            elif mod.in_up:
                up_module = None
@@ -93,7 +94,7 @@ class ConfigStringHandler:
 
 
                for m in potential_up_shadow:
-                   m.is_shadow = True
+                   m.shadowed = True
                potential_up_shadow = []
 
            elif up_module:
@@ -102,13 +103,14 @@ class ConfigStringHandler:
            if mod.down:
                 down_module = mod
                 potential_down_shadow = [down_module]
+                mod.shadowed = True
                 mod.is_start = True
            elif mod.in_down:
                 down_module = None
                 mod.is_end = True
                 potential_down_shadow.append(mod)
                 for m in potential_down_shadow:
-                    m.is_shadow = True
+                    m.shadowed = True
                 potential_down_shadow = []
 
            elif down_module:
