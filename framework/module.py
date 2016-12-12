@@ -283,6 +283,16 @@ class SquareModule(Module):
         self.left = None
         self.__in_left = None
 
+    def vertical_wipe(self):
+        self.up = None
+        self.__in_up = None
+        self.down = None
+        self.__in_down = None
+
+    def total_wipe(self):
+        self.horizontal_wipe()
+        self.vertical_wipe()
+
 
 
     def pprint(self):

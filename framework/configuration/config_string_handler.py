@@ -184,6 +184,7 @@ class ConfigStringHandler:
 
     def free_transport_module(self, t):
         self.current_modules.remove(t)
+        t.total_wipe()
         self.free_transporters.append(t)
 
 
