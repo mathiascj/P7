@@ -1,6 +1,6 @@
 from module import SquareModule
 from recipe import Recipe
-from configuration.tabu_search import tabu_search, anti_serialize, neighbours_anti_serialized, OTHER_anti_serialize
+from configuration.tabu_search import tabu_search, anti_serialize, neighbours_anti_serialized
 from UPPAAL.uppaalAPI import get_best_time
 from networkx import nx
 from random import shuffle

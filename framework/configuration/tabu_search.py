@@ -93,10 +93,129 @@ def path_setter(start, path, end, up):
     connect_module_list(path)
 
 
-def connect_module_list(list):
+def connect_module_list(list, direction):
     for i, m in enumerate(list):
         if i + 1 < len(list):
-            m.right = list[i + 1]
+            # Dynamically sets direction
+            setattr(m, direction, list[i + 1])
+
+
+def place_path(start, path, end, remaining, csh):
+    """
+    Searches above and below already sat lines to find room.
+    When room found it places down path.
+    :param start: Point at which path should start on main line
+    :param path:  Path we wish to branch out
+    :param end: Point at which path should end on main line
+    :param remaining: Sequence of modules left on main line after branch out
+    :param csh: config_string_handler object
+    :return:
+    """
+
+    def get_push_length(remaining, grid, inverted_grid, direction):
+        """
+        Finds how long we should push our path in a given direction to place it.
+        :param remaining: Sequence of modules left on main line after branch out
+        :param grid: Grid describing for each module where it is placed
+        :param inverted_grid: Grid describing for each position, what module is placed there
+        :param direction: If True we search upwards, if False we search downwards
+        :return:
+        """
+
+        # Positions of all modules in remaining
+        pos_on_line = [grid[x] for x in remaining]
+
+        # Picks lambda function to search up or downwards based on direction
+        if direction:
+            f = lambda x: x + 1
+        else:
+            f = lambda x: x - 1
+
+        # Counts up a counter until we can see no more placed modules by moving in our direction.
+        counter = 0
+        while True:
+            # Get all positions above the currently selected positions
+            pos_on_line = [(x, f(y)) for x, y in pos_on_line if (x, f(y)) in inverted_grid]
+            if pos_on_line:
+                counter += 1
+            else:
+                break
+
+        return counter
+
+    def vertical_sequence(initial, counter, grid, inverted_grid, direction, csh):
+        """
+        Calculates a vertical sequence for counter steps
+        :param initial: Module from which sequence starts
+        :param counter: Number of steps upwards
+        :param grid: dict for module to position
+        :param inverted_grid: dict for position to module
+        :param direction: If true sequence goes upwards. If false sequence goes downwards.
+        :param csh: config_string_handler
+        :return:
+        """
+
+        # Picks lambda function to search up or downwards based on direction
+        if direction:
+            f = lambda x: x + 1
+        else:
+            f = lambda x: x - 1
+
+        current = initial
+        sequence = [initial]
+        while 0 < counter:
+            x, y = grid[current]
+            next_pos = (x, f(y))
+            # If there's already a module here we can move through it
+            if next_pos in inverted_grid:
+                next_mod = inverted_grid[next_pos]
+            # if there is not a module, we append with a transport
+            else:
+                next_mod = csh.take_transport_module()
+
+            sequence.append(next_mod)
+            current = next_mod
+            counter -= 1
+
+        return sequence
+
+    grid = csh.make_grid()  # Get positions from modules, except for those in path
+
+    inverted_grid = {v: k for k, v in grid.items()}  # Get modules from position
+
+    # Find length we have to move path upwards
+    up_length = get_push_length(remaining, grid, inverted_grid, True)
+
+    # Find length we have to move path downwards
+    down_length = get_push_length(remaining, grid, inverted_grid, False)
+
+    # Set length and direction in which to push the path
+    if up_length <= down_length:
+        length = up_length
+        direction = True
+        branch_out_direction = 'up'
+        branch_in_direction = 'down'
+    else:
+        length = down_length
+        direction = False
+        branch_out_direction = 'down'
+        branch_in_direction = 'up'
+
+    # Connect path together
+    connect_module_list(path, 'right')
+
+    if start:
+        # Connect from a start point to the path
+        out_branch = vertical_sequence(start, length, grid, inverted_grid, direction, csh)
+        out_branch.append(path[0])
+        connect_module_list(out_branch, branch_out_direction)
+
+    if end:
+        # Connect from a end point to the path
+        in_branch = vertical_sequence(end, length, grid, inverted_grid, direction, csh)
+        in_branch.append(path[-1])
+        in_branch.reverse()
+        connect_module_list(in_branch, branch_in_direction)
 
 
 def anti_serialize(start, path, end, csh):
@@ -166,24 +285,15 @@ def anti_serialize(start, path, end, csh):
         remaining.append(end)
 
     # Reconnect original line
-    connect_module_list(remaining)
+    connect_module_list(remaining, 'right')
     if start_connector:
         start_connector.right = start
     if end_connector:
         end.right = end_connector
 
-    # Tries to set new line above
-    path_setter(start, path, end, True)
-    if not csh.grid_conflicts():
-        return csh.configuration_str()
-
-    # Tries to set new line below
-    path_setter(start, path, end, False)
-    if not csh.grid_conflicts:
-        return csh.configuration_str()
-
-    # If we couldn't place the line we return empty string
-    return ""
+    # Places down path where possible
+    place_path(start, path, end, remaining, csh)
+    return csh.configuration_str()
 
 
 def neighbours_swap(frontier, recipes, csh):
@@ -323,171 +433,3 @@ def neighbours_anti_serialized(worked, frontier, csh):
         neighbours.append(anti_serialize(*splits))
 
     return neighbours
-
-
-def OTHER_anti_serialize(start, path, end, csh):
-    def remaining_modules(modules):
-        remaining = []
-        for m in modules:
-            if m not in path:
-                remaining.append(m)
-            elif m.shadowed:
-                remaining.append(csh.take_transport_module())
-
-        return remaining
-
-    def get_push_length(line, grid, inverted_grid, direction):
-        pos_on_line = [grid[x] for x in line]
-
-        if direction:
-            f = lambda x: x + 1
-        else:
-            f = lambda x: x - 1
-
-        counter = 0
-        while True:
-            # Get all positions above
-            pos_on_line = [(x, f(y)) for x, y in pos_on_line if (x, f(y)) in inverted_grid]
-            if pos_on_line:
-                counter += 1
-            else:
-                break
-
-        return counter
-
-    if start and end:
-        mods = start.traverse_right(end)
-        remaining = remaining_modules(mods)
-        start_connector = start.in_left
-        end_connector = end.right
-
-        # Wipe left and right modules for each module
-        for m in mods:
-            m.horizontal_wipe()
-
-        # When path is too short
-        while len(remaining) > len(path):
-            path.append(csh.take_transport_module())
-
-        # When path is too long
-        end = remaining[-1]
-        remaining.remove(end)
-        while len(remaining) < len(path) - 1:
-            remaining.append(csh.take_transport_module())
-        remaining.append(end)
-
-        # Reconnect original line
-        connect_module_list(remaining)
-        if start_connector:
-            start_connector.right = start
-        if end_connector:
-            end.right = end_connector
-
-        connect_module_list(path)
-
-        grid = csh.make_grid()  # Get positions from modules
-        grid["boobs"] = (2, 1)
-
-        inverted_grid = {v: k for k, v in grid.items()}  # Get modules from position
-
-        up_length = get_push_length(remaining, grid, inverted_grid, True)
-        down_length = get_push_length(remaining, grid, inverted_grid, False)
-
-        if True:  # up_length <= down_length:
-            current = start
-            upward_counter = up_length
-
-            while 0 < upward_counter:
-                x, y = grid[current]
-                above_pos = (x, y + 1)
-                if above_pos in inverted_grid:
-                    above = inverted_grid[above_pos]
-                else:
-                    above = csh.take_transport_module()
-
-                current.up = above
-                current = above
-                upward_counter -= 1
-
-            current.up = path[0]
-
-            current = end
-            downward_counter = up_length
-            sequence = [end]
-
-            while 0 < downward_counter:
-                x, y = grid[current]
-                above_pos = (x, y + 1)
-                if above_pos in inverted_grid:
-                    above = inverted_grid[above_pos]
-                else:
-                    above = csh.take_transport_module()
-
-                sequence.append(above)
-                downward_counter -= 1
-
-            current.down = end
-
-        sequence.append(path[-1])
-        sequence.reverse()
-        for i, m in enumerate(sequence):
-            if i + 1 < len(sequence):
-                m.down = sequence[i + 1]
-
-        return csh.configuration_str()
-
-
-    elif end:
-        mods = end.traverse_in_left()  # All modules located to the left of end
-        remaining = remaining_modules(mods)  # All modules not to be branched off
-        end_connector = end.right
-
-        # Wipe left and right modules for each module
-        for m in mods:
-            m.horizontal_wipe()
-
-        # Reconnect main line
-        connect_module_list(remaining)
-        if end_connector:
-            end.right = end_connector
-
-        # Try to connect new line to main from top
-        connect_module_list(path)
-        path[-1].down = end
-        path[-1].right = None
-
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
-        # Try to connect new line to main from bottom
-        path[-1].down = None
-        path[-1].up = end
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
-    elif start:
-        mods = start.traverse_right()
-        remaining = remaining_modules(mods)
-        start_connector = start.in_left
-
-        # Wipe left and right modules for each module
-        for m in mods:
-            m.horizontal_wipe()
-
-        connect_module_list(remaining)
-        if start_connector:
-            start_connector.right = start
-
-        connect_module_list(path)
-        path[-1].right = None
-        start.up = path[0]
-
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
-        start.up = None
-        start.down = path[0]
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
-    return ""
