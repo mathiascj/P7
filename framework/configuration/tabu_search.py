@@ -75,6 +75,19 @@ def tabu_search(recipes, modules, iters=50):
     return overall_best
 
 
+def parallelize(start, path, end, csh):
+    if start and end:
+        mods = start.traverse_right(end)
+    elif start:
+        mods = start.traverse_right()
+    elif end:
+        mods = end.traverse_in_left()
+    else:
+        raise RuntimeError('Both start and end cant be empty')
+
+
+
+
 def path_setter(start, path, end, up):
     if up:
         if start:
@@ -95,7 +108,6 @@ def connect_module_list(list):
     for i, m in enumerate(list):
         if i + 1 < len(list):
             m.right = list[i + 1]
-
 
 
 def anti_serialize(start, path, end, csh):
