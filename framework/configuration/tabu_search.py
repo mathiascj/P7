@@ -93,11 +93,77 @@ def path_setter(start, path, end, up):
     connect_module_list(path)
 
 
-def connect_module_list(list, direction):
+def connect_module_list(list, direction='right'):
     for i, m in enumerate(list):
         if i + 1 < len(list):
             # Dynamically sets direction
             setattr(m, direction, list[i + 1])
+
+def push_from_under(start, path, end, remaining, csh):
+    """
+    Pushes a new line up for remaining, having all conflicting lines move up
+    :param start: Point at remaining from which we start
+    :param path: Sequence of modules we with to branch out
+    :param end: Point at remaining where we want to end
+    :param remaining: Main line we're branching away from
+    :param csh: config_string_handler
+    :return:
+    """
+
+
+    def lines_above(line, grid, inverted_grid): #TODO gør så den kun kigger på konflikter af paralleliserings linjer
+        """
+        For a given line, gets all lines above which it conflicts with
+        :param line: Line which we wish to look above from
+        :return: list of lines that conflict
+        """
+
+        # Finds all modules which will collide when moving line upwards
+        line_positions = [grid[x] for x in line]
+        collision_positions = [(x, y + 1) for x, y in line_positions if (x, y + 1) in inverted_grid]
+        collision_modules = [inverted_grid[x] for x in collision_positions]
+
+        # Find all lines containing the conflicting modules.
+        lines = []
+        for mod in collision_modules:
+            if mod not in  [y for x in lines for y in x]:  # Flattens multidim list
+                lines.append(mod.get_line())
+
+        return lines
+
+    def move_line(line, grid, inverted_grid, csh):
+
+        # Make sure all lines above are moved
+        for l in lines_above(line, grid, inverted_grid):
+            move_line(l, grid, inverted_grid)
+
+
+        # Moves the given line up by 1 space
+        line_start = line[0]
+        line_end = line[-1]
+
+        if line_start.in_down:
+            connector = csh.take_transport_module()
+            line_start.in_down.up = connector
+            connector.up = line_start
+
+        if line_end.down:
+            connector = csh.take_transport_module()
+            old_down = line_end.down
+            line_end.down = connector
+            connector.down = old_down
+
+    grid = csh.make_grid()  # Get positions from modules, except for those in path
+    inverted_grid = {v: k for k, v in grid.items()}  # Get modules from position
+
+    # Moves all lines above it
+    for l in lines_above(remaining, grid, inverted_grid):
+        move_line(l, grid, inverted_grid)
+
+    # With the new room made for it, path is inserted
+    connect_module_list(path, 'right')
+    start.up = path[0]
+    path[-1].down = end
 
 
 def place_path(start, path, end, remaining, csh):

@@ -277,6 +277,12 @@ class SquareModule(Module):
 
         return mods
 
+    def get_line(self):
+        on_left = self.traverse_in_left()
+        del on_left[-1]
+        on_right = self.traverse_right()
+        return on_left + on_right
+
     def horizontal_wipe(self):
         self.right = None
         self.__in_right = None
