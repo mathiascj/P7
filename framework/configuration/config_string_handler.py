@@ -178,9 +178,7 @@ class ConfigStringHandler:
             t.m_id = "transporter" + str(self.transport_id)
             self.module_dictionary[t.m_id] = t
             self.transport_id += 1
-            self.all_modules.append(t)
-
-        self.current_modules.append(t)
+            self.all_modules.append(t) #TODO: Adder også til current_modules. Find hvorfor.
 
         return  t
 
@@ -189,7 +187,10 @@ class ConfigStringHandler:
         t.total_wipe()
         self.free_transporters.append(t)
 
-
+    def set_active_work(self, worked):
+        for m, works in worked.items():
+            if m in self.current_modules:
+                m.active_w_type = set(works)
 
     def find_lines(self):
         lines = []

@@ -1,6 +1,6 @@
 from module import SquareModule
 from recipe import Recipe
-from configuration.tabu_search import tabu_search, anti_serialize, neighbours_anti_serialized
+from configuration.tabu_search import tabu_search, anti_serialize, neighbours_anti_serialized, OTHER_anti_serialize
 from UPPAAL.uppaalAPI import get_best_time
 from networkx import nx
 from random import shuffle
@@ -61,7 +61,11 @@ csh.current_modules = modules
 
 m7.shadowed = True
 
-s = anti_serialize(m0, [m7, m8], m2, csh)
+
+main_line, up_line, down_line = csh.find_lines()
+print(main_line)
+
+s = OTHER_anti_serialize(m0, [m7, m8], m2, csh)
 print(s)
 
 # time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
