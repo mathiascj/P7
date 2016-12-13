@@ -66,7 +66,7 @@ m7.shadowed = True
 main_line, up_line, down_line = csh.find_lines()
 print(main_line)
 
-s = OTHER_anti_serialize(m0, [m7, m8], m2, csh)
+s = anti_serialize(m0, [m7, m8], m2, csh)
 print(s)
 
 
@@ -78,9 +78,6 @@ print(s)
 csh.make_configuration(s)
 
 #t = get_best_time(csh.recipes, csh.current_modules, XML_TEMPLATE, VERIFYTA)
-
-pass
-
 
 
 #for x in gen:
