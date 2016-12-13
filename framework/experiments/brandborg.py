@@ -60,7 +60,9 @@ m1.right = m2
 csh.current_modules = modules
 #print(csh.configuration_str())
 
-s = anti_serialize(m0, [m7, m8], None, csh)
+m7.shadowed = True
+
+s = anti_serialize(m0, [m7, m8], m2, csh)
 print(s)
 
 

@@ -97,6 +97,7 @@ def connect_module_list(list):
             m.right = list[i + 1]
 
 
+
 def anti_serialize(start, path, end, csh):
     if start and end:
         mods = start.traverse_right(end)
@@ -125,7 +126,7 @@ def anti_serialize(start, path, end, csh):
         while len(remaining) > len(path):
             path.append(csh.take_transport_module())
 
-        # When path is too long TODO: Should not fucking happen in our case
+        # When path is too long
         end = remaining[-1]
         remaining.remove(end)
         while len(remaining) < len(path) - 1:
