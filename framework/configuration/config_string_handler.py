@@ -180,7 +180,7 @@ class ConfigStringHandler:
             self.transport_id += 1
             self.all_modules.append(t) #TODO: Adder også til current_modules. Find hvorfor.
 
-        return  t
+        return t
 
     def free_transport_module(self, t):
         self.current_modules.remove(t)

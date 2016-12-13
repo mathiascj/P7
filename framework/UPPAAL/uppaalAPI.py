@@ -1,12 +1,14 @@
-from UPPAAL.verifytaAPI import run_verifyta, get_trace_time, pprint
+from UPPAAL.verifytaAPI import run_verifyta, trace_time, property_satisfied, pprint
 from UPPAAL.xml_generator import generate_xml
 import re
 
 XML_FILE = 'temp.xml'
 Q_FILE = 'temp.q'
 
+VERIFYTA = '../UPPAAL/verifyta'
+XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
 
-def get_best_time(recipes, modules, template_file, verifyta):
+def get_best_time(recipes, modules, template_file=XML_TEMPLATE, verifyta=VERIFYTA):
     """
     Gets the best cost of a given configuration, modules and recipes
     :param configuration: A configuraion of modules
@@ -18,14 +20,16 @@ def get_best_time(recipes, modules, template_file, verifyta):
     """
     m_map, w_map, r_map =\
         generate_xml(template_file=template_file, modules=modules, recipes=recipes, xml_name=XML_FILE, q_name=Q_FILE)
+
     result, trace = run_verifyta(XML_FILE, Q_FILE, "-t 2", "-o 3", "-u", "-y", verifyta=verifyta)
 
-    time = get_trace_time(trace)
-
-    trace_iter = iter((trace.decode('utf-8')).splitlines())
-    worked_on, transported_through = get_travsersal_info(trace_iter, m_map, r_map)
-
-    return time, worked_on, transported_through
+    if property_satisfied(result):
+        time = trace_time(trace)
+        trace_iter = iter((trace.decode('utf-8')).splitlines())
+        worked_on, transported_through = get_travsersal_info(trace_iter, m_map, r_map)
+        return time, worked_on, transported_through
+    else:
+        raise RuntimeError("Could not verify the properties, see the temp files")
 
 
 def get_travsersal_info(trace_iter, module_map, recipe_map):

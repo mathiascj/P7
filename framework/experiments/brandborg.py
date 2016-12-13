@@ -56,6 +56,7 @@ m8.right = m1
 m1.right = m2
 
 
+
 csh.current_modules = modules
 #print(csh.configuration_str())
 
@@ -68,11 +69,15 @@ print(main_line)
 s = OTHER_anti_serialize(m0, [m7, m8], m2, csh)
 print(s)
 
+
+
 # time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
 # main_line, up_line, down_line = csh.find_lines()
 # s = neighbours_anti_serialized(worked, main_line, csh)[0]
 # print(s)
 csh.make_configuration(s)
+
+#t = get_best_time(csh.recipes, csh.current_modules, XML_TEMPLATE, VERIFYTA)
 
 pass
 

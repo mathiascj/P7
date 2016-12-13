@@ -79,11 +79,15 @@ def tabu_search(recipes, modules, iters=50):
 
 def path_setter(start, path, end, up):
     if up:
-        start.up = path[0]
-        path[-1].down = end
+        if start:
+            start.up = path[0]
+        if end:
+            path[-1].down = end
     else:
-        start.down = path[0]
-        path[-1].up = end
+        if start:
+            start.down = path[0]
+        if end:
+            path[-1].up = end
 
     path[-1].right = None
     connect_module_list(path)
@@ -97,7 +101,8 @@ def connect_module_list(list):
 
 
 def anti_serialize(start, path, end, csh):
-    def remaining_modules(modules):
+
+    def remaining_modules(modules, path):
         remaining = []
         for m in modules:
             if m not in path:
@@ -107,20 +112,31 @@ def anti_serialize(start, path, end, csh):
 
         return remaining
 
-    grid = csh.make_grid()
-    print(grid)
 
     if start and end:
         mods = start.traverse_right(end)
-        remaining = remaining_modules(mods)
+    elif start:
+        mods = start.traverse_right()
+    elif end:
+        mods = end.traverse_in_left()
+    else:
+        raise RuntimeError('Both start and end cant be empty')
+
+    remaining = remaining_modules(mods, path)
+
+    start_connector = None
+    end_connector = None
+    if start:
         start_connector = start.in_left
+    if end:
         end_connector = end.right
 
-        # Wipe left and right modules for each module
-        for m in mods:
-            m.horizontal_wipe()
+    # We clear all mods
+    for m in mods:
+         m.horizontal_wipe()
 
-        # When path is too short
+    if start and end:
+        # If remaining is longer than path, we extend path
         while len(remaining) > len(path):
             path.append(csh.take_transport_module())
 
@@ -131,76 +147,24 @@ def anti_serialize(start, path, end, csh):
             remaining.append(csh.take_transport_module())
         remaining.append(end)
 
-        # Reconnect original line
-        connect_module_list(remaining)
-        if start_connector:
-            start_connector.right = start
-        if end_connector:
-            end.right = end_connector
+    # Reconnect original line
+    connect_module_list(remaining)
+    if start_connector:
+        start_connector.right = start
+    if end_connector:
+        end.right = end_connector
 
-        # Tries to set new line above
-        path_setter(start, path, end, True)
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
+    # Tries to set new line above
+    path_setter(start, path, end, True)
+    if not csh.grid_conflicts():
+        return csh.configuration_str()
 
-        # Tries to set new line below
-        path_setter(start, path, end, False)
-        if not csh.grid_conflicts:
-            return csh.configuration_str()
+    # Tries to set new line below
+    path_setter(start, path, end, False)
+    if not csh.grid_conflicts:
+        return csh.configuration_str()
 
-    elif end:
-        mods = end.traverse_in_left()  # All modules located to the left of end
-        remaining = remaining_modules(mods)  # All modules not to be branched off
-        end_connector = end.right
-
-        # Wipe left and right modules for each module
-        for m in mods:
-            m.horizontal_wipe()
-
-        # Reconnect main line
-        connect_module_list(remaining)
-        if end_connector:
-            end.right = end_connector
-
-        #  Try to connect new line to main from top
-        connect_module_list(path)
-        path[-1].down = end
-        path[-1].right = None
-
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
-        # Try to connect new line to main from bottom
-        path[-1].down = None
-        path[-1].up = end
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
-    elif start:
-        mods = start.traverse_right()
-        remaining = remaining_modules(mods)
-        start_connector = start.in_left
-
-        # Wipe left and right modules for each module
-        for m in mods:
-            m.horizontal_wipe()
-
-        connect_module_list(remaining)
-        if start_connector:
-            start_connector.right = start
-
-        connect_module_list(path)
-        path[-1].right = None
-        start.up = path[0]
-
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
-        start.up = None
-        start.down = path[0]
-        if not csh.grid_conflicts():
-            return csh.configuration_str()
-
+    # If we couldn't place the line we return empty string
     return ""
 
 
