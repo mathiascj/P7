@@ -182,7 +182,7 @@ class ConfigStringHandler:
 
         self.current_modules.append(t)
 
-        return  t
+        return t
 
     def free_transport_module(self, t):
         self.current_modules.remove(t)
