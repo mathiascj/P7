@@ -54,7 +54,7 @@ m0.right = m7
 m7.right = m8
 m8.right = m1
 m1.right = m2
-m5.down = m0
+m5.down = m2
 
 
 csh.current_modules = modules
@@ -68,7 +68,7 @@ csh.current_modules = modules
 # main_line, up_line, down_line = csh.find_lines()
 # print(main_line)
 #
-s = anti_serialize(m0, [m7, m8], None, csh)
+s = anti_serialize(m0, [m7,m8], None, csh)
 print(s)
 
 
