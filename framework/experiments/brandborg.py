@@ -59,8 +59,6 @@ m5.down = m0
 
 csh.current_modules = modules
 
-seq =  m0.traverse_right(m1)
-print(list(map(lambda x: x.module_str(), seq)))
 
 #print(csh.configuration_str())
 
@@ -70,8 +68,8 @@ print(list(map(lambda x: x.module_str(), seq)))
 # main_line, up_line, down_line = csh.find_lines()
 # print(main_line)
 #
-# s = anti_serialize(m0, [m7, m8], m2, csh)
-# print(s)
+s = anti_serialize(m0, [m7, m8], None, csh)
+print(s)
 
 
 

@@ -171,9 +171,9 @@ def anti_serialize(start, path, end, csh):
     if start and end:
         mods = start.traverse_right(end)
     elif start:
-        mods = start.traverse_right()
+        mods = start.traverse_right(len(path))
     elif end:
-        mods = end.traverse_in_left()
+        mods = end.traverse_in_left(len(path))
     else:
         raise RuntimeError('Both start and end cant be empty')
 
