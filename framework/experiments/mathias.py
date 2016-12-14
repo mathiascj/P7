@@ -69,7 +69,16 @@ def starter(line, free_modules):
         temp.append((m, helper(cm, line[split + 1:], free_modules)))
 
     # Check whether or not we can attach this path to a start and end and that the path has an actual length
-    result = [r for r in temp if r[0].in_left and len(r[0].traverse_right()) == len(r1) + 1 and r[1]]
+
+
+    result = [r for r in temp if r[0].in_left and r[1]]
+    for r in result:
+        r_len =  len(r[0].traverse_right())
+        for path in r[1]:
+            if r_len <= len(r[1]):
+                r[1].remove(path)
+
+
     return result
 
 
