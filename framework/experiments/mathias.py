@@ -6,6 +6,7 @@ from networkx import nx
 from random import shuffle
 from configuration.initial_config import initial_configuration_generator
 from configuration.config_string_handler import ConfigStringHandler
+from configuration.path_placers import push_underneath
 
 
 VERIFYTA = '../UPPAAL/verifyta'
@@ -47,7 +48,7 @@ r2 = Recipe('chokolade', {'hammer': set(), 'skrue': {'hammer'}, 'pakke': {'skrue
 r3 = Recipe('menneske', {'hammer': set(), 'spise': {'hammer'}, 'sove': {'spise'}, 'pakke': {'sove'}}, 'hammer-maskine', 0, 2)
 
 recipes = [r2, r3]
-modules = [m0, m1, m2, m3, m4, m9]
+modules = [m0, m1, m2, m8, m3, m4, m9]
 
 csh = ConfigStringHandler(recipes, modules, transporter)
 
@@ -55,53 +56,47 @@ csh = ConfigStringHandler(recipes, modules, transporter)
 
 m0.right = m1
 m1.right = m2
+m2.right = m8
 
 csh.current_modules = modules[:-3]
 csh.free_modules = modules[-3:]
 
 frontier = csh.configuration_str()
 
-
-def starter(line, free_modules):
-    temp = []
-    for split, m in enumerate(line):
-        cm = capable_modules(m.active_w_type, free_modules)
-        temp.append((m, helper(cm, line[split + 1:], free_modules)))
-
-    # Check whether or not we can attach this path to a start and end and that the path has an actual length
-
-
-    result = [r for r in temp if r[0].in_left and r[1]]
-    for r in result:
-        r_len =  len(r[0].traverse_right())
-        for path in r[1]:
-            if r_len <= len(r[1]):
-                r[1].remove(path)
-
-
-    return result
-
-
-
-def helper(capable, remaining, free_modules):
-    result = []
-    if capable:
-        for c in capable:
-            fm = free_modules.copy()
-            fm.remove(c)
-            temp = []
-            if remaining:
-                next_capable = capable_modules(remaining[0].active_w_type, fm)
-                temp = helper(next_capable, remaining[1:], fm)
-            if temp:
-                for l in temp:
-                    result.append([c] + l)
-            result.append([c])
-
-    return result
-
 csh.make_configuration(frontier)
-res = starter(m0.traverse_right(), csh.free_modules)
+
+res = parallel_args(m0.traverse_right(), csh.free_modules, csh)
+
+
+def update_config(frontier, start, path, end, csh, direction):
+    csh.make_configuration(frontier)
+    t0 = csh.take_transport_module()
+    t1 = csh.take_transport_module()
+
+    for i, m in enumerate(start.traverse_right(end)[1:]):
+        path[i].active_w_type = m.active_w_type.copy()
+    csh.current_modules += [t0, t1]
+    expanded_path = [t0] + path + [t1]
+
+    push_underneath(start, expanded_path, end, csh, direction)
+
+    result = csh.configuration_str()
+
+    csh.free_transport_module(t0)
+    csh.free_transport_module(t1)
+
+    return result
+
+config_strings = []
+for r in res:
+    config_strings.append(update_config(frontier, *r, csh, 'down'))
+
+csh.make_configuration(config_strings[0])
+csh.find_lines()
+
+for s in config_strings:
+    print(s)
+
 #res = helper(capable_modules(m1.active_w_type, csh.free_modules), m2.traverse_right(), csh.free_modules)
 #t = get_best_time(csh.recipes, csh.current_modules, XML_TEMPLATE, VERIFYTA)
 

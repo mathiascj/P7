@@ -42,7 +42,7 @@ def vertical_sequence(initial, counter, grid, inverted_grid, direction, csh):
     return sequence
 
 
-def push_underneathe(start, path, end, csh, direction):
+def push_underneath(start, path, end, csh, direction):
 
     def find_conflicting_lines(mods):
         # Find all lines containing the conflicting modules.

@@ -242,7 +242,7 @@ class SquareModule(Module):
 
 
     def module_str(self):
-        s = str(self.m_id) + '{' + ','.join(map(str, self.active_w_type)) + '}'
+        s = str(self.m_id) + '{' + ','.join(map(str, self.active_w_type)) + '}' # TODO: Skal nok sorte active_w_type
         s += '[' + ','.join(map(str, map(lambda x: x.m_id if x else '_', self.connections))) + ']'
         return s
 
