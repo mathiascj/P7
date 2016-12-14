@@ -95,14 +95,51 @@ def parallelize(start, path, end, csh):
 
     return csh.configuration_str()
 
+
+def helper(capable, remaining, free_modules):
+    result = []
+    if remaining and capable:
+        for c in capable:
+            fm = free_modules.copy()
+            fm.remove(c)
+            next_capable = capable_modules(remaining[0].active_w_type, fm)
+            result.append([capable] + helper(next_capable, remaining[1:], fm))
+    return result
+
+
+
+
+def find_parallel_paths(line, free_modules):
+        possible_paths = []
+        for start_module in line[1:]:  # TODO: Not parallelising the start of a line
+            mods = start_module.traverse_right()
+            current = []
+            for split, m in enumerate(mods):
+                capable = capable_modules(start_module.active_w_type, free_modules)
+                possible_paths += helper(capable, line[split + 1:], free_modules)
+
+
+            if current:
+                possible_paths.append(current)
+
+
 def neighbours_parallelize(frontier, csh):
     csh.make_configuration(frontier)
-    free_modules = csh.free_modules
+    free_modules = csh.free_modules.copy()
 
     main_line, up_lines, down_lines = csh.find_lines()
 
+    parallelize_options = []
+    current_path = []
     for m in main_line:
-        pass
+        capable = capable_modules(m.active_w_type, free_modules)
+        if capable:
+            current_path.append(capable)
+            for c in capable:
+                free_modules.remove(c)  # Greedy
+        elif current_path and not capable:
+            parallelize_options.append(current_path)
+            current_path = []
 
 
 
@@ -114,11 +151,15 @@ def modules_by_worktype(modules):
             res.setdefault(w, set()).add(m)
     return res
 
+
 def capable_modules(worktypes, modules):
     d = modules_by_worktype(modules)
     res = set(modules)
     for w in worktypes:
-        res = res & d[w]
+        if w in d:
+            res = res & d[w]
+        else:
+            return set()
     return res
 
 
