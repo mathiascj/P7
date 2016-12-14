@@ -194,7 +194,7 @@ def anti_serialize(start, path, end, csh):
     :return: A string representing the new configuration
     """
 
-    def remaining_modules(modules, path): #TODO: Opgrader til også at lave traverse. Og ikke for store i kantsitationer
+    def remaining_modules(modules, path):
         """
         Calculates the sequence of modules on main line segment after anti-serialization
         :param modules: All original modules on main line segment
@@ -231,6 +231,7 @@ def anti_serialize(start, path, end, csh):
     end_connector = None
     if start:
         start_connector = start.in_left
+
     if end:
         end_connector = end.right
 
@@ -253,12 +254,22 @@ def anti_serialize(start, path, end, csh):
     # Reconnect original line
     connect_module_list(remaining, 'right')
     if start_connector:
-        start_connector.right = start
+        start.right = start_connector
     if end_connector:
         end.right = end_connector
 
+
+    if start and end:
+        shadow = remaining
+
+    elif start:
+        shadow = start.traverse_right_by_steps(len(path) - 1)
+
+    elif end:
+        shadow = end.traverse_in_left_untill_by_steps(len(path) - 1)
+
     # Places down path where possible
-    push_underneath(start, path, end, csh, True)
+    push_around(start, path, end, shadow, csh)
     return csh.configuration_str()
 
 

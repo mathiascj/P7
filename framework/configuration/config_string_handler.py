@@ -163,9 +163,9 @@ class ConfigStringHandler:
             m.left = None
             m.active_w_type = set()
 
-    def make_grid(self):
+    def make_grid(self, mod):
         if self.current_modules:
-            return self.current_modules[0].make_grid()
+            return mod.make_grid()
         else:
             return {}
 

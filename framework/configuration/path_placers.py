@@ -43,7 +43,6 @@ def vertical_sequence(initial, counter, grid, inverted_grid, direction, csh):
 
 
 def push_underneath(start, path, end, csh, direction):
-
     def find_conflicting_lines(mods):
         # Find all lines containing the conflicting modules.
         lines = []
@@ -105,7 +104,7 @@ def push_underneath(start, path, end, csh, direction):
             sequence.append(mod_neighbour)
             connect_module_list(sequence, dir_attribute)
 
-    grid = csh.make_grid()
+    grid = csh.make_grid(shadow[0])
 
     # Lay down path on same line as start.
     # Begins conflict.
@@ -148,14 +147,14 @@ def push_underneath(start, path, end, csh, direction):
         setattr(path[-1], dir2, end)
 
 
-def push_around(start, path, end, remaining, csh): #TODO: Behøver ikke remaining. Kan udregne fra start og path
+def push_around(start, path, end, shadow, csh): 
     """
     Searches above and below already sat lines to find room.
     When room found it places down path.
     :param start: Point at which path should start on main line
     :param path:  Path we wish to branch out
     :param end: Point at which path should end on main line
-    :param remaining: Sequence of modules left on main line after branch out
+    :param shadow: Sequence of modules left on main line after branch out
     :param csh: config_string_handler object
     :return:
     """
@@ -191,15 +190,15 @@ def push_around(start, path, end, remaining, csh): #TODO: Behøver ikke remainin
 
         return counter
 
-    grid = csh.make_grid()  # Get positions from modules, except for those in path
+    grid = csh.make_grid(shadow[0])  # Get positions from modules, except for those in path
 
     inverted_grid = {v: k for k, v in grid.items()}  # Get modules from position
 
     # Find length we have to move path upwards
-    up_length = get_push_length(remaining, grid, inverted_grid, True)
+    up_length = get_push_length(shadow, grid, inverted_grid, True)
 
     # Find length we have to move path downwards
-    down_length = get_push_length(remaining, grid, inverted_grid, False)
+    down_length = get_push_length(shadow, grid, inverted_grid, False)
 
     # Set length and direction in which to push the path
     if up_length <= down_length:
