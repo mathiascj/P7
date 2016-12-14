@@ -253,35 +253,65 @@ class SquareModule(Module):
         l = [m.module_str() for m in configuration]
         return ':'.join(l)
 
-    def traverse_in_left(self):
+
+    def traverse(self, direction, end=None):
+        """
+        Returns all modules when traversing in some direction from the module.
+        Or up until we meet and end module.
+        :param direction:
+        :param end:
+        :return:
+        """
         current = self
         mods = [self]
 
-        while current.__in_left:
-            current = current.__in_left
+        while getattr(current, direction) and getattr(current, direction) != end:
+            current = getattr(current, direction)
             mods.append(current)
-
-        mods.reverse()
 
         return mods
 
     def traverse_right(self, end=None):
+        return self.traverse('right', end)
+
+    def traverse_in_left(self, end=None):
+        res = self.traverse('in_left', end)
+        res.reverse()
+        return res
+
+
+
+    def traverse_by_steps(self, steps, direction):
+        """
+        Returns all modules when traversing for n steps in some direction
+        :param steps:
+        :param direction:
+        :return:
+        """
         current = self
         mods = [self]
 
-        while current.right:
-            current = current.right
+        while getattr(current, direction) and 0 < steps:
+            current = getattr(current, direction)
             mods.append(current)
-            if current == end:
-                break
+            steps -= 1
 
         return mods
 
-    def get_line(self):
-        on_left = self.traverse_in_left()
-        del on_left[-1]
-        on_right = self.traverse_right()
-        return on_left + on_right
+    def traverse_right_by_steps(self, steps):
+        return self.traverse_by_steps(steps, 'right')
+
+    def traverse_in_left_by_steps(self, steps):
+        res = self.traverse_by_steps(steps, 'in_left')
+        res.reverse()
+        return res
+
+
+def get_line(self):
+    on_left = self.traverse_in_left()
+    del on_left[-1]
+    on_right = self.traverse_right()
+    return on_left + on_right
 
     def horizontal_wipe(self):
         self.right = None
