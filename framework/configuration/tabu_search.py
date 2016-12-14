@@ -79,13 +79,46 @@ def tabu_search(recipes, modules, iters=50):
 
 def parallelize(start, path, end, csh):
     if start and end:
-        mods = start.traverse_right(end)
-    elif start:
-        mods = start.traverse_right()
-    elif end:
-        mods = end.traverse_in_left()
-    else:
-        raise RuntimeError('Both start and end cant be empty')
+        if len(path) + 2 != len(start.traverse_right(end)):
+            raise RuntimeError('Path longer than start -> end')
+    for m in path:
+        m.total_wipe()
+    if start:
+        path = [csh.take_transport_module()] + path
+        start.up = path[0]
+    if end:
+        path = path + [csh.take_transport_module()]
+        path[-1].down = end
+
+    connect_module_list(path)
+
+    return csh.configuration_str()
+
+def neighbours_parallelize(frontier, csh):
+    csh.make_configuration(frontier)
+    free_modules = csh.free_modules
+
+    main_line, up_lines, down_lines = csh.find_lines()
+
+    for m in main_line:
+        pass
+
+
+
+
+def modules_by_worktype(modules):
+    res = {}
+    for m in modules:
+        for w in m.w_type:
+            res.setdefault(w, set()).add(m)
+    return res
+
+def capable_modules(worktypes, modules):
+    d = modules_by_worktype(modules)
+    res = set(modules)
+    for w in worktypes:
+        res = res & d[w]
+    return res
 
 
 

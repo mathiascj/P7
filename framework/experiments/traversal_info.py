@@ -43,7 +43,6 @@ def invert_dict(d):
     for k in d:
         for v in d[k]:
             res.setdefault(v, set()).add(k)
-
     return res
 
 def something(worked, traveled):
