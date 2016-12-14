@@ -4,6 +4,7 @@ from random import choice
 from UPPAAL.uppaalAPI import get_best_time
 from configuration.config_string_handler import ConfigStringHandler
 from configuration.initial_config import initial_configuration_generator
+from configuration.path_placers import connect_module_list, push_around, push_underneathe
 
 VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
@@ -121,8 +122,6 @@ def capable_modules(worktypes, modules):
     return res
 
 
-
-
 def path_setter(start, path, end, up):
     if up:
         if start:
@@ -139,197 +138,6 @@ def path_setter(start, path, end, up):
     connect_module_list(path)
 
 
-def connect_module_list(list, direction='right'):
-    for i, m in enumerate(list):
-        if i + 1 < len(list):
-            # Dynamically sets direction
-            setattr(m, direction, list[i + 1])
-
-def push_from_under(start, path, end, remaining, csh):
-    """
-    Pushes a new line up for remaining, having all conflicting lines move up
-    :param start: Point at remaining from which we start
-    :param path: Sequence of modules we with to branch out
-    :param end: Point at remaining where we want to end
-    :param remaining: Main line we're branching away from
-    :param csh: config_string_handler
-    :return:
-    """
-
-
-    def lines_above(line, grid, inverted_grid): #TODO gør så den kun kigger på konflikter af paralleliserings linjer
-        """
-        For a given line, gets all lines above which it conflicts with
-        :param line: Line which we wish to look above from
-        :return: list of lines that conflict
-        """
-
-        # Finds all modules which will collide when moving line upwards
-        line_positions = [grid[x] for x in line]
-        collision_positions = [(x, y + 1) for x, y in line_positions if (x, y + 1) in inverted_grid]
-        collision_modules = [inverted_grid[x] for x in collision_positions]
-
-        # Find all lines containing the conflicting modules.
-        lines = []
-        for mod in collision_modules:
-            if mod not in  [y for x in lines for y in x]:  # Flattens multidim list
-                lines.append(mod.get_line())
-
-        return lines
-
-    def move_line(line, grid, inverted_grid, csh):
-
-        # Make sure all lines above are moved
-        for l in lines_above(line, grid, inverted_grid):
-            move_line(l, grid, inverted_grid)
-
-
-        # Moves the given line up by 1 space
-        line_start = line[0]
-        line_end = line[-1]
-
-        if line_start.in_down:
-            connector = csh.take_transport_module()
-            line_start.in_down.up = connector
-            connector.up = line_start
-
-        if line_end.down:
-            connector = csh.take_transport_module()
-            old_down = line_end.down
-            line_end.down = connector
-            connector.down = old_down
-
-    grid = csh.make_grid()  # Get positions from modules, except for those in path
-    inverted_grid = {v: k for k, v in grid.items()}  # Get modules from position
-
-    # Moves all lines above it
-    for l in lines_above(remaining, grid, inverted_grid):
-        move_line(l, grid, inverted_grid)
-
-    # With the new room made for it, path is inserted
-    connect_module_list(path, 'right')
-    start.up = path[0]
-    path[-1].down = end
-
-
-def place_path(start, path, end, remaining, csh):
-    """
-    Searches above and below already sat lines to find room.
-    When room found it places down path.
-    :param start: Point at which path should start on main line
-    :param path:  Path we wish to branch out
-    :param end: Point at which path should end on main line
-    :param remaining: Sequence of modules left on main line after branch out
-    :param csh: config_string_handler object
-    :return:
-    """
-
-    def get_push_length(remaining, grid, inverted_grid, direction):
-        """
-        Finds how long we should push our path in a given direction to place it.
-        :param remaining: Sequence of modules left on main line after branch out
-        :param grid: Grid describing for each module where it is placed
-        :param inverted_grid: Grid describing for each position, what module is placed there
-        :param direction: If True we search upwards, if False we search downwards
-        :return:
-        """
-
-        # Positions of all modules in remaining
-        pos_on_line = [grid[x] for x in remaining]
-
-        # Picks lambda function to search up or downwards based on direction
-        if direction:
-            f = lambda x: x + 1
-        else:
-            f = lambda x: x - 1
-
-        # Counts up a counter until we can see no more placed modules by moving in our direction.
-        counter = 0
-        while True:
-            # Get all positions above the currently selected positions
-            pos_on_line = [(x, f(y)) for x, y in pos_on_line if (x, f(y)) in inverted_grid]
-            if pos_on_line:
-                counter += 1
-            else:
-                break
-
-        return counter
-
-    def vertical_sequence(initial, counter, grid, inverted_grid, direction, csh):
-        """
-        Calculates a vertical sequence for counter steps
-        :param initial: Module from which sequence starts
-        :param counter: Number of steps upwards
-        :param grid: dict for module to position
-        :param inverted_grid: dict for position to module
-        :param direction: If true sequence goes upwards. If false sequence goes downwards.
-        :param csh: config_string_handler
-        :return:
-        """
-
-        # Picks lambda function to search up or downwards based on direction
-        if direction:
-            f = lambda x: x + 1
-        else:
-            f = lambda x: x - 1
-
-        current = initial
-        sequence = [initial]
-        while 0 < counter:
-            x, y = grid[current]
-            next_pos = (x, f(y))
-            # If there's already a module here we can move through it
-            if next_pos in inverted_grid:
-                next_mod = inverted_grid[next_pos]
-            # if there is not a module, we append with a transport
-            else:
-                next_mod = csh.take_transport_module()
-
-            sequence.append(next_mod)
-            current = next_mod
-            counter -= 1
-
-        return sequence
-
-    grid = csh.make_grid()  # Get positions from modules, except for those in path
-
-    inverted_grid = {v: k for k, v in grid.items()}  # Get modules from position
-
-    # Find length we have to move path upwards
-    up_length = get_push_length(remaining, grid, inverted_grid, True)
-
-    # Find length we have to move path downwards
-    down_length = get_push_length(remaining, grid, inverted_grid, False)
-
-    # Set length and direction in which to push the path
-    if up_length <= down_length:
-        length = up_length
-        direction = True
-        branch_out_direction = 'up'
-        branch_in_direction = 'down'
-    else:
-        length = down_length
-        direction = False
-        branch_out_direction = 'down'
-        branch_in_direction = 'up'
-
-    # Connect path together
-    connect_module_list(path, 'right')
-
-    if start:
-        # Connect from a start point to the path
-        out_branch = vertical_sequence(start, length, grid, inverted_grid, direction, csh)
-        out_branch.append(path[0])
-        connect_module_list(out_branch, branch_out_direction)
-
-    if end:
-        # Connect from a end point to the path
-        in_branch = vertical_sequence(end, length, grid, inverted_grid, direction, csh)
-        in_branch.append(path[-1])
-        in_branch.reverse()
-        connect_module_list(in_branch, branch_in_direction)
-
-
 def anti_serialize(start, path, end, csh):
     """
     Creates an anti-serialized configuration
@@ -340,7 +148,7 @@ def anti_serialize(start, path, end, csh):
     :return: A string representing the new configuration
     """
 
-    def remaining_modules(modules, path):
+    def remaining_modules(modules, path): #TODO: Opgrader til også at lave traverse. Og ikke for store i kantsitationer
         """
         Calculates the sequence of modules on main line segment after anti-serialization
         :param modules: All original modules on main line segment
@@ -404,7 +212,7 @@ def anti_serialize(start, path, end, csh):
         end.right = end_connector
 
     # Places down path where possible
-    place_path(start, path, end, remaining, csh)
+    push_underneathe(start, path, end, csh, True)
     return csh.configuration_str()
 
 
