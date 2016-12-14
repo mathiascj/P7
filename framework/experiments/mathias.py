@@ -1,6 +1,6 @@
 from module import SquareModule
 from recipe import Recipe
-from configuration.tabu_search import tabu_search, anti_serialize, neighbours_anti_serialized, OTHER_anti_serialize, parallelize
+from configuration.tabu_search import *
 from UPPAAL.uppaalAPI import get_best_time
 from networkx import nx
 from random import shuffle
@@ -56,46 +56,44 @@ csh = ConfigStringHandler(recipes, modules, transporter)
 m0.right = m1
 m1.right = m2
 
+csh.current_modules = modules[:-3]
+csh.free_modules = modules[-3:]
+
+frontier = csh.configuration_str()
+
+
+def starter(line, free_modules):
+    temp = []
+    for split, m in enumerate(line):
+        cm = capable_modules(m.active_w_type, free_modules)
+        temp.append((m, helper(cm, line[split + 1:], free_modules)))
+
+    # Check whether or not we can attach this path to a start and end and that the path has an actual length
+    result = [r for r in temp if r[0].in_left and len(r[0].traverse_right()) == len(r1) + 1 and r[1]]
+    return result
 
 
 
-csh.current_modules = modules
-#print(csh.configuration_str())
+def helper(capable, remaining, free_modules):
+    result = []
+    if capable:
+        for c in capable:
+            fm = free_modules.copy()
+            fm.remove(c)
+            temp = []
+            if remaining:
+                next_capable = capable_modules(remaining[0].active_w_type, fm)
+                temp = helper(next_capable, remaining[1:], fm)
+            if temp:
+                for l in temp:
+                    result.append([c] + l)
+            result.append([c])
 
-m7.shadowed = True
+    return result
 
-
-main_line, up_line, down_line = csh.find_lines()
-print(main_line)
-
-s = parallelize(m0, [m3, m4], None, csh)
-print(s)
-
-
-def modules_by_worktype(modules):
-    res = {}
-    for m in modules:
-        for w in m.w_type:
-            res.setdefault(w, set()).add(m)
-    return res
-
-def capable_modules(worktypes, modules):
-    d = modules_by_worktype(modules)
-    res = set(modules)
-    for w in worktypes:
-        res = res & d[w]
-    return res
-
-
-d = modules_by_worktype(modules)
-res = capable_modules({'pakke', 'skrue'}, modules)
-
-# time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
-# main_line, up_line, down_line = csh.find_lines()
-# s = neighbours_anti_serialized(worked, main_line, csh)[0]
-# print(s)
-csh.make_configuration(s)
-
+csh.make_configuration(frontier)
+res = starter(m0.traverse_right(), csh.free_modules)
+#res = helper(capable_modules(m1.active_w_type, csh.free_modules), m2.traverse_right(), csh.free_modules)
 #t = get_best_time(csh.recipes, csh.current_modules, XML_TEMPLATE, VERIFYTA)
 
 
