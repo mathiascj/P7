@@ -104,7 +104,7 @@ def push_underneath(start, path, end, csh, direction):
             sequence.append(mod_neighbour)
             connect_module_list(sequence, dir_attribute)
 
-    grid = csh.make_grid(shadow[0])
+    grid = csh.make_grid(csh.main_line[0])
 
     # Lay down path on same line as start.
     # Begins conflict.

@@ -209,45 +209,29 @@ class ConfigStringHandler:
                 m.active_w_type = set(works)
 
     def find_lines(self):
+        main_line = self.main_line
+
         lines = []
         for mod in self.current_modules:
             mod_in_line = False
             for l in lines:
                 if mod in l:
                     mod_in_line = True
-
             if not mod_in_line:
                 all_left = mod.traverse_in_left()
                 all_left.remove(all_left[-1])
                 all_right = mod.traverse_right()
                 lines.append(all_left + all_right)
 
-        # main_line = max(lines, key=len)
-        main_line = lines[0]
-
-        down_lines = []
         up_lines = []
-
-        c_lines = lines.copy()
-
+        down_lines = []
+        grid = self.make_grid(main_line[0])
         for l in lines:
-            if l[-1].down:
-                up_lines.append(l)
-                c_lines.remove(l)
-            elif l[-1].up:
-                down_lines.append(l)
-                c_lines.remove(l)
-
-        main_line = None
-        for l in c_lines:
-            if not main_line and l not in up_lines and l not in down_lines:
-                main_line = l
-            elif main_line:
-                raise RuntimeError('Too many lines')
-
-        if not main_line:
-            raise RuntimeError('Could not figure out a main line')
-
+            if l is not main_line:
+                if grid[l[0]][1] > 0:
+                    up_lines.append(l)
+                else:
+                    down_lines.append(l)
 
         return main_line, up_lines, down_lines
 

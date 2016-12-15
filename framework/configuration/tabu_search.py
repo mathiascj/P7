@@ -78,24 +78,6 @@ def tabu_search(recipes, modules, iters=50):
     return overall_best
 
 
-def parallelize(start, path, end, csh):
-    if start and end:
-        if len(path) + 2 != len(start.traverse_right(end)):
-            raise RuntimeError('Path longer than start -> end')
-    for m in path:
-        m.total_wipe()
-    if start:
-        path = [csh.take_transport_module()] + path
-        start.up = path[0]
-    if end:
-        path = path + [csh.take_transport_module()]
-        path[-1].down = end
-
-    connect_module_list(path)
-
-    return csh.configuration_str()
-
-
 def parallel_args(line, free_modules, csh):
     temp = []
     for split, m in enumerate(line):
@@ -136,16 +118,37 @@ def parallel_args_helper(capable, remaining, free_modules):
                 for l in temp:
                     result.append([c] + l)
             result.append([c])
-
     return result
 
+
 def neighbours_parallelize(frontier, csh):
+    def update_config(frontier, start, path, end, csh, direction):
+        csh.make_configuration(frontier)
+        t0 = csh.take_transport_module()
+        t1 = csh.take_transport_module()
+
+        for i, m in enumerate(start.traverse_right(end)[1:]):
+            path[i].active_w_type = m.active_w_type.copy()
+        csh.current_modules += [t0, t1]
+        expanded_path = [t0] + path + [t1]
+
+        push_underneath(start, expanded_path, end, csh, direction)
+
+        result = csh.configuration_str()
+
+        csh.free_transport_module(t0)
+        csh.free_transport_module(t1)
+
+        return result
+
     csh.make_configuration(frontier)
+    main_line, up_lines, down_lines = csh.find_lines()
 
-    csh.find_lines()
+    main_args = parallel_args(main_line, csh.free_modules, csh)
 
-    push_underneath()
-
+    up_args_list = []
+    for up in up_lines:
+        pass
 
 
 
@@ -270,6 +273,8 @@ def anti_serialize(start, path, end, csh):
 
     # Places down path where possible
     push_around(start, path, end, shadow, csh)
+
+    csh.main_line = remaining
     return csh.configuration_str()
 
 

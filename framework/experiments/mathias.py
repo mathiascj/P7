@@ -51,6 +51,7 @@ recipes = [r2, r3]
 modules = [m0, m1, m2, m8, m3, m4, m9]
 
 csh = ConfigStringHandler(recipes, modules, transporter)
+csh.main_line = [m0, m1, m2, m8]
 
 #gen = initial_configuration_generator(recipes, modules, csh)
 

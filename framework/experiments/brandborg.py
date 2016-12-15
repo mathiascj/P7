@@ -56,8 +56,9 @@ m8.right = m1
 m1.right = m2
 m5.down = m2
 
-
 csh.current_modules = modules
+
+print(csh.configuration_str())
 
 
 #print(csh.configuration_str())
