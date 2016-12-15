@@ -205,7 +205,7 @@ def path_setter(start, path, end, up):
 
 def anti_serialize(start, path, end, csh):
     """
-    Creates an anti-serialized configuration
+    Creates an anti-serialized configuration string
     :param start: start module on main line
     :param path: sequence of modules to anti serialize
     :param end: end module on main line
@@ -216,8 +216,8 @@ def anti_serialize(start, path, end, csh):
     def remaining_modules(modules, path):
         """
         Calculates the sequence of modules on main line segment after anti-serialization
-        :param modules: All original modules on main line segment
-        :param path: The sequence of modules we wish to anti-serialze
+        :param modules: Original modules on main line segment
+        :param path: The sequence of modules we wish to anti-serialize
         :return: Sequence of modules describing the new main line segment
         """
         remaining = []
@@ -225,8 +225,8 @@ def anti_serialize(start, path, end, csh):
             # In the case that the module is not in path
             if m not in path:
                 remaining.append(m)
+
             # If the module is in path, but is also shadowed it has to be replaced with a transport.
-            # If not another line's end would be shifted.
             elif m.shadowed:
                 remaining.append(csh.take_transport_module())
 
@@ -273,11 +273,11 @@ def anti_serialize(start, path, end, csh):
     # Reconnect original line
     connect_module_list(remaining, 'right')
     if start_connector:
-        start.right = start_connector
+        start_connector.right = start
     if end_connector:
         end.right = end_connector
 
-
+    # Set up shadow. The sequence of modules on main line which the path projects down on.
     if start and end:
         shadow = remaining
 
@@ -363,6 +363,13 @@ def neighbours_swap(frontier, csh):
 
 
 def neighbours_anti_serialized(worked, frontier, csh):
+    """
+    Gets all possible anti_serializations, when trying to split out a random recipe from main line
+    :param worked: Dict saying for each module, what recipes were worked on it
+    :param frontier: Configuration string, which we wish to find neighbours for
+    :param csh: config_string_handler object
+    :return: A list of strings, each representing a neighbouring configuration
+    """
     def invert_dict(d):
         """
         Inverts a dictionary many to many
@@ -409,7 +416,7 @@ def neighbours_anti_serialized(worked, frontier, csh):
         # When the chosen recipe and other recipes have mod in common
         if mod.m_id in chosen_recipe_mods and mod.m_id in other_recipe_mods:
             if unique_mods:
-                neighbour = [last_common, unique_mods, unique_mods[-1].right, csh]
+                neighbour = [last_common, unique_mods, mod, csh]
                 neighbours.append(neighbour)
                 unique_mods = []
             last_common = mod
@@ -418,10 +425,16 @@ def neighbours_anti_serialized(worked, frontier, csh):
         elif mod.m_id in chosen_recipe_mods:
             unique_mods.append(mod)
 
-    # Handles the edge case where no common module was found in the end.
-    # Branches the unique modules out and does not branch in to the main line again.
+    # If possible, branches out the last found path, not branching in again
     if unique_mods:
         neighbour = [last_common, unique_mods, None, csh]
         neighbours.append(neighbour)
 
-    return list(map(lambda x: anti_serialize(*x), neighbours))
+    results = []
+    for n in neighbours:
+        # Only call neighbours, where we do not remove starts and ends of other branches
+        path = n[1]
+        if not any(x.is_start or x.is_end for x in path):
+            results.append(anti_serialize(*n))
+
+    return results

@@ -40,7 +40,7 @@ m8 = SquareModule('sove-maskine',  {'sove': 5}, t, 5)
 r0 = Recipe('chokolade', {'hammer': set(), 'mere hammer': {'hammer'}, 'skrue': {'mere hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 2)
 r1 = Recipe('FuckMigUp', {'smadre': set()}, 'balh', 0, 2)
 
-r2 = Recipe('chokolade', {'hammer': set(), 'skrue': {'hammer'}}, 'hammer-maskine', 0, 2)
+r2 = Recipe('chokolade', {'hammer': set(), 'skrue': {'hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 2)
 r3 = Recipe('menneske', {'hammer': set(), 'spise': {'hammer'}, 'sove': {'spise'}, 'pakke': {'sove'}}, 'hammer-maskine', 0, 2)
 
 recipes = [r2, r3]
@@ -72,6 +72,7 @@ print(csh.configuration_str())
 # print(s)
 
 csh.main_line = [m0, m7, m8, m1, m2]
+
 time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
 main_line, up_line, down_line = csh.find_lines()
 s = neighbours_anti_serialized(worked, csh.configuration_str(), csh)

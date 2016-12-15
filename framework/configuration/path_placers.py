@@ -42,7 +42,7 @@ def vertical_sequence(initial, counter, grid, inverted_grid, direction, csh):
     return sequence
 
 
-def push_underneath(start, path, end, csh, direction):
+def push_underneath(start, path, end, csh, direction): #TODO: Opater shadows and shit!
     def find_conflicting_lines(mods):
         # Find all lines containing the conflicting modules.
         lines = []
@@ -139,12 +139,17 @@ def push_underneath(start, path, end, csh, direction):
         dir1 = "down"
         dir2 = "up"
 
-
     if start:
         setattr(start, dir1, path[0])
 
     if end:
         setattr(path[-1], dir2, end)
+
+    # Updates booleans
+    start.is_start = True
+    end.is_end = True
+
+
 
 
 def push_around(start, path, end, shadow, csh):
@@ -227,3 +232,13 @@ def push_around(start, path, end, shadow, csh):
         in_branch.append(path[-1])
         in_branch.reverse()
         connect_module_list(in_branch, branch_in_direction)
+
+
+    # Updates booleans
+    if start:
+        start.is_start = True
+    if end:
+        end.is_end = True
+
+    for m in shadow:
+        m.shadowed = True
