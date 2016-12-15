@@ -122,7 +122,7 @@ def parallel_args_helper(capable, remaining, free_modules):
 
 
 def neighbours_parallelize(frontier, csh):
-    def update_config(frontier, start, path, end, csh, direction):
+    def parallel_config_string(frontier, start, path, end, csh, direction):
         csh.make_configuration(frontier)
         t0 = csh.take_transport_module()
         t1 = csh.take_transport_module()
@@ -144,12 +144,28 @@ def neighbours_parallelize(frontier, csh):
     csh.make_configuration(frontier)
     main_line, up_lines, down_lines = csh.find_lines()
 
-    main_args = parallel_args(main_line, csh.free_modules, csh)
+    main_args_list = parallel_args(main_line, csh.free_modules, csh)
+    main_configs = []
+    for args in main_args_list:
+        main_configs.append(parallel_config_string(frontier, *args, csh, 'up'))
+        main_configs.append(parallel_config_string(frontier, *args, csh, 'down'))
 
-    up_args_list = []
+    up_configs = []
     for up in up_lines:
-        pass
+        args_list = parallel_args(up, csh.free_modules, csh)
+        for args in args_list:
+            config = parallel_config_string(frontier, *args, csh, 'up')
+            up_configs.append(config)
 
+    down_configs = []
+    for down in down_lines:
+        args_list = parallel_args(down, csh.free_modules, csh)
+        for args in args_list:
+            config = parallel_config_string(frontier, *args, csh, 'down')
+            down_configs.append(config)
+
+
+    return list(set(main_configs + up_configs + down_configs))
 
 
 def modules_by_worktype(modules):
