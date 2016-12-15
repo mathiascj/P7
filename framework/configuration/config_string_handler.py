@@ -86,7 +86,6 @@ class ConfigStringHandler:
 
         self.main_line = main_line
 
-
     def modules_in_config(self, configuration_str):
         """ Creates a list of modules that are in the configuration string.
         :param Configuration_str: A string representing a configuration, retrived by the configuration_str method
@@ -191,3 +190,60 @@ class ConfigStringHandler:
 
         return main_line, up_lines, down_lines
 
+    def swap_modules(self, m0, m1):
+        u0 = m0.up
+        r0 = m0.right
+        d0 = m0.down
+        l0 = m0.left
+        iu0 = m0.in_up
+        ir0 = m0.in_right
+        id0 = m0.in_down
+        il0 = m0.in_left
+
+        active0 = m0.active_w_type
+
+        m0.up = m1.up
+        m0.right = m1.right
+        m0.down = m1.down
+        m0.left = m1.left
+        if m1.in_up:
+            m1.in_up.down = m0
+        if m1.in_right:
+            m1.in_right.left = m0
+        if m1.in_down:
+            m1.in_down.up = m0
+        if m1.in_left:
+            m1.in_left.right = m0
+
+        m0.active_w_type = m1.active_w_type
+
+        m1.up = u0
+        m1.right = r0
+        m1.down = d0
+        m1.left = l0
+        if iu0:
+            iu0.down = m1
+        if ir0:
+            ir0.left = m1
+        if id0:
+            id0.up = m1
+        if il0:
+            il0.right = m1
+        m1.active_w_type = active0
+
+        if m0 in self.current_modules and m1 in self.free_modules:
+            self.current_modules.remove(m0)
+            self.free_modules.append(m0)
+            self.free_modules.remove(m1)
+            self.current_modules.append(m1)
+        elif m1 in self.current_modules and m0 in self.free_modules:
+            self.current_modules.remove(m1)
+            self.free_modules.append(m1)
+            self.free_modules.remove(m0)
+            self.current_modules.append(m0)
+
+        for r in self.recipes:
+            if r.start_module == m0:
+                r.start_module = m1
+            elif r.start_module == m1:
+                r.start_module = m0
