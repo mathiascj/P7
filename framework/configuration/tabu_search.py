@@ -104,9 +104,19 @@ def tabu_search(recipes, modules, transport_module, iters=50):
         else:
             args = [frontier, csh]
 
+
+        # TODO REMOVE LATER
+        if neighbour_func is neighbours_swap:
+            neighbour_func = neighbours_parallelize
+
         results = []
         for n in neighbour_func(*args):
-            results.append((n, evaluate_config(n)))
+            try:
+                results.append((n, evaluate_config(n)))
+            except RuntimeError:
+                print(frontier)
+                print(n)
+                raise RuntimeError
 
         results.sort(key=lambda x: x[1])
         for r in results:
