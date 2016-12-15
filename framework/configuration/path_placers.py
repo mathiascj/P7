@@ -42,8 +42,7 @@ def vertical_sequence(initial, counter, grid, inverted_grid, direction, csh):
     return sequence
 
 
-def push_underneathe(start, path, end, shadow, csh, direction):
-
+def push_underneath(start, path, end, csh, direction):
     def find_conflicting_lines(mods):
         # Find all lines containing the conflicting modules.
         lines = []
@@ -105,7 +104,7 @@ def push_underneathe(start, path, end, shadow, csh, direction):
             sequence.append(mod_neighbour)
             connect_module_list(sequence, dir_attribute)
 
-    grid = csh.make_grid(shadow[0])
+    grid = csh.make_grid(csh.main_line[0])
 
     # Lay down path on same line as start.
     # Begins conflict.

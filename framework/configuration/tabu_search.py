@@ -4,7 +4,7 @@ from random import choice
 from UPPAAL.uppaalAPI import get_best_time
 from configuration.config_string_handler import ConfigStringHandler
 from configuration.initial_config import initial_configuration_generator
-from configuration.path_placers import connect_module_list, push_around, push_underneathe
+from configuration.path_placers import connect_module_list, push_around, push_underneath
 
 VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
@@ -78,69 +78,77 @@ def tabu_search(recipes, modules, iters=50):
     return overall_best
 
 
-def parallelize(start, path, end, csh):
-    if start and end:
-        if len(path) + 2 != len(start.traverse_right(end)):
-            raise RuntimeError('Path longer than start -> end')
-    for m in path:
-        m.total_wipe()
-    if start:
-        path = [csh.take_transport_module()] + path
-        start.up = path[0]
-    if end:
-        path = path + [csh.take_transport_module()]
-        path[-1].down = end
+def parallel_args(line, free_modules, csh):
+    temp = []
+    for split, m in enumerate(line):
+        cm = capable_modules(m.active_w_type, free_modules)
+        temp.append((m, parallel_args_helper(cm, line[split + 1:], free_modules)))
 
-    connect_module_list(path)
+    # Check whether or not we can attach this path to a start and end and that the path has an actual length
+    for r in temp:
+        r_len = len(r[0].traverse_right())
+        for path in r[1].copy():
+            if not r_len > len(path):
+                r[1].remove(path)
+    result = [r for r in temp if r[0].in_left and r[1]]
 
-    return csh.configuration_str()
+    arg_list = []
+
+    for r in result:
+        for path in r[1]:
+            start = r[0].in_left
+            end = r[0].traverse_right_by_steps(len(path))[-1]
+            arg_list.append((start, path, end))
+
+    return arg_list
 
 
-def helper(capable, remaining, free_modules):
+
+def parallel_args_helper(capable, remaining, free_modules):
     result = []
-    if remaining and capable:
+    if capable:
         for c in capable:
             fm = free_modules.copy()
             fm.remove(c)
-            next_capable = capable_modules(remaining[0].active_w_type, fm)
-            result.append([capable] + helper(next_capable, remaining[1:], fm))
+            temp = []
+            if remaining:
+                next_capable = capable_modules(remaining[0].active_w_type, fm)
+                temp = parallel_args_helper(next_capable, remaining[1:], fm)
+            if temp:
+                for l in temp:
+                    result.append([c] + l)
+            result.append([c])
     return result
 
 
-
-
-def find_parallel_paths(line, free_modules):
-        possible_paths = []
-        for start_module in line[1:]:  # TODO: Not parallelising the start of a line
-            mods = start_module.traverse_right()
-            current = []
-            for split, m in enumerate(mods):
-                capable = capable_modules(start_module.active_w_type, free_modules)
-                possible_paths += helper(capable, line[split + 1:], free_modules)
-
-
-            if current:
-                possible_paths.append(current)
-
-
 def neighbours_parallelize(frontier, csh):
-    csh.make_configuration(frontier)
-    free_modules = csh.free_modules.copy()
+    def update_config(frontier, start, path, end, csh, direction):
+        csh.make_configuration(frontier)
+        t0 = csh.take_transport_module()
+        t1 = csh.take_transport_module()
 
+        for i, m in enumerate(start.traverse_right(end)[1:]):
+            path[i].active_w_type = m.active_w_type.copy()
+        csh.current_modules += [t0, t1]
+        expanded_path = [t0] + path + [t1]
+
+        push_underneath(start, expanded_path, end, csh, direction)
+
+        result = csh.configuration_str()
+
+        csh.free_transport_module(t0)
+        csh.free_transport_module(t1)
+
+        return result
+
+    csh.make_configuration(frontier)
     main_line, up_lines, down_lines = csh.find_lines()
 
-    parallelize_options = []
-    current_path = []
-    for m in main_line:
-        capable = capable_modules(m.active_w_type, free_modules)
-        if capable:
-            current_path.append(capable)
-            for c in capable:
-                free_modules.remove(c)  # Greedy
-        elif current_path and not capable:
-            parallelize_options.append(current_path)
-            current_path = []
+    main_args = parallel_args(main_line, csh.free_modules, csh)
 
+    up_args_list = []
+    for up in up_lines:
+        pass
 
 
 
@@ -265,6 +273,8 @@ def anti_serialize(start, path, end, csh):
 
     # Places down path where possible
     push_around(start, path, end, shadow, csh)
+
+    csh.main_line = remaining
     return csh.configuration_str()
 
 
@@ -355,7 +365,7 @@ def neighbours_anti_serialized(worked, frontier, csh):
 
     # Get main line
     csh.make_configuration(frontier)
-    line, _, _ = csh.find_lines()
+    main_line, _, _ = csh.find_lines()
 
 
     # Get dict where each recipe is a key to the modules worked on by it
@@ -365,7 +375,7 @@ def neighbours_anti_serialized(worked, frontier, csh):
     # Get recipes worked on the line
     for name, mods in iworked.items():
         for m in mods:
-            if csh.module_dictionary[m] in line:
+            if csh.module_dictionary[m] in main_line:
                 recipes[name] = mods
                 break
 
@@ -381,7 +391,7 @@ def neighbours_anti_serialized(worked, frontier, csh):
     current_split = []
     last_common = None
 
-    for mod in line:
+    for mod in main_line:
         # Common module
         if mod.m_id in chosen_recipe_mods and mod.m_id in other_recipe_mods:
             # If we have found modules to anti serialize, we add it to the split group

@@ -7,14 +7,16 @@ class ConfigStringHandler:
         self.recipes = recipes
         self.transport_module = transport_module
 
-        self.free_modules = all_modules
+        self.free_modules = all_modules.copy()
 
         self.current_modules = []
 
         self.free_transporters = []
+        self.main_line = []
 
         self.module_dictionary = {m.m_id: m for m in all_modules}
         self.recipe_dictionary = {r.name: r for r in recipes}
+
 
         self.transport_id = 0
 
@@ -28,8 +30,9 @@ class ConfigStringHandler:
 
             R = [r.recipe_str() for r in self.recipes]
             M = [m.module_str() for m in configuration]
+            ML = ','.join(map((lambda m: m.m_id), self.main_line))
 
-            return "$".join(R) + "|" + ':'.join(M)
+            return "$".join(R) + "|" + ':'.join(M)  + '|' + ML
         else:
             return ""
 
@@ -68,6 +71,14 @@ class ConfigStringHandler:
             self.current_modules.append(module)
 
         self.free_modules = [m for m in self.all_modules if m not in self.current_modules]
+
+        main_line = []
+        if S[2]:
+            for m_id in S[2].split(','):
+                main_line.append(self.module_dictionary[m_id])
+
+        self.main_line = main_line
+
         main_line, up_line, down_line = self.find_lines()
 
 
@@ -115,6 +126,9 @@ class ConfigStringHandler:
 
            elif down_module:
                 potential_down_shadow.append(mod)
+
+
+
 
 
     def modules_in_config(self, configuration_str):
@@ -178,12 +192,14 @@ class ConfigStringHandler:
             t.m_id = "transporter" + str(self.transport_id)
             self.module_dictionary[t.m_id] = t
             self.transport_id += 1
-            self.all_modules.append(t) #TODO: Adder også til current_modules. Find hvorfor.
+        self.all_modules.append(t)
+        # self.current_modules.append(t)  #TODO: Adder også til current_modules. Find hvorfor.
 
         return t
 
     def free_transport_module(self, t):
-        self.current_modules.remove(t)
+        if t in self.current_modules:
+            self.current_modules.remove(t)
         t.total_wipe()
         self.free_transporters.append(t)
 
@@ -193,47 +209,29 @@ class ConfigStringHandler:
                 m.active_w_type = set(works)
 
     def find_lines(self):
+        main_line = self.main_line
+
         lines = []
         for mod in self.current_modules:
             mod_in_line = False
             for l in lines:
                 if mod in l:
                     mod_in_line = True
-
             if not mod_in_line:
                 all_left = mod.traverse_in_left()
                 all_left.remove(all_left[-1])
                 all_right = mod.traverse_right()
                 lines.append(all_left + all_right)
 
-        # main_line = max(lines, key=len)
-        main_line = lines[0]
-
-        down_lines = []
         up_lines = []
-
-        c_lines = lines.copy()
-
-        # Categorize lines starting on main line
-        for mod in main_line:
-            if mod.up:
-                for l in c_lines:
-                    if l[0] == mod.up:
-                        up_lines.append(l)
-                        c_lines.remove(l)
-
-            if mod.down:
-                for l in c_lines:
-                    if l[0] == mod.down:
-                        down_lines.append(l)
-                        c_lines.remove(l)
-
-        # Categorize lines that only end on main line
-        for l in c_lines:
-            if l[-1].down in main_line:
-                up_lines.append(l)
-            elif l[-1].up in main_line:
-                down_lines.append(l)
+        down_lines = []
+        grid = self.make_grid(main_line[0])
+        for l in lines:
+            if l is not main_line:
+                if grid[l[0]][1] > 0:
+                    up_lines.append(l)
+                else:
+                    down_lines.append(l)
 
         return main_line, up_lines, down_lines
 
