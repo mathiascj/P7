@@ -247,3 +247,8 @@ class ConfigStringHandler:
                 r.start_module = m1
             elif r.start_module == m1:
                 r.start_module = m0
+
+        temp0 = [0 if m == m0 else m for m in self.main_line]
+        temp1 = [m0 if m == m1 else m for m in temp0]
+        temp2 = [m1 if m == 0 else m for m in temp1]
+        self.main_line = temp2

@@ -312,21 +312,7 @@ def neighbours_swap(frontier, csh):
     :return:
     """
 
-    def extern_swap(frontier, csh, old, new):
-        """ Does the actual swap in the configuration
-        :param old: The modules you wish to swap out
-        :param new: The module that you wish to swap in
-        :return: A new configuration string, where we swapped old with new
-        """
-        csh.make_configuration(frontier)
-        csh.swap_modules(old, new)
-
-        csh.main_line = [new if m == old else m for m in csh.main_line]
-
-        return csh.configuration_str()
-
-
-    def intern_swap(frontier, csh, m0, m1):
+    def swap(frontier, csh, m0, m1):
         """
         :param frontier:
         :param csh:
@@ -338,13 +324,6 @@ def neighbours_swap(frontier, csh):
 
         csh.swap_modules(m0, m1)
 
-        # swaps them in the main line aswell
-        temp0 = [0 if m == m0 else m for m in csh.main_line]
-        temp1 = [m0 if m == m1 else m for m in temp0]
-        temp2 = [m1 if m == 0 else m for m in temp1]
-
-        csh.main_line = temp2
-
         return csh.configuration_str()
 
     def internal_swap_neighbours(frontier, csh, config_modules):
@@ -352,7 +331,7 @@ def neighbours_swap(frontier, csh):
         for m0 in config_modules:
             swappable = [new for new in config_modules if m0.active_w_type <= new.w_type and m0 != new]
             for m1 in swappable:
-                neighbours.append(intern_swap(frontier, csh, m1, m0))
+                neighbours.append(swap(frontier, csh, m1, m0))
         return neighbours
 
     def external_swap_neighbours(frontier, csh, config_modules, free_modules):
@@ -360,7 +339,7 @@ def neighbours_swap(frontier, csh):
         for old in config_modules:
             swappable = [new for new in free_modules if old.active_w_type <= new.w_type]
             for new in swappable:
-                neighbours.append(extern_swap(frontier, csh, old, new))
+                neighbours.append(swap(frontier, csh, old, new))
         return neighbours
 
     config_str = frontier
@@ -370,7 +349,7 @@ def neighbours_swap(frontier, csh):
     external_neighbours = external_swap_neighbours(frontier, csh, config_modules, free_modules)
     internal_neighbours = internal_swap_neighbours(frontier, csh, config_modules)
 
-    return list(set(external_neighbours))
+    return list(set(external_neighbours + internal_neighbours))
 
 
 def neighbours_anti_serialized(worked, frontier, csh):
