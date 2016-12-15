@@ -61,6 +61,8 @@ class ConfigStringHandler:
             active_w_type = set(re.search('.*\{(.*)\}.*', ms).group(1).split(sep=','))
             temp = re.search('.*\[(.*)\].*', ms).group(1).split(sep=',')
             connections = [self.module_dictionary[conn_id] if conn_id != '_' else None for conn_id in temp]
+            booleans = re.search('.*\](.*)', ms).group(1)
+
 
             module = self.module_dictionary[m_id]
             module.active_w_type = active_w_type
@@ -68,6 +70,11 @@ class ConfigStringHandler:
             module.right = connections[1]
             module.down = connections[2]
             module.left = connections[3]
+            booleans = list(map(bool, map(int, booleans)))
+            module.shadowed = booleans[0]
+            module.is_start = booleans[1]
+            module.is_end = booleans[2]
+
             self.current_modules.append(module)
 
         self.free_modules = [m for m in self.all_modules if m not in self.current_modules]
@@ -78,57 +85,6 @@ class ConfigStringHandler:
                 main_line.append(self.module_dictionary[m_id])
 
         self.main_line = main_line
-
-        main_line, up_line, down_line = self.find_lines()
-
-
-        for mod in self.all_modules:
-            mod.shadowed = False
-            mod.is_start = False
-            mod.is_end = False
-
-        up_module = None
-        down_module = None
-        potential_up_shadow = []
-        potential_down_shadow = []
-
-        for mod in main_line:
-           if mod.up:
-               up_module = mod
-               potential_up_shadow = [up_module]
-               mod.shadowed = True
-               mod.is_start = True
-           elif mod.in_up:
-               up_module = None
-               mod.is_end = True
-               potential_up_shadow.append(mod)
-
-
-               for m in potential_up_shadow:
-                   m.shadowed = True
-               potential_up_shadow = []
-
-           elif up_module:
-               potential_up_shadow.append(mod)
-
-           if mod.down:
-                down_module = mod
-                potential_down_shadow = [down_module]
-                mod.shadowed = True
-                mod.is_start = True
-           elif mod.in_down:
-                down_module = None
-                mod.is_end = True
-                potential_down_shadow.append(mod)
-                for m in potential_down_shadow:
-                    m.shadowed = True
-                potential_down_shadow = []
-
-           elif down_module:
-                potential_down_shadow.append(mod)
-
-
-
 
 
     def modules_in_config(self, configuration_str):

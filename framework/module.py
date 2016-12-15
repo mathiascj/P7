@@ -244,6 +244,7 @@ class SquareModule(Module):
     def module_str(self):
         s = str(self.m_id) + '{' + ','.join(map(str, self.active_w_type)) + '}' # TODO: Skal nok sorte active_w_type
         s += '[' + ','.join(map(str, map(lambda x: x.m_id if x else '_', self.connections))) + ']'
+        s += ''.join(map(str,  map(int, [self.shadowed, self.is_start, self.is_end])))
         return s
 
     def modules_str(self):
@@ -268,6 +269,9 @@ class SquareModule(Module):
         while getattr(current, direction) and getattr(current, direction) != end:
             current = getattr(current, direction)
             mods.append(current)
+
+        if end:
+            mods.append(end)
 
         return mods
 
