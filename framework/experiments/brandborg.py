@@ -1,11 +1,7 @@
 from module import SquareModule
 from recipe import Recipe
-from configuration.tabu_search import tabu_search, anti_serialize, neighbours_anti_serialized
-from UPPAAL.uppaalAPI import get_best_time
-from networkx import nx
-from random import shuffle
-from configuration.initial_config import initial_configuration_generator
-from configuration.config_string_handler import ConfigStringHandler
+from configuration.tabu_search import tabu_search
+
 
 VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
@@ -15,27 +11,29 @@ t = [[0, 0, 0, 0],
      [0, 0, 0, 0],
      [0, 0, 0, 0]]
 
-transporter = SquareModule('transporter', {}, t, 3)
+QUEUE_LENGTH = 1
 
-m0 = SquareModule('hammer-maskine', {'hammer': 10, 'mere hammer': 10}, t, 3)
+transporter = SquareModule('transporter', {}, t, QUEUE_LENGTH)
 
-m1 = SquareModule('skrue-maskine', {'skrue': 10}, t, 3)
+m0 = SquareModule('hammer-maskine', {'hammer': 40, 'mere hammer': 10}, t, QUEUE_LENGTH)
 
-m2 = SquareModule('pakke-maskine', {'pakke': 10}, t, 3)
+m1 = SquareModule('skrue-maskine', {'skrue': 10}, t, QUEUE_LENGTH)
 
-m6 = SquareModule('Smadremanden', {'smadre': 10}, t, 3)
+m2 = SquareModule('pakke-maskine', {'pakke': 1}, t, QUEUE_LENGTH)
+
+m6 = SquareModule('Smadremanden', {'smadre': 10}, t, QUEUE_LENGTH)
 
 m0.active_w_type = {'hammer', 'mere hammer'}
 m1.active_w_type = {'skrue'}
 m2.active_w_type = {'pakke'}
 
-m3 = SquareModule('super-skruer', {'skrue': 4}, t, 3)
-m4 = SquareModule('super-pakker', {'pakke': 2}, t, 3)
+m3 = SquareModule('super-skruer', {'skrue': 4}, t, QUEUE_LENGTH)
+m4 = SquareModule('super-pakker', {'pakke': 2}, t, QUEUE_LENGTH)
 
-m5 = SquareModule('smadre-manden', {'smadre': 50}, t, 3)
+m5 = SquareModule('smadre-manden', {'smadre': 50}, t, QUEUE_LENGTH)
 
-m7 = SquareModule('spise-maskine', {'spise': 5}, t, 5)
-m8 = SquareModule('sove-maskine',  {'sove': 5}, t, 5)
+m7 = SquareModule('spise-maskine', {'spise': 20}, t, QUEUE_LENGTH)
+m8 = SquareModule('sove-maskine',  {'sove': 5}, t, QUEUE_LENGTH)
 
 r0 = Recipe('chokolade', {'hammer': set(), 'mere hammer': {'hammer'}, 'skrue': {'mere hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 2)
 r1 = Recipe('FuckMigUp', {'smadre': set()}, 'balh', 0, 2)
@@ -46,54 +44,8 @@ r3 = Recipe('menneske', {'hammer': set(), 'spise': {'hammer'}, 'sove': {'spise'}
 recipes = [r2, r3]
 modules = [m0, m1, m2, m7, m8]
 
-csh = ConfigStringHandler(recipes, modules, transporter)
-
-#gen = initial_configuration_generator(recipes, modules, csh)
-
-m0.right = m7
-m7.right = m8
-m8.right = m1
-m1.right = m2
-
-csh.current_modules = modules
-
-print(csh.configuration_str())
+res = tabu_search(recipes, modules, transporter)
 
 
-#print(csh.configuration_str())
-
-# m7.shadowed = True
-
-
-# main_line, up_line, down_line = csh.find_lines()
-# print(main_line)
-#
-# s = anti_serialize(m0, [m7,m8], None, csh)
-# print(s)
-
-csh.main_line = [m0, m7, m8, m1, m2]
-
-time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
-main_line, up_line, down_line = csh.find_lines()
-s = neighbours_anti_serialized(worked, csh.configuration_str(), csh)
-print(s)
-
-
-#t = get_best_time(csh.recipes, csh.current_modules, XML_TEMPLATE, VERIFYTA)
-
-
-#for x in gen:
-#     print(x)
-#     csh.make_configuration(x)
-#     time, _, _ = get_best_time(csh.recipes, csh.current_modules, XML_TEMPLATE, VERIFYTA)
-#     print(time)
-# csh.reset_modules()
-#
-# csh.current_modules = modules[:5]
-# m0.up = m1
-# m0.right = m2
-# m1.right = m3
-# m2.up = m4
-#
-# print(csh.grid_conflicts())
-
+for x in res:
+     print(x + " " + str(res[x]))

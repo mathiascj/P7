@@ -85,6 +85,7 @@ def initial_configurations(G, modules, csh, setup, recipe_starters, active_works
             r.start_module = recipe_starters_copy[r.name].m_id
 
         csh.current_modules = setup
+        csh.main_line = setup
 
         yield csh.configuration_str()
 

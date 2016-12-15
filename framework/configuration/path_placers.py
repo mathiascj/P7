@@ -151,7 +151,6 @@ def push_underneath(start, path, end, csh, direction): #TODO: Opater shadows and
 
 
 
-
 def push_around(start, path, end, shadow, csh):
     """
     Searches above and below already sat lines to find room.
