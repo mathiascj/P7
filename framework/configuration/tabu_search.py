@@ -1,6 +1,6 @@
 import re
 from random import choice
-
+from module import SquareModule
 from UPPAAL.uppaalAPI import get_best_time
 from configuration.config_string_handler import ConfigStringHandler
 from configuration.initial_config import initial_configuration_generator
@@ -127,7 +127,7 @@ def neighbours_parallelize(frontier, csh):
         t0 = csh.take_transport_module()
         t1 = csh.take_transport_module()
 
-        for i, m in enumerate(start.traverse_right(end)[1:]):
+        for i, m in enumerate(start.traverse_right(end)[1:-1]): # check at det virker med den opdaterede traverse_right og -1
             path[i].active_w_type = m.active_w_type.copy()
         csh.current_modules += [t0, t1]
         expanded_path = [t0] + path + [t1]
@@ -294,48 +294,72 @@ def anti_serialize(start, path, end, csh):
     return csh.configuration_str()
 
 
-def neighbours_swap(frontier, recipes, csh):
+def neighbours_swap(frontier, csh):
     """ Finds all neighbours where we can swap modules out, but still retain the same active works
     :param frontier: The config that the tabu search is currently finding neighbours for
     :param recipes: A list of Recipe objects
     :return:
     """
 
-    def swap(old, new):
+    def extern_swap(frontier, csh, old, new):
         """ Does the actual swap in the configuration
         :param old: The modules you wish to swap out
         :param new: The module that you wish to swap in
         :return: A new configuration string, where we swapped old with new
         """
-        config_str = csh.configuration_str()
-        S = config_str.split('|')
-        M = S[1].split(sep=':')
-        for i, m_str in enumerate(M):
-            m_str_id = re.search('(.*)(?=\{)', m_str).group(0)
-            if str(old.m_id) == m_str_id:
-                new_half = new.module_str().split('{')[0]
-                old_half = old.module_str().split('{')[1]
-                M[i] = new_half + '{' + old_half  # Everything  old could do, new now can do
-            else:
-                split = m_str.find('[')
-                s = m_str[:split]
-                s += m_str[split:].replace(old.m_id, new.m_id)  # We replace all instances of the old mid with the new
-                M[i] = s
+        csh.make_configuration(frontier)
+        csh.swap_modules(old, new)
 
-        M.sort()  # TODO: I think text based sorting works, I am not sure.
-        new_config_str = S[0] + '|' + ':'.join(M)
-        return new_config_str
+        csh.main_line = [new if m == old else m for m in csh.main_line]
 
-    config_str = frontier[0]
+        return csh.configuration_str()
+
+
+    def intern_swap(frontier, csh, m0, m1):
+        """
+        :param frontier:
+        :param csh:
+        :param m0:
+        :param m1:
+        :return:
+        """
+        csh.make_configuration(frontier)
+
+        csh.swap_modules(m0, m1)
+
+        # swaps them in the main line aswell
+        temp0 = [0 if m == m0 else m for m in csh.main_line]
+        temp1 = [m0 if m == m1 else m for m in temp0]
+        temp2 = [m1 if m == 0 else m for m in temp1]
+
+        csh.main_line = temp2
+
+        return csh.configuration_str()
+
+    def internal_swap_neighbours(frontier, csh, config_modules):
+        neighbours = []
+        for m0 in config_modules:
+            swappable = [new for new in config_modules if m0.active_w_type <= new.w_type and m0 != new]
+            for m1 in swappable:
+                neighbours.append(intern_swap(frontier, csh, m1, m0))
+        return neighbours
+
+    def external_swap_neighbours(frontier, csh, config_modules, free_modules):
+        neighbours = []
+        for old in config_modules:
+            swappable = [new for new in free_modules if old.active_w_type <= new.w_type]
+            for new in swappable:
+                neighbours.append(extern_swap(frontier, csh, old, new))
+        return neighbours
+
+    config_str = frontier
     config_modules = csh.modules_in_config(config_str)
     free_modules = csh.modules_not_in_config(config_str)
 
-    neighbours = []
-    for old in config_modules:
-        swappable = [new for new in free_modules if old.active_w_type <= new.w_type]
-        for new in swappable:
-            neighbours.append(swap(old, new))
-    return neighbours
+    external_neighbours = external_swap_neighbours(frontier, csh, config_modules, free_modules)
+    internal_neighbours = internal_swap_neighbours(frontier, csh, config_modules)
+
+    return list(set(external_neighbours))
 
 
 def neighbours_anti_serialized(worked, frontier, csh):

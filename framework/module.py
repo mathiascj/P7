@@ -329,8 +329,6 @@ class SquareModule(Module):
         self.horizontal_wipe()
         self.vertical_wipe()
 
-
-
     def pprint(self):
         """ Pretty Prints a module
         """

@@ -27,9 +27,6 @@ m2 = SquareModule('pakke-maskine', {'pakke': 10}, t, 3)
 
 m6 = SquareModule('Smadremanden', {'smadre': 10}, t, 3)
 
-m0.active_w_type = {'hammer', 'mere hammer'}
-m1.active_w_type = {'skrue'}
-m2.active_w_type = {'pakke'}
 
 m3 = SquareModule('super-skruer', {'skrue': 4}, t, 3)
 m4 = SquareModule('super-pakker', {'pakke': 2}, t, 3)
@@ -51,19 +48,28 @@ recipes = [r2, r3]
 modules = [m0, m1, m2, m8, m3, m4, m9]
 
 csh = ConfigStringHandler(recipes, modules, transporter)
-csh.main_line = [m0, m1, m2, m8]
+csh.main_line = [m0, m1, m2, m8, m3]
 
 
 m0.right = m1
 m1.right = m2
 m2.right = m8
+m8.right = m3
 
-csh.current_modules = modules[:-3]
-csh.free_modules = modules[-3:]
+m0.active_w_type = {'hammer', 'mere hammer'}
+m1.active_w_type = {'skrue'}
+m2.active_w_type = {'pakke'}
+m8.active_w_type = {'sove'}
+m3.active_w_type = {'skrue'}
+
+csh.current_modules = modules[:-2]
+csh.free_modules = modules[-2:]
 
 frontier = csh.configuration_str()
 
-neighbours = neighbours_parallelize(frontier, csh)
+neighbours = neighbours_swap(frontier, csh)
 
+for n in neighbours:
+    print(n)
 
 
