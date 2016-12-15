@@ -285,7 +285,7 @@ def anti_serialize(start, path, end, csh):
         shadow = start.traverse_right_by_steps(len(path) - 1)
 
     elif end:
-        shadow = end.traverse_in_left_untill_by_steps(len(path) - 1)
+        shadow = end.traverse_in_left_by_steps(len(path) - 1)
 
     # Places down path where possible
     push_around(start, path, end, shadow, csh)
@@ -352,82 +352,52 @@ def neighbours_anti_serialized(worked, frontier, csh):
 
         return res
 
-    def anti_serialize_args(recipe_name, modules, last_common, csh, end_group=False):
-        """
-        Given a sequence of modules, finds which the anti-serialization should start and end on
-        :param recipe_name: Name of recipe object
-        :param modules: module sequence we wish to anti serialize
-        :param csh: config_string_handler object
-        :param end_group: If true, allows for end to be None so that we may branch off at end
-        :return: list of arguments to anti_serialize
-        """
-
-        # Set start
-        if csh.recipe_dictionary[recipe_name].start_module == modules[0] or not modules[0].in_left:
-            start = None
-
-        else:
-            start = last_common
-
-        # Set end
-        if end_group:
-            end = None
-        else:
-            end = modules[-1].right
-
-        # Set up args
-        return [start, modules, end, csh]
-
-
     # Get main line
     csh.make_configuration(frontier)
     main_line, _, _ = csh.find_lines()
 
+    iworked = invert_dict(worked) # Looks up modules from recipes
 
-    # Get dict where each recipe is a key to the modules worked on by it
-    iworked = invert_dict(worked)
-
+    # Find recipes still worked on main line
     recipes = {}
-    # Get recipes worked on the line
     for name, mods in iworked.items():
         for m in mods:
             if csh.module_dictionary[m] in main_line:
                 recipes[name] = mods
                 break
 
-    # Get random recipe to anti-serialize
+    # Choose random recipe to anti-serialize
     chosen_recipe_name = choice(list(recipes.keys()))
     chosen_recipe_mods = iworked[chosen_recipe_name]
 
-    # Remove chosen recipe and get all modules used by the other recipes
+    # Remove chosen recipe
     recipes.pop(chosen_recipe_name)
+
+    # Find all modules worked on by remaining recipes
     other_recipe_mods = set().union(*recipes.values())
 
-    split_groups = []
-    current_split = []
+    # Run over main line and note areas which may be anti-serialized
+    neighbours = []
+    unique_mods = []
     last_common = None
 
     for mod in main_line:
-        # Common module
+        # When the chosen recipe and other recipes have mod in common
         if mod.m_id in chosen_recipe_mods and mod.m_id in other_recipe_mods:
-            # If we have found modules to anti serialize, we add it to the split group
-            if current_split:
-                split_groups.append(anti_serialize_args(chosen_recipe_name, current_split, last_common, csh))
-                current_split = []
+            if unique_mods:
+                neighbour = [last_common, unique_mods, unique_mods[-1].right, csh]
+                neighbours.append(neighbour)
+                unique_mods = []
             last_common = mod
 
-        # Uncommon module
+        # When mod is unique to the chosen recipe
         elif mod.m_id in chosen_recipe_mods:
-            current_split.append(mod)
+            unique_mods.append(mod)
 
-    # If a common module was not at the end, we try to branch out
-    if current_split:
-        split_groups.append(anti_serialize_args(chosen_recipe_name, current_split, csh, True))
+    # Handles the edge case where no common module was found in the end.
+    # Branches the unique modules out and does not branch in to the main line again.
+    if unique_mods:
+        neighbour = [last_common, unique_mods, None, csh]
+        neighbours.append(neighbour)
 
-    neighbours = []
-    # Call em all!
-    for splits in split_groups:
-        # TODO call only if possible
-        neighbours.append(anti_serialize(*splits))
-
-    return neighbours
+    return list(map(lambda x: anti_serialize(*x), neighbours))

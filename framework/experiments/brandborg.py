@@ -40,11 +40,11 @@ m8 = SquareModule('sove-maskine',  {'sove': 5}, t, 5)
 r0 = Recipe('chokolade', {'hammer': set(), 'mere hammer': {'hammer'}, 'skrue': {'mere hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 2)
 r1 = Recipe('FuckMigUp', {'smadre': set()}, 'balh', 0, 2)
 
-r2 = Recipe('chokolade', {'hammer': set(), 'skrue': {'hammer'}, 'pakke': {'skrue'}}, 'hammer-maskine', 0, 2)
+r2 = Recipe('chokolade', {'hammer': set(), 'skrue': {'hammer'}}, 'hammer-maskine', 0, 2)
 r3 = Recipe('menneske', {'hammer': set(), 'spise': {'hammer'}, 'sove': {'spise'}, 'pakke': {'sove'}}, 'hammer-maskine', 0, 2)
 
 recipes = [r2, r3]
-modules = [m0, m1, m2, m5, m7, m8]
+modules = [m0, m1, m2, m7, m8]
 
 csh = ConfigStringHandler(recipes, modules, transporter)
 
@@ -54,7 +54,6 @@ m0.right = m7
 m7.right = m8
 m8.right = m1
 m1.right = m2
-m5.down = m2
 
 csh.current_modules = modules
 
@@ -69,16 +68,15 @@ print(csh.configuration_str())
 # main_line, up_line, down_line = csh.find_lines()
 # print(main_line)
 #
-s = anti_serialize(m0, [m7,m8], None, csh)
+# s = anti_serialize(m0, [m7,m8], None, csh)
+# print(s)
+
+csh.main_line = [m0, m7, m8, m1, m2]
+time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
+main_line, up_line, down_line = csh.find_lines()
+s = neighbours_anti_serialized(worked, csh.configuration_str(), csh)
 print(s)
 
-
-
-# time, worked, transported = get_best_time(recipes, modules, XML_TEMPLATE,VERIFYTA)
-# main_line, up_line, down_line = csh.find_lines()
-# s = neighbours_anti_serialized(worked, main_line, csh)[0]
-# print(s)
-# csh.make_configuration(s)
 
 #t = get_best_time(csh.recipes, csh.current_modules, XML_TEMPLATE, VERIFYTA)
 

@@ -147,7 +147,7 @@ def push_underneath(start, path, end, csh, direction):
         setattr(path[-1], dir2, end)
 
 
-def push_around(start, path, end, shadow, csh): 
+def push_around(start, path, end, shadow, csh):
     """
     Searches above and below already sat lines to find room.
     When room found it places down path.
