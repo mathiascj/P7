@@ -153,6 +153,11 @@ def neighbours_parallelize(frontier, csh):
 
 
 def modules_by_worktype(modules):
+    """
+    :param modules: list of module objects
+    :return: Dict for looking up modules from work types
+    """
+
     res = {}
     for m in modules:
         for w in m.w_type:
@@ -161,6 +166,12 @@ def modules_by_worktype(modules):
 
 
 def capable_modules(worktypes, modules):
+    """
+    :param worktypes: list of worktypes
+    :param modules: list of modules
+    :return: set of modules which may perform all worktypes
+    """
+
     d = modules_by_worktype(modules)
     res = set(modules)
     for w in worktypes:
