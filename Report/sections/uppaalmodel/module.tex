@@ -1,10 +1,9 @@
 \section{Module}
 \label{subs:module}
-Since a configuration is made up of individual modules, it seems natural to model it as a set of synchronizing module instances. In this section we will first show off the initial design of the module template. Then discuss how we got more concrete with the final version.
+Since a configuration is made up of individual modules, it seems natural to model it as a set of synchronizing module instances. In this section we will first show off the initial design of the module template. Then discuss how we got more concrete with the final version. 
 
 \subsection{Early module template}
-In our early design work we viewed the individual module in a very abstract way, inspired by initial observations of the FESTO CP-Learning Factory set-up at Aalborg University. It can receive and send recipes to any module connected to it. It may perform one type of work on a recipe and only one recipe may be located on it at any given time. Recipes may pass through modules without being worked on. 
-These basic ideas turned into our first version of the module template, which can be seen in \cref{fig:earlymodule}.
+In our early design work we tried to implement most everything brought up in \cref{sec:runningexample}. A module has an identifying name and it may only work on one item at a time. It also takes a certain amount of time to perform each work type and to transport items across modules. However we model modules to only perform one type of work. There are also no physical restrictions on which modules may be connected, other than the fact that a module may not be connected to more than four other modules. These basic ideas turned into our first version of the module template, which can be seen in \cref{fig:earlymodule}.
 
 
 \begin{figure}[h]
@@ -21,15 +20,16 @@ Instead of passing the recipe along, we may perform work on it by moving into th
 Some modules may also allow for recipes to be removed from the system by transporting on the reserved \emph{transport[0]} channel. No actual module has the id 0. Instead an instance of the \emph{Remover} template is constantly calling on the \emph{transport[0]} channel. If synchronizing is established it does nothing with the received recipe. A module can only synchronize with the remover instance, if it has one of its neighbouring modules set to 0. 
 
 \subsection{Final module template}
-From further observations of the local FESTO set-up, we conclude that the above implementation is too abstract. In an actual factory, each module may perform several different types of work on a recipe. While only one recipe is worked at a time, several recipes may queue up on the module, waiting to be worked on or pass through. Some modules do not allow for recipes to pass through them, while they are working on another recipe. This feature is not enforced in the above implementation. In addition the time to transport a recipe across a module depend  on the dimensions of the module as well as the directions from which a recipe enters and leaves.
+From further observations of the local FESTO set-up, we conclude that the above implementation is too abstract. In an actual factory, each module may perform several different types of work on an item, as stated earlier. While only one item is worked at a time, several items may queue up on the module, waiting to be worked on or pass through. A module has a fixed limit of items which may queue up. This is accordance with the safety property of the system. If this is not upheld, items may fly off the modules or the modules themselves may be damaged. Some modules do not allow for items to pass through them, while they are working on another recipe. This feature is not enforced in the above implementation. In addition the time to transport a recipe across a module depend  on the dimensions of the module as well as the directions from which a recipe enters and leaves.
 
-These features lead to some drastic changes in the module template. The biggest is that the template now gets split into three. \emph{ModuleQueue}, which controls the enqueuing and dequeuing of recipes. Then \emph{ModuleWorker} which performs work upon a recipe. Finally \emph{ModuleTransporter}, which transports recipes between modules. To get a complete module, we need an instance of each of these templates sharing the same module id. In the following we will explain each of these new templates.
+These features lead to some drastic changes in the module template. The biggest is that the template now gets split into three. \emph{ModuleQueue}, which controls the en-queuing and dequeuing of recipes. Then \emph{ModuleWorker} which performs work upon a recipe. Finally \emph{ModuleTransporter}, which transports recipes between modules. To get a complete module, we need an instance of each of these templates sharing the same module id. In the following we will explain each of these new templates.
 
+One aspect that we ultimately do not try to model in UPPAAL are the more extensive physical rules for placing down modules. We choose to enforce these later when generating and comparing configurations. 
 
 \subsubsection{ModuleQueue}\label{subs:modulequeue}
-One of the most important characteristics observed was the queuing nature of the system. Several recipes may be located on a module, but only one is being processed at a time. Some of the recipes queued may need to be processed, others just want to be passed along to a neighbouring module. Based on this behaviour we construct the \emph{ModuleQueue} template, which can be seen on \cref{fig:modulequeue}. An instance of this template has a fixed size of modules, which it may hold. Other modules may be able to use the \emph{enqueue} channel to move a recipe onto the module. In addition, recipes may be removed from it through a synchronization on its \emph{dequeue} channel.
+One of the most important characteristics observed was the queuing nature of the system. Several recipes may be located on a module, but only one is being processed at a time. Some of the recipes queued may need to be processed, others just want to be passed along to a neighbouring module. Based on this behaviour we construct the \emph{ModuleQueue} template, which can be seen on \cref{fig:modulequeue}. An instance of this template has a fixed size of modules, which it may hold. Other modules may be able to use the \emph{enqueue} channel to move a recipe onto the module. In addition, recipe may be removed from it through a synchronization on its \emph{dequeue} channel.
 
-As in the earlier version, a recipe is moved between instances by proxy of its id. The id is always stored in the local \emph{lock} variable.   
+As in the earlier version, an item is moved between instances by proxy of its id. The id is always stored in the local \emph{lock} variable.   
 
 \begin{figure}[h]
 \centering
@@ -40,7 +40,7 @@ As in the earlier version, a recipe is moved between instances by proxy of its i
 
 
 \subsubsection{ModuleWorker}\label{subs:moduleworker}
-The \emph{ModuleWorker} template can be seen in \cref{fig:moduleworker}. An instance of this template may apply several different types of work upon a recipe. In the idle location, the worker waits to synchronize with the module's \emph{ModuleQueue} instance. If the module can perform some work, it will move into the \emph{Working} location. Here it will wait for \emph{p\_time}, symbolising the time it takes to perform the work. When the wait is over, it will try to synchronize with the recipe through the \emph{handshake} and \emph{work} channels as in the earlier version. Arriving at the \emph{Done} \todo{Maybe call this location something other than Done. In general get names on all the locations} location, we may choose to work the recipe further if possible. Otherwise we perform a synchronization on the module's \emph{intern} channel. This passes the item over to the module's \emph{ModuleTransporter} instance. Synchronization on the intern channel may also occur, if the module cannot perform any work on the recipe. 
+The \emph{ModuleWorker} template can be seen in \cref{fig:moduleworker}. An instance of this template may apply several different types of work upon a recipe. In the idle location, the worker waits to synchronize with the module's \emph{ModuleQueue} instance. If the module can perform some work, it will move into the \emph{Working} location. Here it will wait for \emph{p\_time}, symbolising the time it takes to perform the work. When the wait is over, it will try to synchronize with the recipe through the \emph{handshake} and \emph{work} channels as in the earlier version. Arriving at the \emph{Done} \todo{Maybe call this location something other than Done. In general get names on all the locations} location, we may choose to work the recipe further if possible. Otherwise we perform a synchronization on the module's \emph{intern} channel. This passes the item over to the module's \emph{ModuleTransporter} instance. Synchronization on the intern channel may also occur, if the module cannot perform any work on the recipe. This models the case where an item has to pass through a module without having worked performed, while the model does not allow for pass through while working on other items.
 
 \begin{figure}[h]
 \centering
@@ -54,7 +54,9 @@ The \emph{ModuleTransporter} template can be seen in \cref{fig:moduletransporter
 
 Once in the \emph{Selector} location a recipe may go to \emph{Idle} or \emph{Transporting}. If the recipe is done, it has to go back to idle and be removed from the production line by synchronizing on the \emph{remove} channel, as opposed to the \emph{transport[0]} in the earlier version.
 
-If the recipe is not done, it may look for a neighbouring module to be passed onto. A module may have up to four neighbours, one on each side. These are stored in the local \emph{next} array, their index indicating their placement relative to the module. When moving to \emph{Transporting} location, the recipe will choose a possible neighbour. In \emph{Transporting} we wait to simulate the time taken to transport a recipe over the module. This time varies according to where the recipe enters the module, and where it leaves. The different transport times are stored in the 4 by 4 multidimensional \emph{t\_time} array. Given that we at this point know the direction, which the recipe entered from \emph{origin} and the direction on which it will leave \emph{succ}, we can look up the exact time to wait in \emph{t\_time}. Once the wait is over we move to the \emph{Queuing} location. If the neighbour's queue is full, we wait here until there is room. When possible we synchronize with the neighbours instance of \emph{ModuleQueue} using the \emph{enqueue} channel. At the same time we use the local \emph{inverse} function to calculate, from which side the recipe enters the neighbouring module. This is sent with the global \emph{var2} variable and is later saved into the neighbour's \emph{origin} variable. 
+If the recipe is not done, it may look for a neighbouring module to be passed onto. A module may have up to four neighbours, one on each side. These are stored in the local \emph{next} array, their index indicating their placement relative to the module. When moving to \emph{Transporting} location, the recipe will choose a possible neighbour. In \emph{Transporting} we wait to simulate the time taken to transport a recipe over the module. This time varies according to where the recipe enters the module, and where it leaves. The different transport times are stored in the 4 by 4 multidimensional \emph{t\_time} array. Given that we at this point know the direction, which the recipe entered from \emph{origin} and the direction on which it will leave \emph{succ}, we can look up the exact time to wait in \emph{t\_time}. By implementing this feature we ensure that the time take to pass over a module becomes more accurate to how an item may actually be transported over a module. 
+
+Once the wait is over we move to the \emph{Queuing} location. If the neighbour's queue is full, we wait here until there is room. When possible we synchronize with the neighbours instance of \emph{ModuleQueue} using the \emph{enqueue} channel. At the same time we use the local \emph{inverse} function to calculate, from which side the recipe enters the neighbouring module. This is sent with the global \emph{var2} variable and is later saved into the neighbour's \emph{origin} variable. 
 
 \begin{figure}[h]
 \centering
@@ -63,21 +65,4 @@ If the recipe is not done, it may look for a neighbouring module to be passed on
 \label{fig:moduletransporter}
 \end{figure}
 
-
-
-%\begin{itemize}
-%\item Modules are square or rectangle and have different physcial dimensions.
-%\item Several types of work may be performed by the same module. \checkmark
-%\item An item may pass through a module without have work performed on it. \checkmark
-%\item Items queue up in a module and wait to be processed or just pass through. \checkmark
-%\item Some modules allow for items to pass through while processing another item. Others do not. \checkmark
-%\item A module may employ a seperate queue to store items that it is going to work on. 
-%\item Some modules are only used for transport. \checkmark
-%\item The time taken to transport an item over a module, depends on where the item enters and leaves. \checkmark
-%\item An item may leave a module from any of its four sides, if there is another module ready to accept it. \checkmark
-%\end{itemize} 
-
-%On the list above, checkmarks indicate which characteristics we have chosen to implement directly in our model. While these observations were made from a specific system, we feel that they are general enough to apply to modular factories as a whole. 
-
-%The physcial apsect of  modules are not enforced in our model. Two modules can be connected and pass items between each other, even though this may not physically be possible. Later in \cref{ch:configuration} we show, how we enforce some rules of physicality, when generating configurations outside of UPPAAL. We do not implement seperate module queues for items that need to be worked on. This would not have been difficult to implement. Yet, we see it as an edge case that would add onto our state space. Thus we choose to disregard it. The rest of the chracteristics we choose to implement in our model in one way or the other.
 
