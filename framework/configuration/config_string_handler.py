@@ -86,6 +86,11 @@ class ConfigStringHandler:
 
         self.main_line = main_line
 
+    def update_active_works(self, worked):
+        for m in self.main_line:
+            pass
+
+
     def modules_in_config(self, configuration_str):
         """ Creates a list of modules that are in the configuration string.
         :param Configuration_str: A string representing a configuration, retrived by the configuration_str method

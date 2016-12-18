@@ -106,14 +106,15 @@ def tabu_search(recipes, modules, transport_module, iters=50):
 
 
         # TODO REMOVE LATER
-        if neighbour_func is neighbours_swap:
-            neighbour_func = neighbours_parallelize
+        #if neighbour_func is neighbours_swap:
+        #    neighbour_func = neighbours_parallelize
 
         results = []
         for n in neighbour_func(*args):
             try:
                 results.append((n, evaluate_config(n)))
             except RuntimeError:
+                print(neighbour_func)
                 print(frontier)
                 print(n)
                 raise RuntimeError

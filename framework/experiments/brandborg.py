@@ -23,10 +23,6 @@ m2 = SquareModule('pakke-maskine', {'pakke': 10}, t, QUEUE_LENGTH)
 
 m6 = SquareModule('Smadremanden', {'smadre': 10}, t, QUEUE_LENGTH)
 
-m0.active_w_type = {'hammer', 'mere hammer'}
-m1.active_w_type = {'skrue'}
-m2.active_w_type = {'pakke'}
-
 m3 = SquareModule('super-skruer', {'skrue': 4}, t, QUEUE_LENGTH)
 m4 = SquareModule('super-pakker', {'pakke': 2}, t, QUEUE_LENGTH)
 
