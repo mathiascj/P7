@@ -1,0 +1,3 @@
+chan priority transport_dequeue < work_dequeue < \
+			  intern < handshake < work < enqueue < \
+			  default < rstart < remove < urg;
