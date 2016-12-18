@@ -25,9 +25,9 @@ This definition closely resembles our previous definition of a module. Yet, we a
 
 In \cref{fig:trivial-example} we see that a configuration is made up of a single line of modules, while \cref{fig:running-example} is made up of three. As such we would like to define a factory configuration as a set of lines of modules, where the flow in each line is moving from left to right.
 
-Let us define a line as a set of modules, which are ordered on the $\prec_r$ relation. This relation takes two modules $m_1$ and $m_2$ as arguments. It evaluates to true if there is a path from $m_1$ to $m_2$ in the actual factory configuration when we only traverse rightwards. $\prec_r$ is a total order, and we can thus define a line as a totally ordered set of modules, ordered using $\prec_r$:
+Let us define a line as a set of modules, which are ordered on the $\prec$ relation. This relation takes two modules $m_1$ and $m_2$ as arguments. It evaluates to true if there is a path from $m_1$ to $m_2$ in the actual factory configuration when we only traverse rightwards. $\prec$ is a total order, and we can thus define a line as a totally ordered set of modules, ordered using $\prec$:
 
-\[line: \textit{A total ordered set of modules ordered on } \prec_r\]
+\[line: \textit{A total ordered set of modules ordered on } \prec\]
 
 Having defined recipes, modules and lines we choose to define a factory configuration with the following tuple. 
 
@@ -79,6 +79,7 @@ We now want to define a set of all neighbours of common modules in line $\gamma$
  
 \[KP_{\gamma ,r} = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
 
+
 Let us say that we take a specific pair from $KP_{\gamma ,r}$  known as $(s,e)$. We define the set of all modules in the line $\gamma$ appearing between these two modules as: 
 
 \[M_{s,e} = \{m | m \in \gamma \land \gamma \in \Gamma \land s \prec m \land m \prec e\}\]
@@ -111,14 +112,22 @@ Something about outbranching
 
 \subsection{Parallel production}
 
-\[PP_{s, e} = \{(m, m')| m \in M_{s,e} \land m' \in FM \land m.aW \subseteq m'.mW\} \]
+\[Map_{s, e} = \{(m, m')| m \in FM \land m' \in M_{s,e} \land m'.aW \subseteq m.mW\} \]
 
-\[ PP_{options} = \{p \in {PP}_{s,e}^2 | (m,m') \in p \land |p| = |M_{s,e}| \land  \forall m , (n,n') \in p \land m \neq n \} \]
+We define $s[1]$ as the operation that given a set of pairs $s$, gives the set of all the first elements of the pairs in $s$ and $s[2]$ as the operation that gives the second elements.
+\[s[1] = \{m_1 | (m_1, m_2) \in s\}\]
+\[s[2] = \{m_2 | (m_1, m_2) \in s\}\]
 
+\[MapPaths_{s,e} = \{p \in {Map}_{s,e}^2 | (m,m') \in p \land (n,n') \in p \land |p| = |M_{s,e}| \land  \forall m': m' \neq n' \}\]
 
-\[P_{s, e} = \{m'| m \in M_{s,e} \land m' \in FM \land m.aW \subseteq m'.mW\} \]
+\[ PPaths_{s,e} = \{p[1] | p \in MapPaths_{s,e}\}\]
 
-\[ P_{options} = \{p \in {P}_{s,e}^2 | (m,m') \in p \land |p| = |M_{s,e}| \land  \forall m , (n,n') \in p \land m \neq n \} \]
+\[a <_{p} b = 
+\left\{\begin{matrix}
+tt \texttt{ if } x \prec y \land (x, a), (y, b) \in MapPaths_{s,e}])\\
+\texttt{else } ff
+\end{matrix}\right.\]
+
 
 
 \subsection{Swap}
