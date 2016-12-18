@@ -19,9 +19,9 @@ Previously we presented recipes as acyclic dependency graphs, as this level of a
 
 The modules defined here closely resembles our previous definition of a module, with the addition of $aW$, which is later used to simplify the logic of some our rules.
 
-Furthermore we define something called a line. A line is a linear ordering of modules. The ordering of the modules is done by the $\prec_r$ operand, where $a \prec_r b$ is true if we from $a$ can traverse using only $right$ attributes to get to $b$.
+Furthermore we define something called a line. A line is a linear ordering of modules. The ordering of the modules is done by the $\prec$ operand, where $a \prec b$ is true if we from $a$ can traverse using only $right$ attributes to get to $b$.
 
-\[line: \textit{A total ordered set of modules ordered on } \prec_r\]
+\[line: \textit{A total ordered set of modules ordered on } \prec\]
 
 We now define a configuration as the following tuple:
 
@@ -61,7 +61,7 @@ We define a set $KP_{\gamma ,r}$, such that it contains all pairs $(s, e)$ of $K
 \[KP_{\gamma ,r} = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
 Where $s <_k e$ means that we can traverse right from $s$ to $e$ without seeing another $k_{\gamma, r}$ module. 
 
-We define an operation, $M_{s,e}$, that given a pair $(s, e)$, where $(s, e) \in P_{\gamma ,r}$, we get all modules inbetween $s$ and $e$.
+We define an operation, $M_{s,e}$, that given a pair start module $s$, and end module  $e$, where, we get all modules inbetween $s$ and $e$.
 \[M_{s,e} = \{m | m \in \gamma \land \gamma \in \Gamma \land s \prec m \land m \prec e\}\]
 
 We then define similar rules for finding all $\alpha$ and $\beta$ modules inbetween $s$ and $e$.
@@ -69,14 +69,23 @@ We then define similar rules for finding all $\alpha$ and $\beta$ modules inbetw
 \[B_{s,e} = \{m |m \in M_{s,e} \land m \in \beta\}\]
 
 
-\[PP_{s, e} = \{(m, m')| m \in M_{s,e} \land m' \in FM \land m.aW \subseteq m'.mW\} \]
+\[Map_{s, e} = \{(m, m')| m \in FM \land m' \in M_{s,e} \land m'.aW \subseteq m.mW\} \]
 
-\[ PP_{options} = \{p \in {PP}_{s,e}^2 | (m,m') \in p \land |p| = |M_{s,e}| \land  \forall m , (n,n') \in p \land m \neq n \} \]
+We define $s[1]$ as the operation that given a set of pairs $s$, gives the set of all the first elements of the pairs in $s$ and $s[2]$ as the operation that gives the second elements.
+\[s[1] = \{m_1 | (m_1, m_2) \in s\}\]
+\[s[2] = \{m_2 | (m_1, m_2) \in s\}\]
 
+\[MapPaths_{s,e} = \{p \in {Map}_{s,e}^2 | (m,m') \in p \land (n,n') \in p \land |p| = |M_{s,e}| \land  \forall m': m' \neq n' \}\]
 
-\[P_{s, e} = \{m'| m \in M_{s,e} \land m' \in FM \land m.aW \subseteq m'.mW\} \]
+\[ PPaths_{s,e} = \{p[1] | p \in MapPaths_{s,e}\}\]
 
-\[ P_{options} = \{p \in {P}_{s,e}^2 | (m,m') \in p \land |p| = |M_{s,e}| \land  \forall m , (n,n') \in p \land m \neq n \} \]
+\[a <_{p} b = 
+\left\{\begin{matrix}
+tt \texttt{ if } x \prec y \land (x, a), (y, b) \in MapPaths_{s,e}])\\
+\texttt{else } ff
+
+\end{matrix}\right.\]
+
 
 
 
