@@ -1,0 +1,17 @@
+\subsection{Parallel production}
+
+\[Map_{s, e} = \{(m, m')| m \in FM \land m' \in M_{s,e} \land m'.aW \subseteq m.mW\} \]
+
+We define $s[1]$ as the operation that given a set of pairs $s$, gives the set of all the first elements of the pairs in $s$ and $s[2]$ as the operation that gives the second elements.
+\[s[1] = \{m_1 | (m_1, m_2) \in s\}\]
+\[s[2] = \{m_2 | (m_1, m_2) \in s\}\]
+
+\[MapPaths_{s,e} = \{p \in {Map}_{s,e}^2 | (m,m') \in p \land (n,n') \in p \land |p| = |M_{s,e}| \land  \forall m': m' \neq n' \}\]
+
+\[ PPaths_{s,e} = \{p[1] | p \in MapPaths_{s,e}\}\]
+
+\[a <_{p} b = 
+\left\{\begin{matrix}
+tt \texttt{ if } x \prec y \land (x, a), (y, b) \in MapPaths_{s,e}])\\
+\texttt{else } ff
+\end{matrix}\right.\]
