@@ -1,12 +1,14 @@
-\section{Mathematical Representation}
+\section{Formal transformation rules}
+In this section we will describe how we may transformation a single line of modules in a configuration into other configurations which may be more efficient. In the first section we describe some basic mathematical sets that are used to describe the transformation rules in the following subsections.
 
-In this section we will describe factory configurations, a long with the context of the factory using set theory. Meaning that we will describe how the different modules are connected in the configuration, what modules are free, and the recipes that the configuration is supposed to be making. This is done so that we later can mathematically explain our rules for finding neighbours in our tabu search.
+\section{Common sets} 
+In this section we will try to define a factory configuration using mathematical sets. The sets presented here are used to explain transformation rules in the following subsections.
 
-Previously we presented recipes as acyclic dependency graphs, as this level of abstraction is not required for reconfiguring our configuration, we will simply define a recipes as the set of all work that is required to be done by a recipe.
+Previously we presented recipes as acyclic dependency graphs. However at this level of abstraction we do not require the order in which works must be performed. Thus a recipe is simply defined as the set of works needed to be performed on it: 
 
 \[recipe: \textit{A set of all work required to be done by a concrete recipe}\]
 
-\noindent We will also define modules as the following tuble:
+A factory configuration is made up of modules. Each module is defined by the following tuple:
 
 \[module: \textit{(aW, mW, up, right, down, left, shadow)}\]
 
@@ -14,14 +16,20 @@ Previously we presented recipes as acyclic dependency graphs, as this level of a
 \begin{itemize}
 \item $aW$: The set of work that the module is actively doing.
 \item $mW$: The set of work that the module can do.
-\item $up,\, right,\, down,\, left$: Another module or empty.
+\item $up,\, right,\, down,\, left$: Describes connections in one of four directions. Each can be either another module or Ø.
+\item shadow: a boolean indicating whether there is a module placed above or below the module.
 \end{itemize}
 
-The modules defined here closely resembles our previous definition of a module, with the addition of $aW$, which is later used to simplify the logic of some our rules.
+This definition closely resembles our previous definition of a module. Yet, we add $aW$ as to simplify the logic of our rules. 
 
-Furthermore we define something called a line. A line is a linear ordering of modules. The ordering of the modules is done by the $\prec_r$ operand, where $a \prec_r b$ is true if we from $a$ can traverse using only $right$ attributes to get to $b$.
+
+In \cref{fig:trivial-example} we see that a configuration is made up of a single line of modules, while \cref{fig:running-example} is made up of three. As such we would like to define a factory configuration as a set of lines of modules, where the flow in each line is moving from left to right.
+
+Let us define a line as a set of modules, which are ordered on the $\prec_r$ relation. This relation takes two modules $m_1$ and $m_2$ as arguments. It evaluates to true if there is a path from $m_1$ to $m_2$ in the actual factory configuration when we only traverse rightwards. $\prec_r$ is a total order, and we can thus define a line as a totally ordered set of modules, ordered using $\prec_r$:
 
 \[line: \textit{A total ordered set of modules ordered on } \prec_r\]
+
+Having defined recipes, modules and lines we choose to define a factory configuration with the following tuple. 
 
 We now define a configuration as the following tuple:
 
@@ -33,19 +41,25 @@ Where:
 \[\Gamma: \textit{The set of all lines}\]
 
 
-
-Furthermore as each $module$ in a $line$ should not be present in another $line$, we say that the following is true for each $line$ $\gamma$, in $\Gamma$:
+Furthermore we only want each $module$ to appear in a single $line$. To enforce this we set up the following rule for each $line$ $\gamma$, in $\Gamma$:
 \[\texttt{if } \gamma \in \Gamma \texttt{ then } \forall m \in \gamma \land \forall \gamma ' \in \Gamma \land \gamma \neq \gamma ',\, m \notin \gamma ' \]
 
-We also say that the following is true each $module$ $m$ in $M$.
+
+We also set up the following rule for each $module$ $m$ in $M$. This is done to ensure that the module can not perform work not within a recipe, and that the work which it actively performs should be a part of its total set of works:
 \[\texttt{if } m \in M \texttt{ then } m.aW \subseteq m.mW \land m.mW \subseteq  \bigcup_{r\in R}r\] 
 
-
-Besides these sets, we describe some derived sets that will later be used for when we present our rules. First we describe the set of all modules used by the configuration, denoted $CM$, and the set of all free modules, denoted $FM$:
-
+We also need to describe that not all available modules need to be a part of our factory configuration. There may exist free modules, which are not used, but may aid in the search for a higher throughput. First we describe the set of all modules used by a configuration, denoted $CM$:
 
 \[CM = \{m \in \gamma | \gamma \in \Gamma \}\]
+
+The set of free modules $FM$ is then given by:
+
 \[FM = M \setminus CM \]
+
+
+\subsection{Anti-serialization}
+In \cref{fig:trivial-example} we see that some items will have to move through modules, where no work is performed on them. This will often happen if we have a line of modules, where more than one type of item is to be produced. We would like to describe a rule, which breaks the serial connection of a line of modules, making an off branch 
+
 
 Given a specific recipe $r$, we define a special operation, $\bar{r}$, as as the union of the work that all recipes other than $r$ can do. 
 \[\bar{r} = \bigcup_{r' \in R}r', \texttt{ if } r' \neq r\]
@@ -68,6 +82,7 @@ We then define similar rules for finding all $\alpha$ and $\beta$ modules inbetw
 \[A_{s,e} = \{m |m \in M_{s,e} \land m \in \alpha\}\]
 \[B_{s,e} = \{m |m \in M_{s,e} \land m \in \beta\}\]
 
+\subsection{Parallel production}
 
 \[PP_{s, e} = \{(m, m')| m \in M_{s,e} \land m' \in FM \land m.aW \subseteq m'.mW\} \]
 
@@ -79,4 +94,5 @@ We then define similar rules for finding all $\alpha$ and $\beta$ modules inbetw
 \[ P_{options} = \{p \in {P}_{s,e}^2 | (m,m') \in p \land |p| = |M_{s,e}| \land  \forall m , (n,n') \in p \land m \neq n \} \]
 
 
+\subsection{Swap}
 
