@@ -1,6 +1,6 @@
 \section{Mathematical Representation}
 
-In this section we will descibe factory configurations, a long with the context of the factory using set theory. Meaning that we will describe how the different modules are connected in the configuration, what modules are free, and the recipes that the configuration is supposed to be making. This is done so that we later can mathematically explain our rules for finding neighbours in our tabu search.
+In this section we will describe factory configurations, a long with the context of the factory using set theory. Meaning that we will describe how the different modules are connected in the configuration, what modules are free, and the recipes that the configuration is supposed to be making. This is done so that we later can mathematically explain our rules for finding neighbours in our tabu search.
 
 Previously we presented recipes as acyclic dependency graphs, as this level of abstraction is not required for reconfiguring our configuration, we will simply define a recipes as the set of all work that is required to be done by a recipe.
 
@@ -57,9 +57,9 @@ This is used for finding the set all modules within a line $\gamma$ where the re
 \[\beta_{\gamma ,r}  = \{m \in \gamma | \gamma \in \Gamma \land \forall \rho \in m.aW,\, \{\rho\} \subseteq r \land \{\rho\} \nsubseteq \bar{r} \land r \in R\}\]
 
 
-We define a set $P_{\gamma ,r}$, such that it contains all pairs $(s, e)$ of $K_{\gamma ,r}$ modules where we can transverse from $s$ to $e$ without there being another $\K_{\gamma, r}$ modules on the way.
+We define a set $P_{\gamma ,r}$, such that it contains all pairs $(s, e)$ of $K_{\gamma ,r}$ modules where we can transverse from $s$ to $e$ without there being another $K_{\gamma, r}$ modules on the way.
 \[P = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
-Where $s <_k_{\gamma ,r} e$ means that we can traverse right from $s$ to $e$ without seeing another $k_{\gamma, r}$ module. 
+Where $s <_k e$ means that we can traverse right from $s$ to $e$ without seeing another $k_{\gamma, r}$ module. 
 
 We define an operation, $M_{s,e}$, that given a pair $(s, e)$, where $(s, e) \in P_{\gamma ,r}$, we get all modules inbetween $s$ and $e$.
 \[M_{s,e} = \{m | m \in \gamma \land \gamma \in \Gamma \land s \prec m \land m \prec e\}\]
