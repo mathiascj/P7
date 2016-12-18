@@ -105,3 +105,18 @@ Having set up this we present the final transformation rule for this type of bra
 \caption{The case where modules proceed the last module in $K_{\gamma ,r}$}
 \label{fig:asbranchout}
 \end{figure}
+
+\subsubsection{Restricting branches}
+For the previous transformation rules, we have imagined that no other branch has been made from our line to any side. Yet, this will not always be the case. To be flexible enough to produce configurations with high throughput, we need to handle this. We go more in depth with how to enforce some general physical rules in \cref{ssec:conflicts}, but here we will tackle one unique to anti-serialization.
+
+On the top part of \cref{fig:shadowexample}, we see that we have already made a branch from $s1$ to $e1$, which results in the modules on the old being shadowed. Being shadowed means that if we remove the module and just reconnect the old line as usual, then the branch becomes too long to connect back to its old line. The line needs to connect back to its designated point on the old line as the module located here is a common module. It performs work on the recipe $r$ otherwise worked on by the new line and should therefore not be bypassed.  To get around this we, as shown in \cref{fig:shadowexample}, alter our anti-serialization transformation in this case to replace a shadowed module with a transport module, as not to skew the two previous lines away from each other. The example shows this done for a single module, but it may be done regardless of the amount of shadowed modules which we remove.
+
+We may however not do this if the shadowed module is also a module where a branch either connects from or to. This means that the module is common and is used by the branch. Removing it would keep us from producing that branch's specific recipe. Therefore we never allow for these modules to be removed, even if this means that we can not perform certain anti-serializations.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{as5.pdf}
+\caption{Transformation that handles the case where an anti-serialization removes a shadowed module}
+\label{fig:shadowexample}
+\end{figure}
+
