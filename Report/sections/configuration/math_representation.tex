@@ -8,7 +8,7 @@ Previously we presented recipes as acyclic dependency graphs, as this level of a
 
 \noindent We will also define modules as the following tuble:
 
-\[module: \textit{(aW, mW, up, right, down, left)}\]
+\[module: \textit{(aW, mW, up, right, down, left, shadow)}\]
 
 \noindent Where each element of the tuple represents the following:
 \begin{itemize}
@@ -57,8 +57,8 @@ This is used for finding the set all modules within a line $\gamma$ where the re
 \[\beta_{\gamma ,r}  = \{m \in \gamma | \gamma \in \Gamma \land \forall \rho \in m.aW,\, \{\rho\} \subseteq r \land \{\rho\} \nsubseteq \bar{r} \land r \in R\}\]
 
 
-We define a set $P_{\gamma ,r}$, such that it contains all pairs $(s, e)$ of $K_{\gamma ,r}$ modules where we can transverse from $s$ to $e$ without there being another $K_{\gamma, r}$ modules on the way.
-\[P = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
+We define a set $KP_{\gamma ,r}$, such that it contains all pairs $(s, e)$ of $K_{\gamma ,r}$ modules where we can transverse from $s$ to $e$ without there being another $K_{\gamma, r}$ modules on the way.
+\[KP_{\gamma ,r} = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
 Where $s <_k e$ means that we can traverse right from $s$ to $e$ without seeing another $k_{\gamma, r}$ module. 
 
 We define an operation, $M_{s,e}$, that given a pair $(s, e)$, where $(s, e) \in P_{\gamma ,r}$, we get all modules inbetween $s$ and $e$.
@@ -69,7 +69,14 @@ We then define similar rules for finding all $\alpha$ and $\beta$ modules inbetw
 \[B_{s,e} = \{m |m \in M_{s,e} \land m \in \beta\}\]
 
 
+\[PP_{s, e} = \{(m, m')| m \in M_{s,e} \land m' \in FM \land m.aW \subseteq m'.mW\} \]
 
+\[ PP_{options} = \{p \in {PP}_{s,e}^2 | (m,m') \in p \land |p| = |M_{s,e}| \land  \forall m , (n,n') \in p \land m \neq n \} \]
+
+
+\[P_{s, e} = \{m'| m \in M_{s,e} \land m' \in FM \land m.aW \subseteq m'.mW\} \]
+
+\[ P_{options} = \{p \in {P}_{s,e}^2 | (m,m') \in p \land |p| = |M_{s,e}| \land  \forall m , (n,n') \in p \land m \neq n \} \]
 
 
 
