@@ -16,7 +16,7 @@ A factory configuration is made up of modules. Each module is defined by the fol
 \begin{itemize}
 \item $aW$: The set of work that the module is actively doing.
 \item $mW$: The set of work that the module can do.
-\item $up,\, right,\, down,\, left$: Describes connections in one of four directions. Each can be either another module or Ø.
+\item $up,\, right,\, down,\, left$: Describes connections in one of four directions. Each can be either another module or $Ø$.
 \item shadow: a boolean indicating whether there is a module placed above or below the module.
 \end{itemize}
 
@@ -58,29 +58,56 @@ The set of free modules $FM$ is then given by:
 
 
 \subsection{Anti-serialization}
-In \cref{fig:trivial-example} we see that some items will have to move through modules, where no work is performed on them. This will often happen if we have a line of modules, where more than one type of item is to be produced. We would like to describe a rule, which breaks the serial connection of a line of modules, making an off branch 
+In \cref{fig:trivial-example} we see that some items will have to move through modules, where no work is performed on them. This will often happen if we have a line of modules, where more than one type of item is to be produced. We would like to describe a rule, which breaks the serial connection of a line of modules. It should be able to make an off branch from a line, moving into the new branch a sequence of modules, which are only used by one type of item. Performing several branches like this across a line, should decrease the amount of unneeded modules which each item need to pass through. This should eventually increase the total throughput.
 
-
-Given a specific recipe $r$, we define a special operation, $\bar{r}$, as as the union of the work that all recipes other than $r$ can do. 
+Let us say that we want to branch out a specific recipe $r$ from a line $\gamma$. Here we first define a special set on $r$, $\bar{r}$, which contains all types of work which are not unique to $r$:
 \[\bar{r} = \bigcup_{r' \in R}r', \texttt{ if } r' \neq r\]
-This is used for finding the set all modules within a line $\gamma$ where the recipe $r$ and some other recipe are being worked upon, denoted $K_{\gamma ,r}$. The set of all modules within $\gamma$ where $r$ isn't being worked upon, denoted $\alpha_{\gamma ,r}$. And the set of all modules within $\gamma$ where only $r$ is being worked on, denoted $beta_{\gamma ,r}$. 
+
+Next we need to define what we would like to call common modules. These are module in $\gamma$, which $r$ needs to use along with at least some other recipe. These are important to identify, as they may not be branched out, as that would make the inaccessible to the other recipes that might need it.  Given $r$ and $\gamma$ we define the set of common modules $K_{\gamma ,r}$ as follows:
+
 \[K_{\gamma ,r} = \{m \in \gamma | \gamma \in \Gamma \land \exists \rho \in m.aW,\, \{\rho\} \subseteq r \land \{\rho\} \subseteq \bar{r} \land r \in R\}\]
+
+From this set we can then define $\alpha_{\gamma ,r}$, which is the set of modules in $\gamma$ which are not used by $r$: 
 
 \[\alpha_{\gamma ,r}  = \{m \in \gamma | \gamma \in \Gamma \land \forall \rho \in m.aW,\, \{\rho\} \nsubseteq r \land r \in R\}\]
 
+Along with $\beta_{\gamma ,r}$, which is the set of modules in $\gamma$ used only by $r$:
+
 \[\beta_{\gamma ,r}  = \{m \in \gamma | \gamma \in \Gamma \land \forall \rho \in m.aW,\, \{\rho\} \subseteq r \land \{\rho\} \nsubseteq \bar{r} \land r \in R\}\]
 
-
-We define a set $KP_{\gamma ,r}$, such that it contains all pairs $(s, e)$ of $K_{\gamma ,r}$ modules where we can transverse from $s$ to $e$ without there being another $K_{\gamma, r}$ modules on the way.
+We now want to define a set of all neighbours of common modules in line $\gamma$. Two modules $m_1$ and $m_2$ are said to be neighbours within a set if $m_1 <_k m_2$ holds true. The relation does this if $m_1$ $\prec_r$ $m_2$ evaluates to true, while $m_1$ $\prec_r$ $m_i$ does not hold true for any module in $\gamma$ which is not equal to $m_2$. Having set up this relation, we can define the set of all common module neighbours $KP_{\gamma ,r}$ as:
+ 
 \[KP_{\gamma ,r} = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
-Where $s <_k e$ means that we can traverse right from $s$ to $e$ without seeing another $k_{\gamma, r}$ module. 
 
-We define an operation, $M_{s,e}$, that given a pair $(s, e)$, where $(s, e) \in P_{\gamma ,r}$, we get all modules inbetween $s$ and $e$.
+Let us say that we take a specific pair from $KP_{\gamma ,r}$  known as $(s,e)$. We define the set of all modules in the line $\gamma$ appearing between these two modules as: 
+
 \[M_{s,e} = \{m | m \in \gamma \land \gamma \in \Gamma \land s \prec m \land m \prec e\}\]
 
-We then define similar rules for finding all $\alpha$ and $\beta$ modules inbetween $s$ and $e$.
+We can now define the set of all modules appearing between $s$ and $e$, which are not used to work $r$ $A_{s,e}$ as follows: 
+
 \[A_{s,e} = \{m |m \in M_{s,e} \land m \in \alpha\}\]
+
+Similarly we can define the set $B_{s,e}$, which contains all modules that appear between $s$ and $e$ which are only used to perform work on $r$
+
 \[B_{s,e} = \{m |m \in M_{s,e} \land m \in \beta\}\]
+
+Having now defined our sets, we will set up the rules describing how we may branch out modules to work on individual recipes. These rules will be described informally using our own graphical notation. Imagine we are in the situation stated in 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{as1.pdf}
+\caption{A trivial configuration of a toy factory layout}
+\label{fig:asbase}
+\end{figure}
+
+
+Something about inbranching
+\[Pre_{s} = \{m | m \in \gamma \land \gamma \in \Gamma \land m \prec s\}\]
+
+Something about outbranching
+\[Post_{e} = \{m | m \in \gamma \land \gamma \in \Gamma \land e \prec  m \}\]
+
+
 
 \subsection{Parallel production}
 
