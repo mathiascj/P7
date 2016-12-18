@@ -16,7 +16,7 @@ A factory configuration is made up of modules. Each module is defined by the fol
 \begin{itemize}
 \item $aW$: The set of work that the module is actively doing.
 \item $mW$: The set of work that the module can do.
-\item $up,\, right,\, down,\, left$: Describes connections in one of four directions. Each can be either another module or $Ø$.
+\item $up,\, right,\, down,\, left$: Describes connections in one of four directions. Each can be either another module or $\emptyset$.
 \item shadow: a boolean indicating whether there is a module placed above or below the module.
 \end{itemize}
 
@@ -58,8 +58,9 @@ The set of free modules $FM$ is then given by:
 
 
 \subsection{Anti-serialization}
-In \cref{fig:trivial-example} we see that some items will have to move through modules, where no work is performed on them. This will often happen if we have a line of modules, where more than one type of item is to be produced. We would like to describe a rule, which breaks the serial connection of a line of modules. It should be able to make an off branch from a line, moving into the new branch a sequence of modules, which are only used by one type of item. Performing several branches like this across a line, should decrease the amount of unneeded modules which each item need to pass through. This should eventually increase the total throughput.
+In \cref{fig:trivial-example} we see that some items will have to move through modules, where no work is performed on them. This will often happen if we have a line of modules, where more than one type of item is to be produced. We would like to describe a rule, which breaks the serial connection of a line of modules. It should be able to make an off branch from a line, moving into the new branch a sequence of modules, which are only used by one type of item. We call this operation an anti-serialization on a line. Performing several anti-serializations across a line, decreases the amount of unneeded modules which each item need to pass through. This should eventually increase the total throughput. In this subsection we describe different transformation rules, which are needed to perform anti-serialization upon a line.
 
+\subsubsection{Branching between common modules}
 Let us say that we want to branch out a specific recipe $r$ from a line $\gamma$. Here we first define a special set on $r$, $\bar{r}$, which contains all types of work which are not unique to $r$:
 \[\bar{r} = \bigcup_{r' \in R}r', \texttt{ if } r' \neq r\]
 
@@ -92,85 +93,102 @@ Similarly we can define the set $B_{s,e}$, which contains all modules that appea
 
 \[B_{s,e} = \{m |m \in M_{s,e} \land m \in \beta\}\]
 
-Having now defined our sets, we will set up the rules describing how we may branch out modules to work on individual recipes. These rules will be described informally using our own graphical notation. Imagine we are in the situation stated in. The graphical notation works as follows. Square boxes represent modules. Boxes with rounded corners represent a set of modules totally ordered on $\preq$. 
+Having now defined our sets, we will set up the rules describing how we may branch out modules to work on individual recipes. These rules will be described informally using our own graphical notation. The graphical notation works as follows. Square boxes represent modules. Boxes with rounded corners represent a set of modules totally ordered on $\prec$. The modules within the box are connected left to right according to their order. Connections going to the box connect to the first element of the order and connections leaving from the box come from the last module. If a set box only contains "..." it means that some set of modules may be here, but there is no need to consider what it contains. 
 
-
-In the case that a connection goes to a set box, it means that the first element of the set is connected to. Similarly, any connection going out from the box refers to what the last element connects to. 
-
- If such a box only contains "..." it means that some set of modules may be here, but there is no need to consider  what it contains. 
-
-
+Now imagine the situation in \cref{fig:asbase}. Here we have specific $s$ and $e$ modules chosen on a line $\gamma$ and we have chosen to branch out a specific recipe $r$. Between the two modules we may have $M_{s,e}$ placed. From this we can calculate $A_{s,e}$ and $B_{s,e}$ as described before. If $B_{s,e} = \emptyset$ then we may branch out some modules only used to work on $r$. 
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{as1.pdf}
-\caption{A trivial configuration of a toy factory layout}
+\caption{A base configuration where we may want to branch out recipe $r$ from line $\gamma$}
 \label{fig:asbase}
 \end{figure}
 
+If $|A_{s,e}| = |B_{s,e}| + 2$ , then we can branch out as shown in the top of \cref{fig:astrans}. Here we simply remove $|B_{s,e}|$ from the rest of $M_{s,e}$ leaving us with in its place $A_{s,e}$. The module $s$ is then connected upwards to the first element of $|B_{s,e}|$. The last element of $|B_{s,e}|$ is then connected to $e$. This transformation also entails that all of  $|B_{s,e}|$ is removed from $\gamma$ and that a new line containing $|B_{s,e}|$ is added to $\Gamma$. For each of the transformations presented in this subsection we alter $\gamma$ and add to $\Gamma$ the new branch which is created.  Notice that the modules beneath the new line are marked as red. This means that the shadow variable in the module tuples on the old line have been set to true. This is used in order to handle transformation conflicts as described later in \cref{ssec:tc}.
 
-Something about inbranching
+In the middle of \cref{fig:astrans} we describe the case where $A_{s,e}| > |B_{s,e}| + 2$. The difference between the cardinality of these two sets is called i.  In this case we can not physically connect the last element of $|B_{s,e}|$ downwards to $e$. We get around this issue by appending the new line with i new transport modules. These are modules which can not perform any work and are only used to transport recipes. The last of these transporters is then connected downwards to $e$. The new line added to $\Gamma$ consists of the modules in $|B_{s,e}|$ ordered behind the new transport modules as depicted in the figure. 
+
+The last case, shown in the bottom of \cref{fig:astrans} is similar to the previous one, but instead $A_{s,e}| < |B_{s,e}| + 2$. In this case we append the original line with transporters instead. This requires an update of $\gamma$ to include these new transporters, while the new line added to $\Gamma$ is again just $|B_{s,e}|$. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{as2.pdf}
+\caption{3 different configurations to which we may go from \cref{fig:asbase}. Top: Case when $A_{s,e}| = |B_{s,e}| + 2$. Middle: Case when $A_{s,e}| > |B_{s,e}| + 2$. Bottom: Case when $A_{s,e}| < |B_{s,e}| + 2$ }
+\label{fig:astrans}
+\end{figure}
+
+In the rest of this sub-section we will describe two special cases known as branch in and branch out. 
+
+\subsubsection{Early Branch In}\label{sssec:bi}
+It may be that we have modules that precede the first module of $K_{\gamma ,r}$, known as $K_{first}$. We define a new operand to get all modules appearing before a module $s$ in its line:
+
 \[Pre_{s} = \{m | m \in \gamma \land \gamma \in \Gamma \land m \prec s\}\]
 
-Something about outbranching
-\[Post_{e} = \{m | m \in \gamma \land \gamma \in \Gamma \land e \prec  m \}\]
+Using this with $K_{first}$, we get the set of modules preceding $K_{first}$ known as $Pre_{K_{first}}$. We can then define the set $B_{first}$, containing modules used only by $r$ in $Pre_{K_{first}}$ as:
+
+\[ B_{first} = \{m | m \in \beta_{\gamma ,r}  \land m \in Pre_{K_{first}} \} \]
+
+Similarly the set of all modules preceding $K_{first}$, which do not exclusively work on $r$ as: 
+
+\[ A_{first} = \{m | m \in \alpha_{\gamma ,r}  \land m \in Pre_{K_{first}} \} \]
+
+With this in place we present the transformation rule in \cref{fig:asbranchin}. This describes how we in the above case are allowed to remove $B_{first}$ from the line $\gamma$ leaving  $A_{first}$. We then connect its last module to $K_{first}$. The new line which is added to $\Gamma$ is then $B_{first}$. This type of branch allows us to start $r$ away from other items.   
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{as4.pdf}
+\caption{The case where modules precede the first module in $K_{\gamma ,r}$}
+\label{fig:asbranchin}
+\end{figure}
+
+\subsubsection{Final Branch Out}
+We have a similar case to \cref{sssec:bi}, where the last element in $K_{\gamma ,r}$, known as $K_{last}$, is proceeded by a set of modules. To get the modules proceeding $K_{last}$ we define the operand $Pro_{e}$ as follows:
+
+\[Pro_{e} = \{m | m \in \gamma \land \gamma \in \Gamma \land e \prec  m \}\]
+
+Using this on $K_{last}$ gives us $Pro_{K_{last}}$. The set containing all modules proceeding $K_{last}$, which exclusively work on $r$, is known as $B_{last}$ and is defined as:
+
+\[B_{last} = \{m | m \in \beta_{\gamma ,r}  \land m \in Pro_{K_{last}} \}\]
+
+The set of all modules proceeding $K_{last}$, which do not exclusively work on $r$, $A_{last}$ is given by:
+
+\[ A_{last} = \{m | m \in \alpha_{\gamma ,r}  \land m \in Pro_{K_{last}} \} \]
+
+Having set up this we present the final transformation rule for this type of branching in \cref{fig:asbranchout}. Here we see that in the described case we may remove $B_{last}$ from the line $\gamma$ leaving  $A_{last}$. $K_{last}$ is then connected to the first module of $B_{last}$. The new line added to $\Gamma$ is $B_{last}$. This transformation allows us to branch out $r$ when there is no need for it to stick with the old line never to return.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{as3.pdf}
+\caption{The case where modules proceed the last module in $K_{\gamma ,r}$}
+\label{fig:asbranchout}
+\end{figure}
+
 
 
 
 \subsection{Parallel production}
-If there are any free modules available that perform work required by your recipes, then it can often be advantages to parallelize certain parts of your configuration using these modules. In this section we will produce a rule for inserting in free modules in order to parallelize certain works. We begin by describing the some required sets.
 
-First we describe the set of pairs, where the first element is a module in between the modules $s$ and $e$ and the second element is a free module that can do atleast the work that the first element is currently doing.
 \[Map_{s, e} = \{(m, m')| m \in FM \land m' \in M_{s,e} \land m'.aW \subseteq m.mW\} \]
 
+We define $s[1]$ as the operation that given a set of pairs $s$, gives the set of all the first elements of the pairs in $s$ and $s[2]$ as the operation that gives the second elements.
+\[s[1] = \{m_1 | (m_1, m_2) \in s\}\]
+\[s[2] = \{m_2 | (m_1, m_2) \in s\}\]
 
-We then describe all sets of pairs that could be a possible parallel line for the modules between $s$ and $e$. Note that this set could be the empty set, as the modules needed for creating a possible line might not availabe in $FM$.
 \[MapPaths_{s,e} = \{p \in {Map}_{s,e}^2 | (m,m') \in p \land (n,n') \in p \land |p| = |M_{s,e}| \land  \forall m': m' \neq n' \}\]
 
-We define $s[1]$ as the operation that given a set of pairs $s$, gives the set of all the first elements of the pairs in $s$.
-\[s[1] = \{m_1 | (m_1, m_2) \in s\}\]
-
-Using this we define the set $P_{s,e}$ as $MapPaths_{s,e}$ but without the second element in each pair.
-
-\[ P_{s,e} = \{p[1] | p \in MapPaths_{s,e}\}\]
-
-We can then total order this $P_{s,e}$ using the relation $<_p$ which is defined as follows.
+\[ PPaths_{s,e} = \{p[1] | p \in MapPaths_{s,e}\}\]
 
 \[a <_{p} b = 
 \left\{\begin{matrix}
-tt \texttt{ if } x \prec y \land (x, a), (y, b) \in MapPaths_{s,e}\\
+tt \texttt{ if } x \prec y \land (x, a), (y, b) \in MapPaths_{s,e}])\\
 \texttt{else } ff
 \end{matrix}\right.\]
-
-Now that we have defined these sets we can now describe the rules for parallezing a line in a configuration. We begin with the base case, in which we parallelize everything inbetween two modules. A graphical representation of this can be seen in \cref{fig:para_se}. As shown by the figure, if we can find a $P_{s,e}$ we parallize it by connecting it with transport modules to $s$ and $e$. The order in which $P_{s,e}$ is placed is the total order $(P_{s,e},<_p)$. 
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.5\textwidth]{para_se.pdf}
-\caption{Parallelization rule when you have both a start and end module}
-\label{fig:para_se}
-\end{figure}
-
-
-We also have two other cases, one in which we have no end module, meaning that we will fork out a parallel line, and the case where we have no start, meaning we will join in a parallel line. A graph showing both of these cases can be seen respectively in \cref{fig:para_we} and \cref{fig:para_ws}. For the case without start we connect the last module in the total order $(P_{s,e}, <_p)$ to $e$, and for the case without end we connect $s$ to the first module the in the total order $(P_{s,e}, <_p)$.
-
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.3\textwidth]{para_we.pdf}
-\caption{Parallelization rule when you do not have an end module}
-\label{fig:para_we}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.3\textwidth]{para_ws.pdf}
-\caption{Parallelization rule when you do not have a start module}
-\label{fig:para_ws}
-\end{figure}
-
 
 
 
 \subsection{Swap}
 
+
+\subsection{Transformation Conflicts}\label{ssec:tc} 
