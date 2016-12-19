@@ -42,4 +42,4 @@ r3 = Recipe('menneske', {'hammer': set(), 'spise': {'hammer'}, 'sove': {'spise'}
 recipes = [r2, r3]
 modules = [m0, m1, m2, m3, m4, m7, m8, m9]
 
-res = tabu_search(recipes, modules, transporter)
+res = tabu_search(recipes, modules, transporter, iters=200, short_term_size=15)

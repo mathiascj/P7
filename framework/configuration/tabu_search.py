@@ -16,7 +16,7 @@ from configuration.neighbour_functions.swap import neighbours_swap
 VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
 
-WEIGHT_START = 100
+WEIGHT_START = 200
 WEIGHT_STRENGTH = 1
 WEIGHT_X = 3
 WEIGHT_Y = 1
@@ -44,6 +44,7 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
             csh.make_configuration(config)  # SIDE EFFECT: Makes loads of changes to modules
             modules_in_config = csh.modules_in_config(config)
             fitness, worked, transported, active = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
+
             config_fitness[config] = fitness
             config_worked[config] = worked
             config_active[config] = active
@@ -85,10 +86,14 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
         return first
 
     def backtrack():
-        back = choice(long_term_memory)
-        new_frontier = back[0]
-        neighbour_func = back[1]
-        return new_frontier, neighbour_func
+        if long_term_memory:
+            back = choice(long_term_memory)
+            long_term_memory.remove(back)
+        else:
+            back = choice(initial_memory)
+        old_frontier = back[0]
+        weighted_funcs = back[1]
+        return old_frontier, weighted_funcs
 
     weighted_funcs = [(neighbours_anti_serialized, WEIGHT_START), (neighbours_parallelize, 0), (neighbours_swap, 0)]
     csh = ConfigStringHandler(recipes, modules, transport_module)
@@ -101,7 +106,6 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
 
     # Tabu Search specific memories
     long_term_memory = []
-    intermediate_memory = []
     short_term_memory = []
 
     for config in generator:
@@ -111,6 +115,7 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
 
     # Creating the initial configuration and evalutates it
     long_term_memory.sort(key=(lambda x: config_fitness[x[0]]))
+    initial_memory = long_term_memory.copy()
     overall_best = long_term_memory[0][0]
     frontier = long_term_memory[0][0]
 
@@ -124,21 +129,40 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
         else:
             args = [frontier, csh, config_active[frontier]]
 
+        print("Getting Neighbours for " + str(neighbour_func))
 
         # TODO REMOVE LATER
         #if neighbour_func is neighbours_swap:
         #    neighbour_func = neighbours_parallelize
 
         results = []
-        for n in neighbour_func(*args):
+
+        try:
+            neighbours = neighbour_func(*args)
+        except RecursionError:
+            frontier, weighted_funcs = backtrack()
+            continue
+        except KeyError:
+            frontier, weighted_funcs = backtrack()
+            continue
+
+
+        print(str(len(neighbours)) + " to evaluate")
+        for n in neighbours:
             try:
                 results.append((n, evaluate_config(n)))
             except RuntimeError:
-                print(neighbour_func)
-                print(frontier)
-                print(n)
+                #print(neighbour_func)
+                #print(frontier)
+                #print(n)
                 #raise RuntimeError('Could not evalutate a configuration. Func:' + str(neighbour_func))
                 continue
+            except KeyError:
+                frontier, weighted_funcs = backtrack()
+                continue
+
+
+        print("Done with neighbours")
 
         results.sort(key=lambda x: x[1])
         new_frontier = None
@@ -150,17 +174,18 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
 
         if new_frontier:
             frontier = new_frontier
-            if config_fitness[frontier] < config_fitness[overall_best]:
-                overall_best = frontier
             update_short_term(frontier)
             long_term_memory.append((frontier, weighted_funcs))
         else:
-            print("88mph")
             frontier, weighted_funcs = backtrack()
+            print("Back traced!")
 
-        print(str(i) + ":  " + frontier)
+        print("Iter: " + str(i) + "\n" + frontier)
 
-    return config_fitness
+
+    print("Total of " + str(len(config_fitness)) + " configurations evaluated")
+    result = {(config, fitness) for config, fitness in config_fitness.items() if fitness == min(config_fitness.values())}
+    return result
 
 
 
