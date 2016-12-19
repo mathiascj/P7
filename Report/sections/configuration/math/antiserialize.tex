@@ -17,12 +17,12 @@ Along with $\beta_{\gamma ,r}$, which is the set of modules in $\gamma$ used onl
 
 \[\beta_{\gamma ,r}  = \{m \in \gamma | \gamma \in \Gamma \land \forall \rho \in m.aW,\, \{\rho\} \subseteq r \land \{\rho\} \nsubseteq \bar{r} \land r \in R\}\]
 
-We now want to define a set of all neighbours of common modules in line $\gamma$. Two modules $m_1$ and $m_2$ are said to be neighbours within a set if $m_1 <_k m_2$ holds true. The relation does this if $m_1$ $\prec_r$ $m_2$ evaluates to true, while $m_1$ $\prec_r$ $m_i$ does not hold true for any module in $\gamma$ which is not equal to $m_2$. Having set up this relation, we can define the set of all common module neighbours $KP_{\gamma ,r}$ as:
+We now want to define a set of all neighbours of common modules in line $\gamma$. Two modules $m_1$ and $m_2$ are said to be neighbours within a set if $m_1 <_k m_2$ holds true. The relation does this if $m_1$ $\prec$ $m_2$ evaluates to true, while $m_1 \prec m_i \land m_i \prec m_2, m_i \in K_{\gamma ,r}$ is not true. Having set up this relation, we can define the set of all common module neighbours $KP_{\gamma ,r}$ as:
  
 \[KP_{\gamma ,r} = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
 
 
-Let us say that we take a specific pair from $KP_{\gamma ,r}$  known as $(s,e)$. We define the set of all modules in the line $\gamma$ appearing between these two modules as: 
+We also define a set of all modules in between two other modules, $s$ and $e$, in the line $\gamma$. 
 
 \[M_{s,e} = \{m | m \in \gamma \land \gamma \in \Gamma \land s \prec m \land m \prec e\}\]
 
