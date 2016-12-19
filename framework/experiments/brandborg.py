@@ -1,6 +1,7 @@
 from module import SquareModule
 from recipe import Recipe
 from configuration.tabu_search import tabu_search
+from UPPAAL.uppaalAPI import get_best_time
 
 
 VERIFYTA = '../UPPAAL/verifyta'
@@ -42,8 +43,15 @@ r3 = Recipe('menneske', {'hammer': set(), 'spise': {'hammer'}, 'sove': {'spise'}
 recipes = [r2, r3]
 modules = [m0, m1, m2, m3, m4, m7, m8, m9]
 
-res = tabu_search(recipes, modules, transporter)
+m0.right = m1
+m1.right = m7
+m7.right = m8
+m8.right = m2
 
+get_best_time(recipes, modules, XML_TEMPLATE, VERIFYTA )
 
-for x in res:
-     print(x + " " + str(res[x]))
+# res = tabu_search(recipes, modules, transporter)
+#
+#
+# for x in res:
+#      print(x + " " + str(res[x]))

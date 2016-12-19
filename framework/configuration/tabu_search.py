@@ -45,8 +45,10 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=50
             modules_in_config = csh.modules_in_config(config)
             fitness, worked, transported = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
 
-            config_fitness[config] = fitness
-            config_worked[config] = worked
+            updated_config = csh.configuration_str()
+
+            config_fitness[updated_config] = fitness
+            config_worked[updated_config] = worked
             return fitness
 
     def get_neighbour_func(weighted_funcs):
@@ -105,7 +107,7 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=50
 
     for config in generator:
         evaluate_config(config)  # Updates dynamic memory
-        long_term_memory.append(config)
+        long_term_memory.append(csh.configuration_str())
 
     # Creating the initial configuration and evalutates it
     long_term_memory.sort(key=(lambda x: config_fitness[x]))

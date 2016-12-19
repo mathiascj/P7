@@ -21,10 +21,10 @@ def neighbours_swap(frontier, csh):
         neighbours = []
         for m0 in config_modules:
             csh.make_configuration(frontier)
-            if m0.active_w_type is not set():
+            if m0.active_w_type:
                 swappable = [m1 for m1 in config_modules if m0.active_w_type == m1.active_w_type
                                                          and m0 != m1
-                                                         and m1.active_w_type is not set()]
+                                                         and m1.active_w_type]
                 for m1 in swappable:
                     neighbours.append(swap(frontier, csh, m1, m0))
         return neighbours
@@ -33,10 +33,10 @@ def neighbours_swap(frontier, csh):
         neighbours = []
         for old in config_modules:
             csh.make_configuration(frontier)
-            if old.active_w_type is not set():
+            if old.active_w_type:
                 swappable = [new for new in free_modules if old.active_w_type <= new.w_type
                                                          and old != new
-                                                         and new.active_w_type is not set()]
+                                                         and new.active_w_type]
                 for new in swappable:
                     neighbours.append(swap(frontier, csh, old, new))
         return neighbours
