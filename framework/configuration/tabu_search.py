@@ -1,4 +1,5 @@
 import re
+from queue import Queue
 import random
 import bisect
 from random import choice
@@ -20,9 +21,9 @@ WEIGHT_STRENGTH = 1
 WEIGHT_X = 3
 WEIGHT_Y = 1
 
-weighted_funcs = [(neighbours_anti_serialized, WEIGHT_START), (neighbours_parallelize, 0), (neighbours_swap, 0)]
 
-def tabu_search(recipes, modules, transport_module, iters=50):
+
+def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=50):
     """ Tabu Search
     :param recipes: A list of Recipe objects
     :param modules: A list of module objects
@@ -48,8 +49,8 @@ def tabu_search(recipes, modules, transport_module, iters=50):
             config_worked[config] = worked
             return fitness
 
-    def get_neighbour_func():
-        global weighted_funcs
+    def get_neighbour_func(weighted_funcs):
+
         result = weighted_choice(weighted_funcs)
         funcs, weights = zip(*weighted_funcs)
         new_weights = [w for w in weights]
@@ -70,9 +71,26 @@ def tabu_search(recipes, modules, transport_module, iters=50):
             new_weights[1] -= y
 
         temp = list(zip(funcs, new_weights))
-        weighted_funcs = temp
+        weighted_funcs[0] = temp[0]
+        weighted_funcs[1] = temp[1]
+        weighted_funcs[2] = temp[2]
         return result
 
+    def update_short_term(config):
+        first = None
+        if len(short_term_memory) > short_term_size:
+            first = short_term_memory[0]
+            short_term_memory.remove(first)
+        short_term_memory.append(config)
+        return first
+
+    def backtrack():
+        back = choice(long_term_memory)
+        new_frontier = back[0]
+        neighbour_func = back[1]
+        return new_frontier, neighbour_func
+
+    weighted_funcs = [(neighbours_anti_serialized, WEIGHT_START), (neighbours_parallelize, 0), (neighbours_swap, 0)]
     csh = ConfigStringHandler(recipes, modules, transport_module)
     generator = initial_configuration_generator(recipes, modules, csh)
 
@@ -94,10 +112,10 @@ def tabu_search(recipes, modules, transport_module, iters=50):
     overall_best = long_term_memory[0]
     frontier = long_term_memory[0]
 
-
+    nabla = 0
     # Here begins the actual search
     for _ in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
-        neighbour_func = get_neighbour_func()
+        neighbour_func = get_neighbour_func(weighted_funcs)
 
         if neighbour_func is neighbours_anti_serialized:
             args = [frontier, csh, config_worked[frontier]]
@@ -114,27 +132,33 @@ def tabu_search(recipes, modules, transport_module, iters=50):
             try:
                 results.append((n, evaluate_config(n)))
             except RuntimeError:
+                config_fitness[n] = float('inf')
                 print(neighbour_func)
                 print(frontier)
                 print(n)
-                raise RuntimeError
+                raise RuntimeError('Could not evalutate a configuration. Func:' + str(neighbour_func))
+                continue
 
         results.sort(key=lambda x: x[1])
+        new_frontier = None
         for r in results:
             if r[0] in short_term_memory:
                 continue
             else:
-                frontier = r[0]
-                break
+                new_frontier = r[0]
 
-        if config_fitness[frontier] < config_fitness[overall_best]:
-            overall_best = frontier
-
-        short_term_memory.append(frontier)
-        long_term_memory.append(frontier)
-
+        if new_frontier:
+            frontier = new_frontier
+            if config_fitness[frontier] < config_fitness[overall_best]:
+                overall_best = frontier
+            update_short_term(frontier)
+            long_term_memory.append((frontier, weighted_funcs))
+        else:
+            backtrack()
 
     return config_fitness
+
+
 
 
 def weighted_choice(choices):
