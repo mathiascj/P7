@@ -28,11 +28,7 @@ def get_best_time(recipes, modules, template_file=XML_TEMPLATE, verifyta=VERIFYT
         trace_iter = iter((trace.decode('utf-8')).splitlines())
         worked_on, transported_through, active_works = get_travsersal_info(trace_iter, m_map, r_map, w_map)
 
-        for m in modules:
-            if m.m_id in active_works:
-                m.active_w_type = active_works[m.m_id]
-
-        return time, worked_on, transported_through
+        return time, worked_on, transported_through, active_works
     else:
         raise RuntimeError("Could not verify the properties, see the temp files")
 

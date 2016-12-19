@@ -43,12 +43,10 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
         else:
             csh.make_configuration(config)  # SIDE EFFECT: Makes loads of changes to modules
             modules_in_config = csh.modules_in_config(config)
-            fitness, worked, transported = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
-
-            updated_config = csh.configuration_str()
-
-            config_fitness[updated_config] = fitness
-            config_worked[updated_config] = worked
+            fitness, worked, transported, active = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
+            config_fitness[config] = fitness
+            config_worked[config] = worked
+            config_active[config] = active
             return fitness
 
     def get_neighbour_func(weighted_funcs):
@@ -99,6 +97,7 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
     # Memory used for remembering evalutations, used so we dont have to evaluate the same configuration twice.
     config_fitness = {}
     config_worked = {}
+    config_active = {}
 
     # Tabu Search specific memories
     long_term_memory = []
@@ -121,9 +120,9 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
         neighbour_func = get_neighbour_func(weighted_funcs)
 
         if neighbour_func is neighbours_anti_serialized:
-            args = [frontier, csh, config_worked[frontier]]
+            args = [frontier, csh, config_worked[frontier], config_active[frontier]]
         else:
-            args = [frontier, csh]
+            args = [frontier, csh, config_active[frontier]]
 
 
         # TODO REMOVE LATER

@@ -1,4 +1,4 @@
-def neighbours_swap(frontier, csh):
+def neighbours_swap(frontier, csh, active):
     """ Finds all neighbours where we can swap modules out, but still retain the same active works
     :param frontier: The config that the tabu search is currently finding neighbours for
     :param recipes: A list of Recipe objects
@@ -41,7 +41,15 @@ def neighbours_swap(frontier, csh):
                     neighbours.append(swap(frontier, csh, old, new))
         return neighbours
 
-    config_str = frontier
+
+    csh.make_configuration(frontier)
+    for m in csh.modules_in_config(frontier):
+        if m.m_id in active:
+            m.active_w_type = active[m.m_id]
+
+    config_str = csh.configuration_str()
+
+
     config_modules = csh.modules_in_config(config_str)
     free_modules = csh.modules_not_in_config(config_str)
 

@@ -43,7 +43,7 @@ def parallel_args_helper(capable, remaining, free_modules):
     return result
 
 
-def neighbours_parallelize(frontier, csh):
+def neighbours_parallelize(frontier, csh, active):
     def parallel_config_string(frontier, start, path, end, csh, direction):
         csh.make_configuration(frontier)
         t0 = csh.take_transport_module()
@@ -64,6 +64,12 @@ def neighbours_parallelize(frontier, csh):
         return result
 
     csh.make_configuration(frontier)
+    for m in csh.modules_in_config(frontier):
+        if m.m_id in active:
+            m.active_w_type = active[m.m_id]
+
+    frontier = csh.configuration_str()
+
     main_line, up_lines, down_lines = csh.find_lines()
 
     main_args_list = parallel_args(main_line, csh.free_modules, csh)

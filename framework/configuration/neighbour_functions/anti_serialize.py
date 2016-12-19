@@ -93,7 +93,7 @@ def anti_serialize(start, path, end, csh):
     return csh.configuration_str()
 
 
-def neighbours_anti_serialized(frontier, csh, worked):
+def neighbours_anti_serialized(frontier, csh, worked, active):
     """
     Gets all possible anti_serializations, when trying to split out a random recipe from main line
     :param worked: Dict saying for each module, what recipes were worked on it
@@ -116,6 +116,10 @@ def neighbours_anti_serialized(frontier, csh, worked):
 
     # Get main line
     csh.make_configuration(frontier)
+    for m in csh.modules_in_config(frontier):
+        if m.m_id in active:
+            m.active_w_type = active[m.m_id]
+
     main_line, _, _ = csh.find_lines()
 
     iworked = invert_dict(worked) # Looks up modules from recipes
