@@ -25,3 +25,8 @@ For the extern case in \cref{fig:swap_ext} we simply swap out the first element 
 
 We do something similar for the intern case in \cref{fig:swap_ext}. Here we instead of removing one of the two element in the pair, we assign the $up$, $right$, $down$, $left$ and $aW$ attributes of both elements to that of the other, and swap them in their respective lines.
 
+We also need to describe that not all available modules need to be a part of our factory configuration. There may exist free modules, which are not used, but may aid in the search for a higher throughput. First we describe the set of all modules used by a configuration, denoted $CM$:
+
+%\[CM = \{m \in \gamma | \gamma \in \Gamma \}\]
+%The set of free modules $FM$ is then given by:
+%\[FM = M \setminus CM \]
