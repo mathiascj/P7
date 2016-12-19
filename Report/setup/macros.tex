@@ -110,3 +110,17 @@
 \crefname{definition}{definition}{definitions}
 \Crefname{definition}{Definition}{Definitions}
 
+% Med sidebetingelse
+
+\newcommand{\newcondinfrule}[3]
+           {\parbox{5.5cm}{$$ {\frac{#1}{#2}}{\qquad
+            #3} \hfill  $$}}
+
+% Uden sidebetingelse
+
+\newcommand{\infrule}[2]
+           {\parbox{4.5cm}{$$ \frac{#1}{#2}\hspace{.5cm}$$}}
+           
+% Navne på regler
+\newcommand{\runa}[1]{\mbox{\textsc{\protect{(#1})}}}
+\newcommand{\runatt}[2]{$[{\mbox{\textsc{#1}}}_{\mbox{\textsc{\small #2}}}]$}

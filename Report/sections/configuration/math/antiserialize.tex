@@ -1,48 +1,85 @@
 \subsection{Anti-serialization}
-In \cref{fig:trivial-example} we see that some items will have to move through modules, where no work is performed on them. This will often happen if we have a line of modules, where more than one type of item is to be produced. We would like to describe a rule, which breaks the serial connection of a line of modules. It should be able to make an off branch from a line, moving into the new branch a sequence of modules, which are only used by one type of item. We call this operation an anti-serialization on a line. Performing several anti-serializations across a line, decreases the amount of unneeded modules which each item need to pass through. This should eventually increase the total throughput. In this subsection we describe different transformation rules, which are needed to perform anti-serialization upon a line.
+In this section we will describe a set of transformation rules known as anti-serializations. On \cref{fig:trivial-example} all items made according to the three recipes in \cref{fig:toy-recipes} will have to pass through modules, which do not work on them. We would like to minimize this as to reduce the total length that each item must be transported, in addition to combating bottlenecks on the line. Thus it would be beneficial if items could bypass modules that do not work on them. We get around this by branching out production on more lines, where items only go through modules that work on them. 
 
 \subsubsection{Branching between common modules}
-Let us say that we want to branch out a specific recipe $r$ from a line $\gamma$. Here we first define a special set on $r$, $\bar{r}$, which contains all types of work which are not unique to $r$:
+We start by defining the most common type of anti-serialization with the $AS_0$ transformation rule given in \cref{def:as0}. Informally the rule states that if we have a set of modules $B_{r,s,e}$, which works the recipe $r \in R$ exclusivly, lying between the modules $s$ and $e$ on $\Gamma_0$ then we may branch out all modules in $B_{r,s,e}$ to form a new line. This new line is connected to $\Gamma_0$ at $s$ and $e$. We will explain this more in depth, by going over the sets brough up in the rule. 
+
+\begin{definition}[htb]
+\runatt{AS}{0}
+    \infrule
+        {0 < |B_{r,s,e}| \land  s <_k e}
+        {(R,M,\Gamma, \Gamma_0, AW, Start, End) \rightarrow_{AS}
+        (R,M,\Gamma', \Gamma_0', AW, Start', End') } \\
+        Where: \\
+        $r \in R$ \\
+		$s,e \in K_{\Gamma_0,r}$\\		
+		$\Gamma_0' = (Pre_s \cup \{s\}  \cup A_{r,s,e} \cup \{e\} \cup Pos_e, \prec)$ \\     
+        $\Gamma' = (\Gamma \setminus \{\Gamma_0\}) \cup \{\Gamma_0'\} \cup B_{r,s,e} $ \\
+		$Start' = Start \cup \{(B_{r,s,e}, s)\}$ \\
+		$End' = End \cup \{(B_{r,s,e}, e)\}$
+
+\caption{Formal definition of the $AS_0$ transformation rule}
+\label{def:as0}
+\end{definition}
+
+We initially define a special set on $r$, $\bar{r}$, which contains all types of work which are not unique to $r$:
 \[\bar{r} = \bigcup_{r' \in R}r', \texttt{ if } r' \neq r\]
 
-Next we need to define what we would like to call common modules. These are module in $\gamma$, which $r$ needs to use along with at least some other recipe. These are important to identify, as they may not be branched out, as that would make the inaccessible to the other recipes that might need it.  Given $r$ and $\gamma$ we define the set of common modules $K_{\gamma ,r}$ as follows:
+Next we define, what we refer to as common modules. These are modules in $\Gamma_0$, which $r$ needs to use along with at least some other recipe. These are important to identify, as they may not be branched out, as that would make them inaccessible to the other recipes than $r$.  Given $r$ and $\Gamma_0$ we define the set of common modules $K_{\Gamma_0,r}$ as follows:
 
-\[K_{\gamma ,r} = \{m \in \gamma | \gamma \in \Gamma \land \exists \rho \in m.aW,\, \{\rho\} \subseteq r \land \{\rho\} \subseteq \bar{r} \land r \in R\}\]
+\[K_{\Gamma_0 ,r} = \{m | m \in \Gamma_0  \land \exists \rho \in AW(m),\, \{\rho\} \subseteq r \land \{\rho\} \subseteq \bar{r} \land r \in R\}\]
 
-From this set we can then define $\alpha_{\gamma ,r}$, which is the set of modules in $\gamma$ which are not used by $r$: 
+From this set we can then define $\alpha_{\Gamma_0 ,r}$, which is the set of modules in $\Gamma_0$ which are not used by $r$: 
 
-\[\alpha_{\gamma ,r}  = \{m \in \gamma | \gamma \in \Gamma \land \forall \rho \in m.aW,\, \{\rho\} \nsubseteq r \land r \in R\}\]
+\[\alpha_{\Gamma_0 ,r}  = \{m |m \in \Gamma_0 \land \forall \rho \in AW(m),\, \{\rho\} \nsubseteq r \land r \in R\}\]
 
-Along with $\beta_{\gamma ,r}$, which is the set of modules in $\gamma$ used only by $r$:
+Along with $\beta_{\Gamma_0 ,r}$, which is the set of modules in $\Gamma_0$ used only by $r$:
 
-\[\beta_{\gamma ,r}  = \{m \in \gamma | \gamma \in \Gamma \land \forall \rho \in m.aW,\, \{\rho\} \subseteq r \land \{\rho\} \nsubseteq \bar{r} \land r \in R\}\]
+\[\beta_{\Gamma_0 ,r}  = \{m  | m \in \Gamma_0 \land \forall \rho \in AW(m),\, \{\rho\} \subseteq r \land \{\rho\} \nsubseteq \bar{r} \land r \in R\}\]
 
-We now want to define a set of all neighbours of common modules in line $\gamma$. Two modules $m_1$ and $m_2$ are said to be neighbours within a set if $m_1 <_k m_2$ holds true. The relation does this if $m_1$ $\prec$ $m_2$ evaluates to true, while $m_1 \prec m_i \land m_i \prec m_2, m_i \in K_{\gamma ,r}$ is not true. Having set up this relation, we can define the set of all common module neighbours $KP_{\gamma ,r}$ as:
- 
-\[KP_{\gamma ,r} = \{(s, e)| {s, e} \in K_{\gamma ,r} \times K_{\gamma ,r} \land s <_k  e\}\]
+Next we define the binary relation relation $<_K$ as:
+\[a <_K b = \left\{\begin{matrix}
+tt \texttt{ if } a,b,c \in K_{\Gamma_0 ,r} \land a \prec b \land \lnot (a \prec c \land c \prec b) \\ \texttt{else } ff
+\end{matrix}\right.\]
 
+We also define a total order of all modules in between two modules, $s$ and $e$, in some line $\gamma \in \Gamma$:
 
-We also define a set of all modules in between two other modules, $s$ and $e$, in the line $\gamma$. 
+\[M_{s,e} = \({m | m \in \gamma \land \gamma \in \Gamma \land s \prec m \land m \prec e\}, \prec)\]
 
-\[M_{s,e} = \{m | m \in \gamma \land \gamma \in \Gamma \land s \prec m \land m \prec e\}\]
+We can now define the total order of all modules appearing between $s$ and $e$, which are not used to work $r$, $A_{r,s,e}$ as follows: 
 
-We can now define the set of all modules appearing between $s$ and $e$, which are not used to work $r$ $A_{s,e}$ as follows: 
+\[A_{r,s,e} = (\{m |m \in M_{s,e} \land m \in \alpha\}, \prec)\]
 
-\[A_{s,e} = \{m |m \in M_{s,e} \land m \in \alpha\}\]
+Similarly we can define the total order $B_{r,s,e}$, which contains all modules that appear between $s$ and $e$ which work exclusivly on $r$
 
-Similarly we can define the set $B_{s,e}$, which contains all modules that appear between $s$ and $e$ which are only used to perform work on $r$
+\[B_{r,s,e} = (\{m |m \in M_{s,e} \land m \in \beta\}, \prec)\]
 
-\[B_{s,e} = \{m |m \in M_{s,e} \land m \in \beta\}\]
+Lastly we define $Pre_{s}$ which is the set of all modules that come before a module $s$ in line $\gamma \in \Gamma$:
+\[Pre_{s} = \{m | m \in \gamma \land \gamma \in \Gamma \land m \prec s\}\]
+
+In addition to $Pos_{e}$ which is the set of all modules that come after a module $e$  in line $\gamma \in \Gamma$:
+\[Pos_{e} = \{m | m \in \gamma \land \gamma \in \Gamma \land e \prec  m \}\]
+
+Having defined these sets the rule in \cref{def:as0}, shows that in the case where $|B_{r,s,e}| > 0 \land s <_K e$ then we may update $\Gamma$ with two new lines, including an update of $\Gamma_0$ that describes a branch out from $\Gamma_0'$, which exclusivly works upon $r$ before rejoining with the old line.   
+
+While this rule is formally sound it can be difficult to read. As such we have tried to illustrate the transformation from configuration to configuration visually in \cref{fig:as0}. This visualization uses a homemade notation. Square boxes refer to individual modules. Boxes with rounded corners are total orders of sets of modules. A box with rounded corners containing "..." means that here is a total order of one or more modules, but we do not care what they contain. A graphical line of boxes flowing from left to right is a line in$ \Gamma$ ordered as shown. If two lines $\gamma$ and $\gamma'$ are connected by a vertical upward going edge, then $Start$ contains the ordered pair made up of the module $s$ in $\gamma$ directly below the start of $\gamma'$ and the first element of $\gamma'$. At the same time, if the edge goes downwards from $\gamma'$ to $\gamma$ then $End$ contains the ordered pair including the module $e$ in $\gamma$, which is directly below the end of $\gamma'$ and the last element of $\gamma'$. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{as0.pdf}
+\caption{A visual representation of the $AS_0$ transformation rule}
+\label{fig:as0}
+\end{figure}
 
 Having now defined our sets, we will set up the rules describing how we may branch out modules to work on individual recipes. These rules will be described informally using our own graphical notation. The graphical notation works as follows. Square boxes represent modules. Boxes with rounded corners represent a set of modules totally ordered on $\prec$. The modules within the box are connected left to right according to their order. Connections going to the box connect to the first element of the order and connections leaving from the box come from the last module. If a set box only contains "..." it means that some set of modules may be here, but there is no need to consider what it contains. 
 
 Now imagine the situation in \cref{fig:asbase}. Here we have specific $s$ and $e$ modules chosen on a line $\gamma$ and we have chosen to branch out a specific recipe $r$. Between the two modules we may have $M_{s,e}$ placed. From this we can calculate $A_{s,e}$ and $B_{s,e}$ as described before. If $B_{s,e} = \emptyset$ then we may branch out some modules only used to work on $r$. 
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{as1.pdf}
-\caption{A base configuration where we may want to branch out recipe $r$ from line $\gamma$}
-\label{fig:asbase}
+\includegraphics[width=\textwidth]{as0.pdf}
+\caption{A visual representation of the $AS_0$ transformation rule}
+\label{fig:as0}
 \end{figure}
 
 If $|A_{s,e}| = |B_{s,e}| + 2$ , then we can branch out as shown in the top of \cref{fig:astrans}. Here we simply remove $|B_{s,e}|$ from the rest of $M_{s,e}$ leaving us with in its place $A_{s,e}$. The module $s$ is then connected upwards to the first element of $|B_{s,e}|$. The last element of $|B_{s,e}|$ is then connected to $e$. This transformation also entails that all of  $|B_{s,e}|$ is removed from $\gamma$ and that a new line containing $|B_{s,e}|$ is added to $\Gamma$. For each of the transformations presented in this subsection we alter $\gamma$ and add to $\Gamma$ the new branch which is created.  Notice that the modules beneath the new line are marked as red. This means that the shadow variable in the module tuples on the old line have been set to true. This is used in order to handle transformation conflicts as described later in \cref{ssec:tc}.
@@ -51,7 +88,7 @@ In the middle of \cref{fig:astrans} we describe the case where $A_{s,e}| > |B_{s
 
 The last case, shown in the bottom of \cref{fig:astrans} is similar to the previous one, but instead $A_{s,e}| < |B_{s,e}| + 2$. In this case we append the original line with transporters instead. This requires an update of $\gamma$ to include these new transporters, while the new line added to $\Gamma$ is again just $|B_{s,e}|$. 
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{as2.pdf}
 \caption{3 different configurations to which we may go from \cref{fig:asbase}. Top: Case when $A_{s,e}| = |B_{s,e}| + 2$. Middle: Case when $A_{s,e}| > |B_{s,e}| + 2$. Bottom: Case when $A_{s,e}| < |B_{s,e}| + 2$ }
@@ -76,7 +113,7 @@ Similarly the set of all modules preceding $K_{first}$, which do not exclusively
 With this in place we present the transformation rule in \cref{fig:asbranchin}. This describes how we in the above case are allowed to remove $B_{first}$ from the line $\gamma$ leaving  $A_{first}$. We then connect its last module to $K_{first}$. The new line which is added to $\Gamma$ is then $B_{first}$. This type of branch allows us to start $r$ away from other items.   
 
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{as4.pdf}
 \caption{The case where modules precede the first module in $K_{\gamma ,r}$}
@@ -98,8 +135,7 @@ The set of all modules proceeding $K_{last}$, which do not exclusively work on $
 
 Having set up this we present the final transformation rule for this type of branching in \cref{fig:asbranchout}. Here we see that in the described case we may remove $B_{last}$ from the line $\gamma$ leaving  $A_{last}$. $K_{last}$ is then connected to the first module of $B_{last}$. The new line added to $\Gamma$ is $B_{last}$. This transformation allows us to branch out $r$ when there is no need for it to stick with the old line never to return.
 
-
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{as3.pdf}
 \caption{The case where modules proceed the last module in $K_{\gamma ,r}$}
@@ -113,7 +149,7 @@ On the top part of \cref{fig:shadowexample}, we see that we have already made a 
 
 We may however not do this if the shadowed module is also a module where a branch either connects from or to. This means that the module is common and is used by the branch. Removing it would keep us from producing that branch's specific recipe. Therefore we never allow for these modules to be removed, even if this means that we can not perform certain anti-serializations.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{as5.pdf}
 \caption{Transformation that handles the case where an anti-serialization removes a shadowed module}

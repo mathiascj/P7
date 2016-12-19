@@ -1,5 +1,5 @@
 \section{Formal transformation rules} \label{sec:math_rules}
-In this section we describe how we may transform a factory configuration, initially made up of a single line of modules that can complete all recipes, to another configuration, which may be more efficient. First we will formally describe what a configuration is. Later we describe rules, used to transform one configuration into another.
+In this section we describe, how we may transform a factory configuration. A configuration is initially made up of a single line of modules that can complete all recipes, to another, possibly more efficient, configuration. First we will formally describe what a configuration is. Later we describe rules, used to transform one configuration into another.
 
 \begin{definition}[htb]
 $recipe: \textit{Set of all work required to complete a concrete recipe.}$
@@ -8,38 +8,39 @@ $module: \textit{Set of all work that a module may perform on an item}$
 \\ \\
 $line: \textit{Set of modules totally ordered on the relation} \prec$
 \\
-\caption{Basic elements in our definitions}
+\caption{Basic elements in a configuration}
 \label{def:basic}
 \end{definition}
 
 
-In \cref{def:basic} we define some basic elements, which make up a configuration. We treat a recipe, a specefic type of item, as a set of works, since our initial configuration will always be made up of a single line of ordered modules able to complete all given recipes. And as none of the transformation rules described later will change this order, we do not need to enforce an order on the works that make up a recipe. A module is described as the set of works that it may perform on an item. A line is a set of modules totally ordered on $\prec$. The relation orders modules according to their placement in the line from left to right. If $m_1 \prec m_2$ for modules $m_1$ and $m_2$ in a line, then there is a horizontal path from $m_1$ to $m_2$ traveling rightwards. 
+In \cref{def:basic} we define some basic elements, which make up a configuration. We treat a recipe as a set of works, since our initial configuration will always be made up of a single line of ordered modules able to complete all given recipes. And as none of the transformation rules described later will change this order, we do not need to enforce an order on the works that make up a recipe. A module is described as the set of works that it may perform on an item. A line is a set of modules totally ordered on $\prec$. The relation orders modules according to their placement in the line from left to right. If $m_1 \prec m_2$ for modules $m_1$ and $m_2$ in a line, then there is a horizontal path from $m_1$ to $m_2$ traveling rightwards. 
 
 \begin{definition}[htb]
-$Configuration: (R, M , \Gamma, \Gamma_0, Activeworks, Start, End)$
+$Configuration: (R, M , \Gamma, \Gamma_0, AW, Start, End)$
 \\
 Where: \\
 $R:$ A set of recipes \\
 $M:$ A set of modules \\
 $\Gamma:$ A set of lines \\
 $\Gamma_0:$ Main line \\
-$ActiveWorks: M \rightarrow \bigcup_{r\in R}r$ \\ 
+$AW: M \rightarrow {\bigcup_{r\in R}r}^2$ \\ 
 $Start: \Gamma \rightharpoonup M$ \\
 $End: \Gamma \rightharpoonup M$ \\
 \caption{Formal definition of a configuration}
 \label{def:config}
 \end{definition}
 
+In \cref{def:config}, we have defined a factory configuration as a tuple made of sets and functions. $R$ and $M$ are never changed by our transformation rules. Thus they are constant, going from an initial configuration forwards. As stated before, each configuration starts as a single initial line. For an initial configuration, $\Gamma_0$ represents this line. In subsequent configurations $\Gamma_0$ represents a special line, from which a subset of our transformations will branch out production.
 
-In \cref{def:config}, we have defined a factory configuration as tuple made up sets and functions. $R$ and $M$ are never changed by our transformation rules. Thus they constant, going from an initial configuration forwards. As stated before, each configuration starts as a single initial line. For the first configuration, $\Gamma_0$ represents this line. In subsequent configurations $\Gamma_0$ represents a special line from which a subset of our transformations will allow us to branch out from.
-
-$ActiveWorks$ is a function, which for a module $m \in M$ returns the set of works, which $m$ performs activly on at least one recipe $r \in R$. $Start$ is a partial function, which maps a line $\gamma \in \Gamma$ to a module $m \in M$ such that $m in \gamma'$ where $\gamma' \in \Gamma$ and $\gamma \neq \gamma'$. This represents that there is a vertical path between $m$ and the first element of $\gamma$. Similarly the partial function $End$, which maps a line $\gamma \in \Gamma$ to a module $m \in M$ such that $m in \gamma'$ where $\gamma' \in \Gamma$ and $\gamma \neq \gamma'$. This represent that there is a vertical path from the last element of $\gamma$ to $m$.   
+$AW$ is a function, which for a module $m \in M$ returns the set of works, which $m$ performs activly on at least one recipe $r \in R$. $Start$ is a partial function, which maps a line $\gamma \in \Gamma$ to a module $m \in M$ such that $m in \gamma'$ where $\gamma' \in \Gamma$ and $\gamma \neq \gamma'$. This represents that there is a vertical path between $m$ and the first element of $\gamma$. Similarly the partial function $End$, which maps a line $\gamma \in \Gamma$ to a module $m \in M$ such that $m in \gamma'$ where $\gamma' \in \Gamma$ and $\gamma \neq \gamma'$. This represent that there is a vertical path from the last element of $\gamma$ to $m$.   
 
 Furthermore we only want each $module$ to appear in a single $line$. To enforce this we set up the following rule for each $line$ $\gamma$, in $\Gamma$:
 \[\texttt{if } \gamma \in \Gamma \texttt{ then } \forall m \in \gamma \land \forall \gamma ' \in \Gamma \land \gamma \neq \gamma ',\, m \notin \gamma ' \]
 
-We also set up the following rule for each $module$ $m$ in $M$. This is done to ensure that the module can not perform work not within a recipe, and that the work which it actively performs should be a part of its total set of works:
-\[\texttt{if } m \in M \texttt{ then } ActiveWorks(m) \subseteq m.mW \land m.mW \subseteq  \bigcup_{r\in R}r\] 
+We also set up the following rule for each $module$ $m$ in $M$. This is done to ensure that the module can not perform work not within a recipe, and that the work which it actively performs should be a part of the total set of works:
+\[\texttt{if } m \in M \texttt{ then } AW(m) \subseteq m.mW \land m.mW \subseteq  \bigcup_{r\in R}r\] 
+
+In the following subsections we will describe a set of transformation rules, which are a set of functions, each mapping a configuration to another configuration.
 
 \input{sections/configuration/math/antiserialize.tex} 
 \input{sections/configuration/math/parallel.tex} 
