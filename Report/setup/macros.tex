@@ -91,3 +91,22 @@
 }
 
 
+% DEFINITIO ENV
+\makeatletter
+
+% this creates a custom and simpler ruled box style
+\newcommand\floatc@simplerule[2]{{\@fs@cfont #1 #2}\par}
+\newcommand\fs@simplerule{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@simplerule
+	\def\@fs@pre{\hrule height.8pt depth0pt \kern6pt}%
+	\def\@fs@post{\kern4pt\hrule height.8pt depth0pt \kern6pt \relax}%
+	\def\@fs@mid{\kern8pt}%
+	\let\@fs@iftopcapt\iftrue}
+
+
+\floatstyle{simplerule}
+\newfloat{definition}{thp}{lop}[chapter]
+\floatname{defintion}{Definition}
+
+\crefname{definition}{definition}{definitions}
+\Crefname{definition}{Definition}{Definitions}
+
