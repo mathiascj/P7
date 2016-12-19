@@ -23,7 +23,7 @@ WEIGHT_Y = 1
 
 
 
-def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=50):
+def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10):
     """ Tabu Search
     :param recipes: A list of Recipe objects
     :param modules: A list of module objects
@@ -105,16 +105,16 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=50
 
     for config in generator:
         evaluate_config(config)  # Updates dynamic memory
-        long_term_memory.append(config)
+        long_term_memory.append((config, weighted_funcs))
 
     # Creating the initial configuration and evalutates it
-    long_term_memory.sort(key=(lambda x: config_fitness[x]))
-    overall_best = long_term_memory[0]
-    frontier = long_term_memory[0]
+    long_term_memory.sort(key=(lambda x: config_fitness[x[0]]))
+    overall_best = long_term_memory[0][0]
+    frontier = long_term_memory[0][0]
 
     nabla = 0
     # Here begins the actual search
-    for _ in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
+    for i in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
         neighbour_func = get_neighbour_func(weighted_funcs)
 
         if neighbour_func is neighbours_anti_serialized:
@@ -132,11 +132,10 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=50
             try:
                 results.append((n, evaluate_config(n)))
             except RuntimeError:
-                config_fitness[n] = float('inf')
                 print(neighbour_func)
                 print(frontier)
                 print(n)
-                raise RuntimeError('Could not evalutate a configuration. Func:' + str(neighbour_func))
+                #raise RuntimeError('Could not evalutate a configuration. Func:' + str(neighbour_func))
                 continue
 
         results.sort(key=lambda x: x[1])
@@ -154,7 +153,10 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=50
             update_short_term(frontier)
             long_term_memory.append((frontier, weighted_funcs))
         else:
-            backtrack()
+            print("88mph")
+            frontier, weighted_funcs = backtrack()
+
+        print(str(i) + ":  " + frontier)
 
     return config_fitness
 
