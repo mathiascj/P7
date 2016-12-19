@@ -6,10 +6,10 @@ from configuration.tabu_search import tabu_search
 VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
 
-t = [[0, 0, 0, 0],
-     [0, 0, 0, 0],
-     [0, 0, 0, 0],
-     [0, 0, 0, 0]]
+t = [[5, 5, 5, 5],
+     [5, 5, 5, 5],
+     [5, 5, 5, 5],
+     [5, 5, 5, 5]]
 
 QUEUE_LENGTH = 1
 
@@ -43,7 +43,3 @@ recipes = [r2, r3]
 modules = [m0, m1, m2, m3, m4, m7, m8, m9]
 
 res = tabu_search(recipes, modules, transporter)
-
-
-for x in res:
-     print(x + " " + str(res[x]))
