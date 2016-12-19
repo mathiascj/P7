@@ -50,8 +50,8 @@ def neighbours_swap(frontier, csh, active):
     config_str = csh.configuration_str()
 
 
-    config_modules = csh.modules_in_config(config_str)
-    free_modules = csh.modules_not_in_config(config_str)
+    config_modules = list(set(csh.modules_in_config(config_str)) - set(csh.transport_modules))
+    free_modules = list(set(csh.modules_not_in_config(config_str)) - set(csh.transport_modules))
 
     external_neighbours = external_swap_neighbours(frontier, csh, config_modules, free_modules)
     internal_neighbours = internal_swap_neighbours(frontier, csh, config_modules)

@@ -1,9 +1,11 @@
 from configuration.path_placers import  push_underneath
+import random
 
 def parallel_args(line, free_modules, csh):
     temp = []
     for split, m in enumerate(line):
         cm = capable_modules(m.active_w_type, free_modules)
+        free_modules = list(set(free_modules) - set(csh.transport_modules))
         temp.append((m, parallel_args_helper(cm, line[split + 1:], free_modules)))
 
     # Check whether or not we can attach this path to a start and end and that the path has an actual length
@@ -29,6 +31,22 @@ def parallel_args(line, free_modules, csh):
 def parallel_args_helper(capable, remaining, free_modules):
     result = []
     if capable:
+        """
+        c = random.choice(list(capable))
+        fm = free_modules.copy()
+        fm.remove(c)
+        temp = []
+
+        result.append([c])
+        if remaining:
+            next_capable = capable_modules(remaining[0].active_w_type, fm)
+            temp = parallel_args_helper(next_capable, remaining[1:], fm)
+        if temp:
+            for l in temp:
+                result.append([c] + l)
+
+
+        """
         for c in capable:
             fm = free_modules.copy()
             fm.remove(c)
@@ -40,6 +58,7 @@ def parallel_args_helper(capable, remaining, free_modules):
                 for l in temp:
                     result.append([c] + l)
             result.append([c])
+
     return result
 
 
@@ -117,7 +136,11 @@ def capable_modules(worktypes, modules):
     """
 
     d = modules_by_worktype(modules)
-    res = set(modules)
+
+    if worktypes:
+        res = set(modules)
+    else:
+        res = set()
     for w in worktypes:
         if w in d:
             res = res & d[w]
