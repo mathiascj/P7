@@ -1,5 +1,5 @@
-\subsection{Anti-serialization}
-In this section we will describe a set of transformation rules known as anti-serializations. On \cref{fig:trivial-example} all items made according to the three recipes in \cref{fig:toy-recipes} will have to pass through modules, which do not work on them. We would like to minimize this as to reduce the total length that each item must be transported, in addition to combating bottlenecks on the line. Thus it would be beneficial if items could bypass modules that do not work on them. We get around this by branching out production on more lines, where items only go through modules that work on them. 
+\subsection{Anti-Serialization}
+In this section we will describe a set of transformation rules known as Anti-Serializations. In \cref{fig:trivial-example} all items made according to the three recipes in \cref{fig:toy-recipes} will have to pass through modules, which do not work on them. We would like to minimize this as to reduce the total length that each item must be transported, in addition to combating bottlenecks on the line. Thus it would be beneficial if items could bypass modules that do not work on them. We get around this by branching out production on more lines, where items only go through modules that work on them. 
 
 \subsubsection{$AS_0$: Branch Between Common Modules}
 We start by defining the most common type of anti-serialization with the $AS_0$ transformation rule given in \cref{def:as0}. Informally the rule states that if we have a set of modules $B_{r,s,e}$, which works the recipe $r \in R$ exclusivly, lying between the modules $s$ and $e$ on $\Gamma_0$ then we may branch out all modules in $B_{r,s,e}$ to form a new line. This new line is connected to $\Gamma_0$ at $s$ and $e$. We will explain this more in depth, by going over the sets brough up in the rule. 
@@ -90,7 +90,7 @@ It may be that we have modules that precede the first module of $K_{\Gamma_0 ,r}
 
  We define the first module in $K_{\Gamma_0 ,r}$ as:
 
-\[K_{\Gamma_0 ,r}^{first} = m \texttt{ if } \forall m' \in K_{\Gamma_0 ,r} \land m \neq m',\, m \prec m' \] 
+\[K_{\Gamma_0 ,r}^{first} = m \texttt{ where } \forall m' \in K_{\Gamma_0 ,r} \land m \neq m',\, m \prec m' \] 
 
 Similarly for the $AS_0$ transformation rule, we define two total orderings. $A_{\Gamma_0 ,r}^{first}$ that describes all modules before $K_{\Gamma_0 ,r}^{first}$ on which $r$ does not perform any work. And $B_{\Gamma_0 ,r}^{first}$ which describes all modules before $K_{\Gamma_0 ,r}^{first}$ on which $r$ exclusively works.
 
@@ -114,7 +114,7 @@ Similarly to $AS_1$ we have the case where the last element in $K_{\gamma ,r}$, 
 
 We define the last module in $K_{\Gamma_0 ,r}$ as:
 
-\[K_{\Gamma_0 ,r}^{last} = m \texttt{ if } \forall m' \in K_{\Gamma_0 ,r} \land m \neq m',\, m' \prec m \] 
+\[K_{\Gamma_0 ,r}^{last} = m \texttt{ where } \forall m' \in K_{\Gamma_0 ,r} \land m \neq m',\, m' \prec m \] 
 
 
 Again we also define two total orders. $A_{\Gamma_0 ,r}^{last}$ that describes all modules after $K_{\Gamma_0 ,r}^{last}$ on which $r$ does not perform any work. And $B_{\Gamma_0 ,r}^{last}$ which describes all modules after $K_{\Gamma_0 ,r}^{last}$ on which $r$ exclusively works.
