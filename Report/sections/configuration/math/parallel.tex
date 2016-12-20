@@ -16,24 +16,27 @@ In order to find the total order, $P_{s,e,}$, that can perform the same work as 
 
 \[FM = M \setminus \{m | m \in \gamma \land \gamma \in \Gamma\}\]
 
-We then describe a set of pairs of free modules and modules in between $s$ and $e$, where the free module $m$ can at least do the same work as the module in between $s$ and $e$ is currently doing.
+We describe a set of pairs, where free modules are paired with modules in a total order $X$, if the free modules can at least do the same work as the work currently being done by the modules in $X$.
 
-\[ParaMap_{s, e} = \{(m, m')| m \in FM \land m' \in M_{s,e} \land AW(m') \subseteq m\} \]
+\[ParaMap_{X} = \{(m, m')| m \in FM \land m' \in X \land AW(m') \subseteq m\} \]
 
-We then describe all sets of pairs that could be a possible parallel line for the modules between $s$ and $e$. Note that this set could be the empty set, as the modules needed for creating a possible line might not available in $FM$.
+We then describe all sets of pairs that could be a possible parallel line for the modules in $X$. Note that this set could be the empty set, as the modules needed for creating a possible line might not available in $FM$.
 
-\[ParaMapPaths_{s,e} = \{p \in ParaMap_{s,e}^2 | (m,m') \in p \land (n,n') \in p \land |p| = |M_{s,e}| \land  \forall m': m' \neq n' \}\]
+\[ParaMapPaths_{X} = \{p \in ParaMap_{X}^2 | (m,m') \in p \land (n,n') \in p \land |p| = |X| \land  \forall m': m' \neq n' \}\]
 
 After this we define $s[1]$ as the operation that given a set of pairs $s$, gives the set of all the first elements of the pairs in $s$.
 \[s[1] = \{m_1 | (m_1, m_2) \in s\}\]
 
 Using this we define the total order $P_{s,e}$ as:
 
-\[ P_{s,e} = (p[1], \prec), \texttt{ where } p \in ParaMapPaths_{s,e} \]
+\[ P_{s,e} = (p[1], \prec), \texttt{ where } p \in ParaMapPaths_{M_{s,e}} \]
 
-This definition means that there might not exist any $P_{s,e}$ at all, or that there might be multiple candidates for $P_{s,e}$.
+This definition means that there might not exist any $P_{s,e}$ at all, or that there might be multiple candidates for $P_{s,e}$. Note that we replaced the set $X$ in $ParaMapPaths$ with the total order $M_{s,e}$.
 
-\subsubsection{$Para_1$: Parallelization without forking module}
+As with the rules for anti-serialization we also have two special cases for parallelization. Namely $para_1$, branch in, and $para_2$, branch out. The rest of this subsection will describe these two rules.
+
+\subsubsection{$Para_1$: Branch in}
+Again, similarly to $AS_1$, it may be that we wish to parallelize everything up to a certain module, without having branched out from some starting module. For this we describe the transformation rule $Para_1$, which can be seen in \cref{fig:para1}.
 
 \begin{figure}[H]
 	\centering
@@ -42,10 +45,23 @@ This definition means that there might not exist any $P_{s,e}$ at all, or that t
 	\label{fig:para1}
 \end{figure}
 
-\subsubsection{$Para_2$: Parallelization without joining module}
+We here define the total order as $P_{Pre_e}$ as:
 
+\[P_{Pre_e} = (p[1], \prec), \texttt{ where } p \in ParaMapPaths_{Pre_e} \]
 
-We also have two other cases, one in which we have no end module, meaning that we will fork out a parallel line, and the case where we have no start, meaning we will join in a parallel line. A graph showing both of these cases can be seen respectively in \cref{fig:para_we} and \cref{fig:para_ws}. For the case without start we connect the last module in the total order $(P_{s,e}, <_p)$ to $e$, and for the case without end we connect $s$ to the first module the in the total order $(P_{s,e}, <_p)$.
+\subsubsection{$Para_2$: Branch out}
+We then, similarly to $AS_2$ describe the case in which we would like branch out parallelizing line, but not join it again. For this we describe the transformation rule $Para_2$, which can be seen in \cref{fig:para2}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{para2.pdf}
+	\caption{A visual representation of the $Para_2$ transformation rule}
+	\label{fig:para2}
+\end{figure}
+
+We here define the total order $P_{Pos_e}$ as:
+
+\[P_{Pos_e} = (p[1], \prec), \texttt{ where } p \in ParaMapPaths_{Pos_e} \]
 
 
 \begin{figure}[h]
