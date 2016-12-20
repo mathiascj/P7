@@ -1,9 +1,41 @@
-\subsection{Conflicts}\label{ssec:conflicts}
-As mentioned back in \cref{ch:uppaalmodel}, we did not enforce the physical rules of modules to the fullest. These entail that a module may not connect to another module if this module is not a neighbour and if the connection would force two modules to take up the same space. Using the transformation rules just described, we are sure that we can only generate configurations, where our modules connect to their neighbours. However the rules do not enforce that we may not make connections that result in intersection. 
+\section{Conflicts}\label{ssec:conflicts}
+As mentioned back in \cref{ch:uppaalmodel}, we did not enforce the physical rules of modules to the fullest. These entail that a module may not connect to another module if this module is not a neighbour and if the connection would force two modules to take up the same space. The anti-serialization transformations rules can currently create configurations in which not all modules are connected to neighbours, and this problem will be solved in \cref{ssec:restrictbranch}. Furthermore both our anti-serialization and parallelization rules can cause intersections to occur, and we will solve this problem in \cref{ssec:paround} and \cref{ssec:pbeneath}.
 
-With our transformation rules, the only time where intersection may happen is when a new line is created and branched out during either anti-serialization or parallelization. In the following subsubsection we describe two ways, Push Around and Push Beneath, in which we may append the stated rules to enforce the physical aspects of configurations.
 
-\subsubsection{Push Around}
+\subsection{Restricting Branches Anti-Serialization}\label{ssec:restrictbranch}
+For the anti-serialization transformation rules described in \cref{sec:as} we have imagined that no other branch has been made from our line to any side. Yet, this will not always be the case. We further more did not make sure that when we connected new lines to the main line, that the start and end of these lines were neighbours to the first and last module of the line.
+
+\subsubsection{Shadowed Modules}
+On the top part of \cref{fig:shadowexample}, we see that we have already made a branch from $s1$ to $e1$, which results in the modules on the old being shadowed. Being shadowed means that if we remove the module and just reconnect the old line as usual, then the branch becomes too long to connect back to its old line, and shadowed boxes are visualized with the colour red. The line needs to connect back to its designated point on the old line as the module located here is a common module. It performs work on the recipe $r$ otherwise worked on by the new line and should therefore not be bypassed.  To get around this we, as shown in \cref{fig:shadowexample}, alter our anti-serialization transformation in this case to replace a shadowed module with a transport module, as not to skew the two previous lines away from each other. The example shows this done for a single module, but it may be done regardless of the amount of shadowed modules which we remove.
+
+We may however not do this if the shadowed module is also a module where a branch either connects from or to. This means that the module is common and is used by the branch. Removing it would keep us from producing that branch's specific recipe. Therefore we never allow for these modules to be removed, even if this means that we can not perform certain anti-serializations.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{as5.pdf}
+	\caption{Transformation that handles the case where an anti-serialization removes a shadowed module}
+	\label{fig:shadowexample}
+\end{figure}
+
+
+\subsubsection{Neighbour Errors}
+Imagine the situation in \cref{fig:as0}. Here we have specific $s$ and $e$ modules chosen on a line $\gamma$ and we have chosen to branch out a specific recipe $r$. Between the two modules we have $M_{s,e}$. From this we can calculate $A_{r,s,e}$ and $B_{r,s,e}$ as described before. If $0 < |B_{r,s,e}|$, then we may branch out some modules only used to work on $r$. In some most cases $B_{r,s,e}$ will not have a size such that it can be connected in reality to the $s$ and $e$ module. We therefor modify our $AS_0$ transformation rule that solve this.
+
+If $|A_{r,s,e}| + 2 > |B_{r,s,e}|$ , then the result of our $AS_0$ transformation rule will be the top of \cref{fig:astrans}. In this case we append the new line with transport modules, to make the two lines fit each other. Notice that the modules beneath the new line are marked shadowed. This is used in order to handle transformation conflicts as described above and later in \cref{ssec:tc}.
+
+
+If $|A_{r,s,e}| + 2 \leq |B_{r,s,e}|$,  then the result of our $AS_0$ transformation rule will be the bottom of \cref{fig:astrans}, In this case we append the original line with transporters instead of the new line to make them fit together.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{astrans.pdf}
+	\caption{3 different configurations to which we may go from \cref{fig:as0}. Top: Case when $A_{s,e}| = |B_{s,e}| + 2$. Middle: Case when $A_{s,e}| > |B_{s,e}| + 2$. Bottom: Case when $A_{s,e}| < |B_{s,e}| + 2$ }
+	\label{fig:astrans}
+\end{figure}
+
+
+
+\subsection{Push Around} \label{ssec:paround}
 In push around we handle the case where a new off branching line intersects with an old line, by moving the new line above the old line. In the case where the new line entirely covers the old we perform the transformation depicted in \cref{fig:pusharound1}. As shown, the new line simply uses transport modules to lift itself up above the old line. These transport modules are technically not a part of the line and only serve the purpose of avoiding the intersection.
 
 \begin{figure}[h]
@@ -19,19 +51,19 @@ In the cases where the new entirely intersects the old it will add transport mod
 
 Push around is the intersect handling we use when inserting new lines as a result of anti-serialization, as there is no need to keep this new line close to the one from which it sprouted. 
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{conflict2.pdf}
 \caption{How push around handles the case where we insert a new line that is covered by the entirety of an old line}
 \label{fig:pusharound2}
 \end{figure}
 
-\subsubsection{Push Beneath}
+\subsection{Push Beneath} \label{ssec:pbeneath}
 The other type of intersect handling that we use is called Push Beneath. Here we do the opposite of push around and handle intersection conflicts by placing the new line, where we want to place it and then moving vertically any old lines that may intersect. If this move creates another intersection we simply move the lines which we pushed into. This is done until no intersections remain. 
 
 In the case where the new line is covered entirely by the old line we avoid intersection as in \cref{fig:pushunderneath1}. By pushing the new line up one level, we intersect the old which needs to move up as well. This warrants that the old line gets support from transport modules.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{conflict3.pdf}
 \caption{How push underneath handles the case, where we insert a new line that is covered entirely by an old line}
@@ -46,7 +78,7 @@ As can be seen, push underneath functions in a manner opposite to push around. W
 
   
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{conflict4.pdf}
 \caption{How push underneath handles the case, where we insert a new line that  entirely covers an an old line}

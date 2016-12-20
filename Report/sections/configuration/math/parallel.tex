@@ -1,8 +1,8 @@
-\subsection{Parallelization}
+\section{Parallelization}
 In this section we will describe a set of transformation rules known as Parallelizations. In \cref{fig:trivial-example} we use only the exact number of modules necessary to produce the three recipes given in \cref{fig:toy-recipes}. It could easily be imagined that we had more modules capable of doing the same work as the ones in \cref{fig:trivial-example}. As such we produce a set of transformation rules that allow for possible greater throughput by parallelizing free modules with similar modules already in a line.
 
 
-\subsubsection{$Para_0$: Parallelization Between Common Modules}
+\subsection{$Para_0$: Parallelization Between Common Modules}
 We start by defining the most common type of parallelization with the $Para_0$ transformation rule. Informally the rule states that if we have the total order $M_{s,e}$ of modules in between the modules $s$ and $e$. Then we can add a parallel line starting at $s$ and ending at $e$, if we can find an existing total order of free modules $P_{s,e}$ that can perform the same work as the modules in $M_{s,e}$. The visual representation of the $Para_0$ transformation rule can be seen \cref{fig:para0}. Here we expand the visual representation of our rules with the square box with a T in it. This box is just represents a single module that can perform no work, commonly referred to as a transport module.
 
 \begin{figure}[H]
@@ -33,9 +33,14 @@ Using this we define the total order $P_{s,e}$ as:
 
 This definition means that there might not exist any $P_{s,e}$ at all, or that there might be multiple candidates for $P_{s,e}$. Note that we replaced the set $X$ in $ParaMapPaths$ with the total order $M_{s,e}$.
 
-As with the rules for anti-serialization we also have two special cases for parallelization. Namely $para_1$, branch in, and $para_2$, branch out. The rest of this subsection will describe these two rules.
+Not shown in \cref{fig:para0} is that we also update the function $AW$ of our new configuration to $AW'$. We define $AW'$ as:
 
-\subsubsection{$Para_1$: Branch in}
+\[AW' = AW \cup p, \texttt{ where } p \in ParaMapPaths_
+{M_{s,e}}\]
+
+As with the rules for anti-serialization we also have two special cases for parallelization. Namely $para_1$, branch in, and $para_2$, branch out. The rest of this section will describe these two rules.
+
+\subsection{$Para_1$: Branch in}
 Again, similarly to $AS_1$, it may be that we wish to parallelize everything up to a certain module, without having branched out from some starting module. For this we describe the transformation rule $Para_1$, which can be seen in \cref{fig:para1}.
 
 \begin{figure}[H]
@@ -49,7 +54,12 @@ We here define the total order as $P_{Pre_e}$ as:
 
 \[P_{Pre_e} = (p[1], \prec), \texttt{ where } p \in ParaMapPaths_{Pre_e} \]
 
-\subsubsection{$Para_2$: Branch out}
+Not shown in \cref{fig:para1} is that we also update the function $AW$ of our new configuration to $AW'$. We define $AW'$ as:
+
+\[AW' = AW \cup p, \texttt{ where } p \in ParaMapPaths_
+{Pre_{s,e}}\]
+
+\subsection{$Para_2$: Branch out}
 We then, similarly to $AS_2$ describe the case in which we would like branch out parallelizing line, but not join it again. For this we describe the transformation rule $Para_2$, which can be seen in \cref{fig:para2}.
 
 \begin{figure}[H]
@@ -62,5 +72,10 @@ We then, similarly to $AS_2$ describe the case in which we would like branch out
 We here define the total order $P_{Pos_e}$ as:
 
 \[P_{Pos_e} = (p[1], \prec), \texttt{ where } p \in ParaMapPaths_{Pos_e} \]
+
+Not shown in \cref{fig:para2} is that we also update the function $AW$ of our new configuration to $AW'$. We define $AW'$ as:
+
+\[AW' = AW \cup p, \texttt{ where } p \in ParaMapPaths_
+{Pos_{s,e}}\]
 
 
