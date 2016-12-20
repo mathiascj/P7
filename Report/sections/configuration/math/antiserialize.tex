@@ -55,10 +55,10 @@ Similarly we can define the total order $B_{r,s,e}$, which contains all modules 
 \[B_{r,s,e} = (\{m |m \in M_{s,e} \land m \in \beta\}, \prec)\]
 
 We define $Pre_{s}$ which is the set of all modules that come before a module $s$ in line $\gamma \in \Gamma$:
-\[Pre_{s} = \{m | m \in \gamma \land \gamma \in \Gamma \land m \prec s\}\]
+\[Pre_{s} = (\{m | m \in \gamma \land \gamma \in \Gamma \land m \prec s\}, \prec)\]
 
 And lastly we define $Pos_{e}$ which is the set of all modules that come after a module $e$  in line $\gamma \in \Gamma$:
-\[Pos_{e} = \{m | m \in \gamma \land \gamma \in \Gamma \land e \prec  m \}\]
+\[Pos_{e} = (\{m | m \in \gamma \land \gamma \in \Gamma \land e \prec  m \}, \prec)\]
 
 Having defined these sets the rule in \cref{def:as0}, shows that in the case where $|B_{r,s,e}| > 0 \land s <_K e$ then we may update $\Gamma$ with two new lines, including an update of $\Gamma_0$ that describes a branch out from $\Gamma_0'$, which exclusivly works upon $r$ before rejoining with the old line.   
 
@@ -94,10 +94,9 @@ It may be that we have modules that precede the first module of $K_{\Gamma_0 ,r}
 
 Similarly for the $AS_0$ transformation rule, we define two total orderings. $A_{\Gamma_0 ,r}^{first}$ that describes all modules before $K_{\Gamma_0 ,r}^{first}$ on which $r$ does not perform any work. And $B_{\Gamma_0 ,r}^{first}$ which describes all modules before $K_{\Gamma_0 ,r}^{first}$ on which $r$ exclusively works.
 
-\[ A_{\Gamma_0 ,r}^{first} = \{m | m \in \alpha_{\gamma ,r}  \land m \in Pre_{K_{\Gamma_0 ,r}^{first}
-	} \} \]
+\[ A_{\Gamma_0 ,r}^{first} = (\{m | m \in \alpha_{\gamma ,r}  \land m \in Pre_{K_{\Gamma_0 ,r}^{first}} \}, \prec) \]
 
-\[ B_{\Gamma_0 ,r}^{first} = \{m | m \in \beta_{\gamma ,r}  \land m \in Pre_{K_{\Gamma_0 ,r}^{first}} \} \]
+\[ B_{\Gamma_0 ,r}^{first} = (\{m | m \in \beta_{\gamma ,r}  \land m \in Pre_{K_{\Gamma_0 ,r}^{first}} \}, \prec) \]
 
 We also again use the $Pre_s$ and $Pos_e$ sets here, but used on $K_{\Gamma_0 ,r}^{first}$ instead of $s$ and $e$.
   
@@ -118,30 +117,28 @@ We define the last module in $K_{\Gamma_0 ,r}$ as:
 \[K_{\Gamma_0 ,r}^{last} = m \texttt{ if } \forall m' \in K_{\Gamma_0 ,r} \land m \neq m',\, m' \prec m \] 
 
 
-Using this on $K_{last}$ gives us $Pro_{K_{last}}$. The set containing all modules proceeding $K_{last}$, which exclusively work on $r$, is known as $B_{last}$ and is defined as:
-
-\[B_{last} = \{m | m \in \beta_{\gamma ,r}  \land m \in Pro_{K_{last}} \}\]
-
-The set of all modules proceeding $K_{last}$, which do not exclusively work on $r$, $A_{last}$ is given by:
-
-\[ A_{last} = \{m | m \in \alpha_{\gamma ,r}  \land m \in Pro_{K_{last}} \} \]
-
-Having set up this we present the final transformation rule for this type of branching in \cref{fig:asbranchout}. Here we see that in the described case we may remove $B_{last}$ from the line $\gamma$ leaving  $A_{last}$. $K_{last}$ is then connected to the first module of $B_{last}$. The new line added to $\Gamma$ is $B_{last}$. This transformation allows us to branch out $r$ when there is no need for it to stick with the old line never to return.
+Again we also define two total orders. $A_{\Gamma_0 ,r}^{last}$ that describes all modules after $K_{\Gamma_0 ,r}^{last}$ on which $r$ does not perform any work. And $B_{\Gamma_0 ,r}^{last}$ which describes all modules after $K_{\Gamma_0 ,r}^{last}$ on which $r$ exclusively works.
 
 
-\subsubsection{Restricting branches}
-For the previous transformation rules, we have imagined that no other branch has been made from our line to any side. Yet, this will not always be the case. To be flexible enough to produce configurations with high throughput, we need to handle this. We go more in depth with how to enforce some general physical rules in \cref{ssec:conflicts}, but here we will tackle one unique to anti-serialization.
+\[ A_{\Gamma_0 ,r}^{last} = \{m | m \in \alpha_{\gamma ,r}  \land m \in Pos_{K_{\Gamma_0 ,r}^{last}} \} \]
 
-On the top part of \cref{fig:shadowexample}, we see that we have already made a branch from $s1$ to $e1$, which results in the modules on the old being shadowed. Being shadowed means that if we remove the module and just reconnect the old line as usual, then the branch becomes too long to connect back to its old line. The line needs to connect back to its designated point on the old line as the module located here is a common module. It performs work on the recipe $r$ otherwise worked on by the new line and should therefore not be bypassed.  To get around this we, as shown in \cref{fig:shadowexample}, alter our anti-serialization transformation in this case to replace a shadowed module with a transport module, as not to skew the two previous lines away from each other. The example shows this done for a single module, but it may be done regardless of the amount of shadowed modules which we remove.
+\[B_{\Gamma_0 ,r}^{last} = \{m | m \in \beta_{\gamma ,r}  \land m \in Pos_{K_{\Gamma_0 ,r}^{last}} \}\]
 
-We may however not do this if the shadowed module is also a module where a branch either connects from or to. This means that the module is common and is used by the branch. Removing it would keep us from producing that branch's specific recipe. Therefore we never allow for these modules to be removed, even if this means that we can not perform certain anti-serializations.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{as5.pdf}
-\caption{Transformation that handles the case where an anti-serialization removes a shadowed module}
-\label{fig:shadowexample}
-\end{figure}
+
+%\subsubsection{Restricting branches}
+%For the previous transformation rules, we have imagined that no other branch has been made from our line to any side. Yet, this will not always be the case. To be flexible enough to produce configurations with high throughput, we need to handle this. We go more in depth with how to enforce some general physical rules in \cref{ssec:conflicts}, but here we will tackle one unique to anti-serialization.
+
+%On the top part of \cref{fig:shadowexample}, we see that we have already made a branch from $s1$ to $e1$, which results in the modules on the old being shadowed. Being shadowed means that if we remove the module and just reconnect the old line as usual, then the branch becomes too long to connect back to its old line. The line needs to connect back to its designated point on the old line as the module located here is a common module. It performs work on the recipe $r$ otherwise worked on by the new line and should therefore not be bypassed.  To get around this we, as shown in \cref{fig:shadowexample}, alter our anti-serialization transformation in this case to replace a shadowed module with a transport module, as not to skew the two previous lines away from each other. The example shows this done for a single module, but it may be done regardless of the amount of shadowed modules which we remove.
+
+%We may however not do this if the shadowed module is also a module where a branch either connects from or to. This means that the module is common and is used by the branch. Removing it would keep us from producing that branch's specific recipe. Therefore we never allow for these modules to be removed, even if this means that we can not perform certain anti-serializations.
+
+%\begin{figure}[H]
+%\centering
+%\includegraphics[width=\textwidth]{as5.pdf}
+%\caption{Transformation that handles the case where an %anti-serialization removes a shadowed module}
+%\label{fig:shadowexample}
+%\end{figure}
 
 
 %Now imagine the situation in \cref{fig:asbase}. Here we have specific $s$ and $e$ modules chosen on a line $\gamma$ and we have chosen to branch out a specific recipe $r$. Between the two modules we may have $M_{s,e}$ placed. From this we can calculate $A_{s,e}$ and $B_{s,e}$ as described before. If $B_{s,e} = \emptyset$ then we may branch out some modules only used to work on $r$. 
