@@ -20,7 +20,7 @@ In UPPAAL we may simulate the process of production by composing several smaller
 
 To simulate production on a configuration, we must have several processes running in parallel. Some of these processes are of different types, which means that we need to set up different templates. In the following subsections we describe, how we model items in UPPAAL with the \textit{Item} template, so that we may simulate their production. In addition, we describe how we enforce the order in which items begin production using the \textit{ItemQueue} template.
 
-\subsection{Item}\label{subs:recipe}
+\subsection{Item Template}\label{subs:recipe}
 We could choose to implement a new template for each recipe, using it do instantiate items, which are described by that recipe. This would require no local functions in the template, as we could just translate the acyclic dependency graph, which describes the given recipe, to a timed automata. However, as revealed in \cref{ch:tabusearch}, we want to  instantiate our configurations in UPPAAL through python. To do this we alter the XML file, which describes our templates as well as details on the configuration to be run. Because of the structure of this file, it is easier to change local functions and variables of a template than the graphically designed timed automata. Therefore, we instead create a single template \textit{Item}, which is used to instantiate every item process. This template takes a recipe as an input parameter, to describe the work that the item requires.
 
 A recipe is given as an array of nodes. For this we have developed a \textit{Node} struct as shown in \cref{code:Node}. A node knows what type of work it represents, the number of parents it has, its children's indexes in the node array and the number of children. Node $A$ is parent of node $B$, if $B$ depends on $A$, and the other way around for children. In addition to the recipe, we also give each item a unique id and the id of the module at which it begins production. 
@@ -37,12 +37,12 @@ Before going back to the \emph{InProgress} location, a call to \emph{update\_cur
 
 After the call to \emph{update\_current\_nodes} is finished, we call \emph{no\_more\_nodes}. This will set the local \emph{done} boolean to \emph{True}, if \emph{current\_nodes} nodes is empty. This means that the item can not be worked on any further. It has now been produced and may be removed from the factory.
 
-\subsection{ItemQueue}\label{subs:recipequeue}
+\subsection{ItemQueue Template}\label{subs:recipequeue}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{recipe.pdf}
-\caption{Item template}
+\caption{\textit{Item} template}
 \label{fig:recipe}
 \end{figure}
 
@@ -53,6 +53,6 @@ The template is instantiated with an array of item ids, indicating the order, in
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{recipequeue.pdf}
-\caption{ItemQueue template}
+\caption{\textit{ItemQueue} template}
 \label{fig:recipequeue}
 \end{figure}
