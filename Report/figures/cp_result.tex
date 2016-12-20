@@ -1,10 +1,13 @@
-\begin{table}
-    \begin{tabular}{llll}
-    ~        & Predicted & Actual & Difference \\
-    Recipe 1 & 0         & 1450   & 0          \\
-    Recipe 2 & 0         & 1560   & 0          \\
-    Recipe 3 & 0         & 1718   & 0          \\
-    All 3    & 0         & 3011   & 0          \\
-    \end{tabular}
-    \caption{Results of test}
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+{\ul \textbf{Order Name}} & {\ul \textbf{Actual}} & {\ul \textbf{Simulated}} & {\ul \textbf{Difference}} \\ \hline
+\textbf{SingleNoFuse}     & 144.8                 & 144.9                    & 0.1                       \\ \hline
+\textbf{SingleLeftFuse}   & 156.5                 & 156.6                    & 0.1                       \\ \hline
+\textbf{SingleBothFuse}   & 171.6                 & 171.7                    & 0.1                       \\ \hline
+\textbf{AllTypes}         & 305                   & 311                      & 6                         \\ \hline
+\end{tabular}
+    \caption{Comparison of actual and simulated times. Time is in milliseconds.}
+    \label{tab:cp-results}
 \end{table}
