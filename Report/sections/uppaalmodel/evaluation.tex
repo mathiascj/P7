@@ -1,7 +1,7 @@
 \section{Evaluation of Model}
 Having now defined all needed templates as to model a factory configuration in UPPAAL, we would like to evaluate our design. First we will evaluate, how well our model is capable of emulating reality. This is done by comparing the time it takes for a real life factory configuration to produce an order items, to the rating we give the same configuration when simulated in UPPAAL. Furthermore, we will also evaluate how efficient our implementation is, when it comes to rating a configuration. This is done, by seeing how the state space and search time for fastest traces increase, as we increase the complexity of the configuration and order. \todo{Update hvis vi ikke kigger på kompleksistet}
 
-\subsection{The Model Compared to Reality} 
+\subsection{The Model Compared to Reality} \label{ssec:realcomparison}
 In order to compare our model to reality, we set up the configuration of the actual CP Learning Factory mentioned earlier using our UPPAAL templates. We then run different orders on both the actual factory and the model. Afterwards, we compare the time it takes for both to produce their orders.  
 
 The configuration, which we wish to simulate, is used to produce faux smartphones. 3 different recipes were set up, which described different types of smartphones that the configuration may produce. These can be seen in \cref{fig:cp-recipes}. Each are named after, how many fuses are put into them.
