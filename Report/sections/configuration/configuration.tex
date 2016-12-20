@@ -1,5 +1,7 @@
 \chapter{Constructing configurations} \label{ch:configuration}
-We have now implemented a UPPAAL model, which can be used to generate the fastest trace for a configuration along with the time taken to execute it. We wish to use this tool in order pick the best configuration to perform some kind of order and made out of fixed set of modules. In this chapter we will describe how we go about this task. First we set up a trivial example, of how we may construct a factory to deal with some order. Then we will cover, how we may formally transform such a configuration into other, potentially more suited configurations. Finally we describe how we implement these transformation rules and use them to guide a tabu-search in the hunt for the best configuration. This implementation will finally be evaluated. 
+We have now implemented a UPPAAL model, which can be used to generate the fastest trace for a configuration along with the time taken to execute it. We wish to use this tool in order pick the best configuration to perform some kind of order and made out of fixed set of modules. In this chapter we will describe how we go about this task. First we set up a trivial example, of how we may construct a factory to deal with some order. Then we will cover, how we may formally transform such a configuration into other, potentially more suited configurations. Finally we describe how we implement these transformation rules and use them to guide a tabu-search in the hunt for the best configuration. This implementation will finally be evaluated.  \todo{Introen her skal skrives om}
+
+
 \input{sections/configuration/trivial.tex}
 
 \input{sections/configuration/math_representation.tex}
