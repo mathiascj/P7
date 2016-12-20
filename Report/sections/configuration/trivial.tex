@@ -22,7 +22,7 @@ This naive configuration is obviously a poorer choice. In the man-made configura
 
 In addition the trivial example uses the minimal amount of modules needed to process our orders. This means that it does not try to increase throughput by adding additional modules to the configuration. 
 
-Yet, the advantage of the trivial example is that it is very simple to generate using a computer. This can not be said for the man-made configuration. To produce the naive example, we have to compose the three graphs in \cref{fig:toy-recipes}. On the resulting dependency graph, we then perform a topological sort. This gives us an ordered list of works, which we can then use as a blueprint to place down modules in a line, connecting them from left to right.
+Yet, the advantage of the trivial example is that it is very simple to generate using a computer. This can not be said for the man-made configuration. To produce the naive example, we have to compose the three graphs in \cref{fig:toy-recipes}.\todo{not if graph has cycles}. On the resulting dependency graph, we then perform a topological sort. This gives us an ordered list of works, which we can then use as a blueprint to place down modules in a line, connecting them from left to right.
 
 A dependency graph may of course have several topological sorts. Because of this we could just generate a configuration for each of these sorts. Each of these candidate solutions can then be set up in our UPPAAL model, and we can find the execution time of their fastest trace. The configuration with the fastest trace is then deemed the best fitting candidate.  Yet, again this configuration would most likely still be poor compared to the one we created ourselves.
 

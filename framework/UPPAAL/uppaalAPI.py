@@ -33,7 +33,6 @@ def get_best_time(recipes, modules, template_file=XML_TEMPLATE, verifyta=VERIFYT
         raise RuntimeError("Could not verify the properties, see the temp files")
 
 
-    print(modules)
 
 def get_travsersal_info(trace_iter, module_map, recipe_map, work_map):
     """
