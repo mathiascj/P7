@@ -1,7 +1,7 @@
-\subsection{Anti-Serialization}
+\section{Anti-Serialization} \label{sec:as}
 In this section we will describe a set of transformation rules known as Anti-Serializations. In \cref{fig:trivial-example} all items made according to the three recipes in \cref{fig:toy-recipes} will have to pass through modules, which do not work on them. We would like to minimize this as to reduce the total length that each item must be transported, in addition to combating bottlenecks on the line. Thus it would be beneficial if items could bypass modules that do not work on them. We get around this by branching out production on more lines, where items only go through modules that work on them. 
 
-\subsubsection{$AS_0$: Branch Between Common Modules}
+\subsection{$AS_0$: Branch Between Common Modules}
 We start by defining the most common type of anti-serialization with the $AS_0$ transformation rule given in \cref{def:as0}. Informally the rule states that if we have a set of modules $B_{r,s,e}$, which works the recipe $r \in R$ exclusivly, lying between the modules $s$ and $e$ on $\Gamma_0$ then we may branch out all modules in $B_{r,s,e}$ to form a new line. This new line is connected to $\Gamma_0$ at $s$ and $e$. We will explain this more in depth, by going over the sets brough up in the rule. 
 
 \begin{definition}[htb]
@@ -14,7 +14,7 @@ We start by defining the most common type of anti-serialization with the $AS_0$ 
         $r \in R$ \\
 		$s,e \in K_{\Gamma_0,r}$\\		
 		$\Gamma_0' = (Pre_s \cup \{s\}  \cup A_{r,s,e} \cup \{e\} \cup Pos_e, \prec)$ \\     
-        $\Gamma' = (\Gamma \setminus \{\Gamma_0\}) \cup \{\Gamma_0'\} \cup B_{r,s,e} $ \\
+        $\Gamma' = \Gamma \cup B_{r,s,e} $ \\
 		$Start' = Start \cup \{(B_{r,s,e}, s)\}$ \\
 		$End' = End \cup \{(B_{r,s,e}, e)\}$
 
@@ -73,11 +73,11 @@ While this rule is formally sound it can be difficult to read. As such we have t
 \label{fig:as0}
 \end{figure}
 
-For the rest of this section, we will now use these visualization for explaining our transformation rules, instead of setting up transition rules. If any new derived sets are shown in a new transformation rule, we will describe them as well.  
+For the rest of this chapter, we will now use these visualization for explaining our transformation rules, instead of setting up transition rules. If any new derived sets are shown in a new transformation rule, we will describe them as well.  
 
-In the rest of this sub-section we will describe two special cases known as $AS_1$, branch in, and $AS_2$, branch out. 
+In the rest of this section we will describe two special cases known as $AS_1$, branch in, and $AS_2$, branch out. 
 
-\subsubsection{$AS_1$: Branch In}\label{sssec:bi}
+\subsection{$AS_1$: Branch In}\label{sssec:bi}
 It may be that we have modules that precede the first module of $K_{\Gamma_0 ,r}$ that we would like to branch out, but can't with the rule described in \cref{def:as0}, as it requires two distinct $K_{\Gamma_0 ,r}$ modules. So for this we describe the transformation rule $AS_1$, which can be seen in \cref{fig:as1}.
 
 \begin{figure}[H]
@@ -101,7 +101,7 @@ Similarly for the $AS_0$ transformation rule, we define two total orderings. $A_
 We also again use the $Pre_s$ and $Pos_e$ sets here, but used on $K_{\Gamma_0 ,r}^{first}$ instead of $s$ and $e$.
   
 
-\subsubsection{$AS_2$: Branch Out}
+\subsection{$AS_2$: Branch Out}
 Similarly to $AS_1$ we have the case where the last element in $K_{\gamma ,r}$, is proceeded by a set of modules that we would like to branch out. For this we describe the transformation rule $AS_2$, which can be seen in \cref{fig:as2}.
 
 \begin{figure}[H]
@@ -124,34 +124,3 @@ Again we also define two total orders. $A_{\Gamma_0 ,r}^{last}$ that describes a
 
 \[B_{\Gamma_0 ,r}^{last} = \{m | m \in \beta_{\gamma ,r}  \land m \in Pos_{K_{\Gamma_0 ,r}^{last}} \}\]
 
-
-
-%\subsubsection{Restricting branches}
-%For the previous transformation rules, we have imagined that no other branch has been made from our line to any side. Yet, this will not always be the case. To be flexible enough to produce configurations with high throughput, we need to handle this. We go more in depth with how to enforce some general physical rules in \cref{ssec:conflicts}, but here we will tackle one unique to anti-serialization.
-
-%On the top part of \cref{fig:shadowexample}, we see that we have already made a branch from $s1$ to $e1$, which results in the modules on the old being shadowed. Being shadowed means that if we remove the module and just reconnect the old line as usual, then the branch becomes too long to connect back to its old line. The line needs to connect back to its designated point on the old line as the module located here is a common module. It performs work on the recipe $r$ otherwise worked on by the new line and should therefore not be bypassed.  To get around this we, as shown in \cref{fig:shadowexample}, alter our anti-serialization transformation in this case to replace a shadowed module with a transport module, as not to skew the two previous lines away from each other. The example shows this done for a single module, but it may be done regardless of the amount of shadowed modules which we remove.
-
-%We may however not do this if the shadowed module is also a module where a branch either connects from or to. This means that the module is common and is used by the branch. Removing it would keep us from producing that branch's specific recipe. Therefore we never allow for these modules to be removed, even if this means that we can not perform certain anti-serializations.
-
-%\begin{figure}[H]
-%\centering
-%\includegraphics[width=\textwidth]{as5.pdf}
-%\caption{Transformation that handles the case where an %anti-serialization removes a shadowed module}
-%\label{fig:shadowexample}
-%\end{figure}
-
-
-%Now imagine the situation in \cref{fig:asbase}. Here we have specific $s$ and $e$ modules chosen on a line $\gamma$ and we have chosen to branch out a specific recipe $r$. Between the two modules we may have $M_{s,e}$ placed. From this we can calculate $A_{s,e}$ and $B_{s,e}$ as described before. If $B_{s,e} = \emptyset$ then we may branch out some modules only used to work on $r$. 
-
-%If $|A_{s,e}| = |B_{s,e}| + 2$ , then we can branch out as shown in the top of \cref{fig:astrans}. Here we simply remove $|B_{s,e}|$ from the rest of $M_{s,e}$ leaving us with in its place $A_{s,e}$. The module $s$ is then connected upwards to the first element of $|B_{s,e}|$. The last element of $|B_{s,e}|$ is then connected to $e$. This transformation also entails that all of  $|B_{s,e}|$ is removed from $\gamma$ and that a new line containing $|B_{s,e}|$ is added to $\Gamma$. For each of the transformations presented in this subsection we alter $\gamma$ and add to $\Gamma$ the new branch which is created.  Notice that the modules beneath the new line are marked as red. This means that the shadow variable in the module tuples on the old line have been set to true. This is used in order to handle transformation conflicts as described later in \cref{ssec:tc}.
-
-%In the middle of \cref{fig:astrans} we describe the case where $A_{s,e}| > |B_{s,e}| + 2$. The difference between the cardinality of these two sets is called i.  In this case we can not physically connect the last element of $|B_{s,e}|$ downwards to $e$. We get around this issue by appending the new line with i new transport modules. These are modules which can not perform any work and are only used to transport recipes. The last of these transporters is then connected downwards to $e$. The new line added to $\Gamma$ consists of the modules in $|B_{s,e}|$ ordered behind the new transport modules as depicted in the figure. 
-
-%The last case, shown in the bottom of \cref{fig:astrans} is similar to the previous one, but instead $A_{s,e}| < |B_{s,e}| + 2$. In this case we append the original line with transporters instead. This requires an update of $\gamma$ to include these new transporters, while the new line added to $\Gamma$ is again just $|B_{s,e}|$. 
-
-%\begin{figure}[H]
-%\centering
-%\includegraphics[width=\textwidth]{as2.pdf}
-%\caption{3 different configurations to which we may go from %\cref{fig:asbase}. Top: Case when $A_{s,e}| = |B_{s,e}| + 2$. Middle: Case when $A_{s,e}| > |B_{s,e}| + 2$. Bottom: Case when $A_{s,e}| < |B_{s,e}| + 2$ }
-%\label{fig:astrans}
-%\end{figure}
