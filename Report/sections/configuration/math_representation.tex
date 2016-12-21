@@ -1,5 +1,5 @@
 \section{Formal Configuration Description} \label{sec:math_rules}
-In this section we formally describe what the parts that make up a configuration are. We do this by first describing the keystones of a configuration, namely recipes, modules and lines. We then describe a configuration as a tuple of sets. This tuple is then what we can perform transformations on in later sections.
+In this section we formally describe the parts making up a configuration. We do this by first describing the keystones of a configuration, namely recipes, modules and lines. We then describe a configuration as a tuple of sets. This tuple is what we can perform transformations on in later sections.
 
 \begin{definition}[htb]
 $recipe: \textit{Set of all work required to complete a concrete recipe.}$
@@ -13,7 +13,7 @@ $line: \textit{Set of modules totally ordered on the relation} \prec$
 \end{definition}
 
 
-In \cref{def:basic} we define some basic elements, which make up a configuration. We treat a recipe as a set of works, since our initial configuration will always be made up of a single line of ordered modules able to complete all given recipes. And as none of the transformation rules described later will change this order, we do not need to enforce an order on the works that make up a recipe. A module is described as the set of works that it may perform on an item. A line is a set of modules totally ordered on $\prec$. The relation orders modules according to their placement in the line from left to right. If $m_1 \prec m_2$ for modules $m_1$ and $m_2$ in a line, then there is a horizontal path from $m_1$ to $m_2$ traveling rightwards. 
+In \cref{def:basic} we define some basic elements, which make up a configuration. We treat a recipe as a set of works, since our initial configuration will always be made up of a single line of ordered modules able to complete all given recipes. As none of the transformation rules described later will change this order, we do not need to enforce an order on the works that make up a recipe. A module is described as the set of works that it may perform on an item. A line is a set of modules totally ordered on $\prec$. The relation orders modules according to their placement in the line from left to right. If $m_1 \prec m_2$ for modules $m_1$ and $m_2$ in a line, then there is a horizontal path from $m_1$ to $m_2$ traveling rightwards. 
 
 \begin{definition}[htb]
 $Configuration: (R, M , \Gamma, \Gamma_0, AW, Start, End)$
