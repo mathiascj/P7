@@ -96,25 +96,19 @@ def anti_serialize(start, path, end, csh):
 def neighbours_anti_serialized(frontier, csh, active):
     """
     Gets all possible anti_serializations, when trying to split out a random recipe from main line
-    :param worked: Dict saying for each module, what recipes were worked on it
     :param frontier: Configuration string, which we wish to find neighbours for
     :param csh: config_string_handler object
+    :param active: active dict
     :return: A list of strings, each representing a neighbouring configuration
     """
 
-
-
-
-    # Get main line
     csh.make_configuration(frontier)
     for m in csh.modules_in_config(frontier):
         if m.m_id in active:
             m.active_w_type = active[m.m_id]
 
+    # Get Main line
     main_line, _, _ = csh.find_lines()
-
-    # Find recipes still worked on main line
-
 
     # Choose random recipe to anti-serialize
     recipe = choice(csh.recipes)
