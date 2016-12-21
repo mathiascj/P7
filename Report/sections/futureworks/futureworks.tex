@@ -1,0 +1,21 @@
+\chapter{Future Work}
+In this chapter we will briefly go over some of the additions to our project that we would have like to accomplish in the future if the time and the means are there for it.
+
+
+\section{Missing Implementations of Transformation Rules}
+Perhaps the most pressing addition we could make, would be to implement the neighbour functions for $Para_1$ and $Para_2$. $Para_2$ should be relatively straight forward to implement, as there is no limitation stopping us from implementing it. $Para_1$ however would require us to redefine how we add items to a configuration. Currently items can only be added to a configuration at their starting module, in which to problem lays. As $Para_1$ requires that items also should be able to be added at the new branch it creates. This could be solved by defining how items are added not as a start module, but rather a start work. Then all modules that can perform this start work can have items added to them.
+
+\section{More Complex Transformation Rules}
+We would have liked to describe more complex version of most of our transformation rules. Such as rules describing how we could anti-serialize a group of recipes at once. As this could be usefull if you have modules on which only similar recipes share work.
+
+Another more complex transformation rule could be allowing the parallel rules to create parallel branches that just are capable of doing the same work modules you are parallelizing out from. A good example was previously explained in \cref{sec:exp-tabu}, as the running example could parallelize out two modules that together could do all the work of a single, while our tabu search could not.
+
+Lastly we would like to implement a many to many swap transformation. That similarly to the complex parallelization rule explained above allows us to swap modules that combined can do the work of whatever we wish to swap it with.
+
+\section{Better Heuristics for Tabu Search}
+In the current implementation of our tabu search, we use memory rather ad hod, we would like to improve upon how we define and use both short and long term memory. Such that we in general would faster get better search result. One way we could improve our search is including which neighbours you took last time you were in an element in long term memory. Such that we may avoid back tracking to a configuration in long term memory, only to follow the same path we took last time we were there. 
+
+ 
+
+
+
