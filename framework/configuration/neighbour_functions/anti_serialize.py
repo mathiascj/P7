@@ -93,7 +93,7 @@ def anti_serialize(start, path, end, csh):
     return csh.configuration_str()
 
 
-def neighbours_anti_serialized(frontier, csh, worked, active):
+def neighbours_anti_serialized(frontier, csh, active):
     """
     Gets all possible anti_serializations, when trying to split out a random recipe from main line
     :param worked: Dict saying for each module, what recipes were worked on it
@@ -101,18 +101,9 @@ def neighbours_anti_serialized(frontier, csh, worked, active):
     :param csh: config_string_handler object
     :return: A list of strings, each representing a neighbouring configuration
     """
-    def invert_dict(d):
-        """
-        Inverts a dictionary many to many
-        :param d: dictionary
-        :return: inverted dictionary
-        """
-        res = {}
-        for k in d:
-            for v in d[k]:
-                res.setdefault(v, set()).add(k)
 
-        return res
+
+
 
     # Get main line
     csh.make_configuration(frontier)
@@ -122,54 +113,44 @@ def neighbours_anti_serialized(frontier, csh, worked, active):
 
     main_line, _, _ = csh.find_lines()
 
-    iworked = invert_dict(worked) # Looks up modules from recipes
-
     # Find recipes still worked on main line
-    recipes = {}
-    for name, mods in iworked.items():
-        for m in mods:
-            if csh.module_dictionary[m] in main_line:
-                recipes[name] = mods
-                break
+
 
     # Choose random recipe to anti-serialize
-    chosen_recipe_name = choice(list(recipes.keys()))
-    chosen_recipe_mods = iworked[chosen_recipe_name]
+    recipe = choice(csh.recipes)
+    r = set(recipe.keys())
+    r_bar = set()
+    for rec in csh.recipes:
+        if rec != recipe:
+            r_bar |= set(rec.keys())
 
-    # Remove chosen recipe
-    recipes.pop(chosen_recipe_name)
+    K = {m for m in csh.current_modules if any({p in r and p in r_bar for p in m.active_w_type})}
+    beta = {m for m in csh.current_modules if all({p in r and p not in r_bar for p in m.active_w_type})}
 
-    # Find all modules worked on by remaining recipes
-    other_recipe_mods = set().union(*recipes.values())
-
-    # Run over main line and note areas which may be anti-serialized
-    neighbours = []
-    unique_mods = []
-    last_common = None
-
+    neighbour_args = []
+    S = None
+    E = None
+    B = []
+    
     for mod in main_line:
-        # When the chosen recipe and other recipes have mod in common
-        if mod.m_id in chosen_recipe_mods and mod.m_id in other_recipe_mods:
-            if unique_mods:
-                neighbour = [last_common, unique_mods, mod, csh]
-                neighbours.append(neighbour)
-                unique_mods = []
-            last_common = mod
+        if mod in K and not E:
+            E = mod
+            if B:
+                neighbour_args.append([S, B, E, csh])
+            S = E
+            B = []
+            E = None
+        elif mod in beta:
+            B.append(mod)
 
-        # When mod is unique to the chosen recipe
-        elif mod.m_id in chosen_recipe_mods:
-            unique_mods.append(mod)
-
-    # If possible, branches out the last found path, not branching in again
-    if unique_mods:
-        neighbour = [last_common, unique_mods, None, csh]
-        neighbours.append(neighbour)
-
-    results = []
-    for n in neighbours:
+    if S and B:
+        neighbour_args.append([S, B, E, csh])
+            
+    neighbours = []
+    for n in neighbour_args:
         # Only call neighbours, where we do not remove starts and ends of other branches
         path = n[1]
         if not any(x.is_start or x.is_end for x in path):
-            results.append(anti_serialize(*n))
+            neighbours.append(anti_serialize(*n))
 
-    return results
+    return neighbours

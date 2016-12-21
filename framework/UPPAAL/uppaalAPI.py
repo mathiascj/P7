@@ -19,7 +19,7 @@ def get_best_time(recipes, modules, template_file=XML_TEMPLATE, verifyta=VERIFYT
     :return: The best cost of the configuration
     """
     m_map, w_map, r_map =\
-        generate_xml(template_file=template_file, modules=modules, recipes=recipes, xml_name=XML_FILE, q_name=Q_FILE)
+        generate_xml(template_file=template_file, modules=modules.copy(), recipes=recipes.copy(), xml_name=XML_FILE, q_name=Q_FILE)
 
     result, trace = run_verifyta(XML_FILE, Q_FILE, "-t 2", "-o 3", "-u", "-y", verifyta=verifyta)
 

@@ -23,7 +23,7 @@ WEIGHT_Y = 1
 
 
 
-def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10):
+def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10, max_initial_configs=10):
     """ Tabu Search
     :param recipes: A list of Recipe objects
     :param modules: A list of module objects
@@ -41,6 +41,7 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
         if config in config_fitness:
             return config_fitness[config]
         else:
+            print('Evaluating: ' + config)
             csh.make_configuration(config)  # SIDE EFFECT: Makes loads of changes to modules
             modules_in_config = csh.modules_in_config(config)
             fitness, worked, transported, active = get_best_time(recipes, modules_in_config, XML_TEMPLATE, VERIFYTA)
@@ -108,32 +109,26 @@ def tabu_search(recipes, modules, transport_module, iters=50, short_term_size=10
     long_term_memory = []
     short_term_memory = []
 
-    for config in generator:
+    for i, config in enumerate(generator):
+        if i + 1 > max_initial_configs:
+            break
         evaluate_config(config)  # Updates dynamic memory
         long_term_memory.append((csh.configuration_str(), weighted_funcs))
+
 
 
     # Creating the initial configuration and evalutates it
     long_term_memory.sort(key=(lambda x: config_fitness[x[0]]))
     initial_memory = long_term_memory.copy()
-    overall_best = long_term_memory[0][0]
     frontier = long_term_memory[0][0]
 
     nabla = 0
     # Here begins the actual search
     for i in range(iters):  # TODO: Maybe have stopping criteria instead of iterations, or allow for both.
         neighbour_func = get_neighbour_func(weighted_funcs)
-
-        if neighbour_func is neighbours_anti_serialized:
-            args = [frontier, csh, config_worked[frontier], config_active[frontier]]
-        else:
-            args = [frontier, csh, config_active[frontier]]
+        args = [frontier, csh, config_active[frontier]]
 
         print("Getting Neighbours for " + str(neighbour_func))
-
-        # TODO REMOVE LATER
-        #if neighbour_func is neighbours_swap:
-        #    neighbour_func = neighbours_parallelize
 
         results = []
 

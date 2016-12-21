@@ -19,17 +19,17 @@ t = [[100, 100, 100, 100],
       [100, 100, 100, 100],
       [100, 100, 100, 100]]
 
-m0 = SquareModule('0', {0: 60, 9: 0},  t, 3)
+m0 = SquareModule('m0', {'w0': 60},  t, 3)
 
-m1 = SquareModule('1', {1: 106},  t, 3)
+m1 = SquareModule('m1', {'w1': 106},  t, 3)
 
-m2 = SquareModule('2', {2: 582},  t, 3, allow_passthrough=True)
+m2 = SquareModule('m2', {'w2': 582},  t, 3)
 
-m3 = SquareModule('3', {3: 20}, t, 3)
+m3 = SquareModule('m3', {'w3': 20}, t, 3)
 
-m4 = SquareModule('4', {4: 68},  t, 3, allow_passthrough=True)
+m4 = SquareModule('m4', {'w4': 68},  t, 3)
 
-m5 = SquareModule('5', {5: 68},  t, 3, allow_passthrough=True)
+m5 = SquareModule('m5', {'w5': 68},  t, 3)
 
 m0.up = m1
 m1.up = m2
@@ -45,26 +45,23 @@ traces = []
 
 states = []
 
-recipes = []
-func_deps = {0: set(), 1: {0}, 2: {1}, 3: {2}, 4:  {3}, 5: {4}}
+func_deps = {'w0': set(), 'w1': {'w0'}, 'w2': {'w1'}, 'w3': {'w2'}, 'w4':  {'w3'}, 'w5': {'w4'}}
+recipes = Recipe('r0', func_deps, 0, 0, 1)
 
-for i in range(0, 100):
-    recipes.append(Recipe(func_deps, 0, 0))
-
-for i in range(10, 11):
-    try:
-        generate_xml(template, modules, recipes[:i], xml_name=temp_XML, q_name=temp_Q)
+for i in range(101, 152, 10):
+        generate_xml(template, modules, [Recipe('kage', func_deps, 'm0', 0, i)], xml_name=temp_XML, q_name=temp_Q)
         start = time()
         res, trace = run_verifyta(temp_XML, temp_Q, '-t 2', '-o 3', '-y', '-u', verifyta=V)
         end = time()
-        times.append(end - start)
+        time_res = end - start
+
+        times.append(time_res)
         ress.append(res)
         traces.append(trace)
         nstates = (int(re.search('States explored : (\d+)', res.decode()).group(1)))
         states.append((nstates, i))
-        print(i)
-    except:
-        pass
+        print(str(i) + "\t\tstates: " + str(nstates) + "\t\ttime: " + str(time_res))
+
 
 
 
