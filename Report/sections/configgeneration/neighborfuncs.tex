@@ -1,4 +1,4 @@
-\section{Neighbour Functions}
+\section{Neighbour Functions} 
 In this section we describe how we implemented the transformation rules described in \cref{sec:math_rules} as neighbour functions. These neighbour functions are what that is used by our tabu search for generating neighbours. The code for these functions can be found in the \textit{neighbour\_functions} directory and the code for solving conflicts in \textit{path\_placers.py}.
 
 
@@ -17,6 +17,6 @@ We also only implemented the $Para_0$ rule, and not $Para_1$ and $Para_2$. $Para
 \subsection{Swap}
 For swap we implemented the neighbour function, such that we get all possible swaps. This can possible lead to a lot of neighbours having to be evaluated, if a configuration has a lot of free modules that are capable of being swapped. We can combat this by not making the swap transformations as likely as the other transformations in our tabu search.
 
-\subsection{Conflicts}
+\subsection{Conflicts} 
 For our conflict solving transformation rules, we implemented special functions that are capable of taking a neighbour which might have a conflict in it from one of the three previously mentioned neighbour functions, and then solve any present conflicts using the rules described in \cref{ssec:conflicts}. We used the $Push Around$ rule for fixing conflicts that occur due to anti-serialization and $Push Beneath$ for conflicts that occur due to parallelization.
  We always check the neighbours returned by our neighbour functions for conflicts and resolve them before we evaluate them. As we are not interested in evalutating and comparing neighbours with conflicts in them.
