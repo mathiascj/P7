@@ -11,7 +11,7 @@ Imagine a situation similar to what the rule $AS_0$ in \cref{fig:as0} describes.
 If $|A_{r,s,e}| + 2 > |B_{r,s,e}|$ , then the result of our $AS_0$ transformation rule will be the top of \cref{fig:astrans}. In this case, we append the new line with transport modules to make the two lines fit each other. Notice that the modules beneath the new line are marked as shadowed, i.e. coloured red. This is used in order to handle transformation conflicts as described below in \cref{sssec:shadow}. We also introduce blue rounded boxes with indexes to the top right of them. These boxes mean that anything inside of them are serialized $i$ times, where $i$ is the index given with the box. 
 
 
-If $|A_{r,s,e}| + 2 \leq |B_{r,s,e}|$,  then the result of our $AS_0$ transformation rule will be the bottom of \cref{fig:astrans}, In this case we append \Gamma_0 with transporters instead of the new line as to make them fit together.
+If $|A_{r,s,e}| + 2 \leq |B_{r,s,e}|$,  then the result of our $AS_0$ transformation rule will be the bottom of \cref{fig:astrans}, In this case we append $\Gamma_0$ with transporters instead of the new line as to make them fit together.
 
 \begin{figure}[H]
 	\centering
@@ -21,7 +21,7 @@ If $|A_{r,s,e}| + 2 \leq |B_{r,s,e}|$,  then the result of our $AS_0$ transforma
 \end{figure}
 
 \subsubsection{Shadowed Modules}\label{sssec:shadow}
-On the top part of \cref{fig:shadowexample},  we have already made a branch from $s1$ to $e1$, which results in the modules on \Gamma_0 being shadowed. Being shadowed means that if we remove the module and just reconnect the old line as usual, then the branch becomes too long to connect back to its old line. Shadowed boxes are visualized with the colour red. The line needs to connect back to its designated point on the old line as the module located here is a common module. This module  performs work on the recipe $r$ otherwise worked on by the new line and should therefore not be bypassed. To get around this we, as shown in \cref{fig:shadowexample}, alter our anti-serialization transformation in this case to replace a shadowed module with a transport module, as not to skew the two previous lines away from each other. The example shows this done for a single module, but it may be done regardless of the amount of shadowed modules, which we remove. In \cref{fig:shadowexample} we also introduce rounded boxes with three dots in them. These boxes just means that here appears any number of modules in a total order.
+On the top part of \cref{fig:shadowexample},  we have already made a branch from $s1$ to $e1$, which results in the modules on $\Gamma_0$ being shadowed. Being shadowed means that if we remove the module and just reconnect the old line as usual, then the branch becomes too long to connect back to its old line. Shadowed boxes are visualized with the colour red. The line needs to connect back to its designated point on the old line as the module located here is a common module. This module  performs work on the recipe $r$ otherwise worked on by the new line and should therefore not be bypassed. To get around this we, as shown in \cref{fig:shadowexample}, alter our anti-serialization transformation in this case to replace a shadowed module with a transport module, as not to skew the two previous lines away from each other. The example shows this done for a single module, but it may be done regardless of the amount of shadowed modules, which we remove. In \cref{fig:shadowexample} we also introduce rounded boxes with three dots in them. These boxes just means that here appears any number of modules in a total order.
 
 As an exception, we may not remove a shadowed module, if it also used as a branching in or branching out point for some line. This means that the module is common and is used by the branch. Removing it would keep us from producing items according that branch's specific recipe. Therefore, we never allow for these modules to be removed, even if this means that we can not perform certain anti-serializations.
 
@@ -46,7 +46,7 @@ There is also the case, where the new line is covered by the old line entirely. 
 
 In the cases where the new entirely intersects the old it will add transport modules where needed, or otherwise guide itself vertically through modules that already exists. These examples only show the case, where a single old line is placed above the main line, from which we branch off. In the case of more line levels, the new line will simply climb vertically until it finds a level where it may be placed without intersection. 
 
-Push around is the intersect handling, we use when inserting new lines as a result of anti-serialization. This is chosen as there is no need to keep this new line close to \Gamma_0, from which it sprouted. 
+Push around is the intersect handling, we use when inserting new lines as a result of anti-serialization. This is chosen as there is no need to keep this new line close to $\Gamma_0$, from which it sprouted. 
 
 \begin{figure}[H]
 \centering
