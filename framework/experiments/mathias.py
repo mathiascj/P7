@@ -1,6 +1,17 @@
 from module import SquareModule
 from recipe import Recipe
 from configuration.tabu_search import tabu_search
+import time
+
+
+try:
+    while(True):
+        print('in')
+        time.sleep(2)
+except KeyboardInterrupt:
+    print('out')
+
+print('finish')
 
 """
 VERIFYTA = '../UPPAAL/verifyta'
