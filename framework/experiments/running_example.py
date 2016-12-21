@@ -31,15 +31,15 @@ fd0 = {'load-doll': set(), 'arms': {'load-doll'}, 'legs': {'load-doll'}, 'head':
 fd1 = {'load-wood': set(), 'saw': {'load-wood'}, 'hammer': {'saw'}, 'screw': {'saw'}, 'sand': {'hammer', 'screw'}, 'wrap': {'sand'}}
 fd2 = {'load-wood': set(), 'saw': {'load-wood'}, 'hammer': {'saw'}, 'sand': {'hammer'}, 'paint': {'sand'}, 'wrap': {'paint'}}
 
-recipe_doll = Recipe(name='recipe_doll', dependencies=fd0, start_module='doll_loader', start_direction=0, amount=3)
-recipe_horse = Recipe(name='recipe_horse', dependencies=fd1, start_module='wood_loader', start_direction=0, amount=3)
-recipe_sword = Recipe(name='recipe_sword', dependencies=fd2, start_module='wood_loader', start_direction=0, amount=3)
+recipe_doll = Recipe(name='recipe_doll', dependencies=fd0, start_module='doll_loader', start_direction=0, amount=2)
+recipe_horse = Recipe(name='recipe_horse', dependencies=fd1, start_module='wood_loader', start_direction=0, amount=2)
+recipe_sword = Recipe(name='recipe_sword', dependencies=fd2, start_module='wood_loader', start_direction=0, amount=2)
 
 recipes = [recipe_doll, recipe_horse, recipe_sword]
 
 transporter = SquareModule(m_id='trans', wp_time={}, t_time=t, queue_length=queue_length)
 
-res = tabu_search(recipes, modules, transporter, iters=100, short_term_size=5, max_initial_configs=13)
+res = tabu_search(recipes, modules, transporter, iters=100, short_term_size=5, max_initial_configs=10)
 
 for r in res:
     print(r)

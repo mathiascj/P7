@@ -1,27 +1,40 @@
-tabu_search(modules, recipes, transport, iter):
-	short = []
-	long = []
-	dynamic = {}
+def tabu_search(modules, recipes, transport, iter, max_queue_size):
+	short_mem = []
+	long_mem = []
+	dynamic_mem = {}
 
 	init_configs = get_init_configs(modules, recipes)
 
-	for c in init_configs:
-		evaluate(c, dynamic)
-		long.append(c)
+	for config in init_configs:
+		evaluate(config, dynamic_mem)
+		long_mem.append(config)
 
-	frontier = best(dynamic)
+	frontier = best(long_mem)
 
+	# The actual Tabu Search
 	from 0 to iter:
+		# Select what kind of neighbours we based on a heuristic
 		func = get_neighbour_func()
+		
+		# Get neighbour and evaluate
 		neighbours = func(modules, recipe, transport)
 		for c in neighbours:
 			evaluate(c)
-			short.append(c)
-			long.append(c)
-
-	frontier = best(neighbours - short)
-	if front = empty:
-		front backtrack(long)
-
+			
+		# Select the best neighbour not in short_mem
+		frontier = best(neighbours - short_mem)
+		
+		# If all neighbours are in short_mem
+		if frontier == None:  
+			# We go to some config in long_mem
+			frontier = backtrack(long_mem)
+			long_mem.remove(frontier)
+		
+		# Update memory
+		if len(short_mem) > max_queue_size:
+			short_mem.pop()
+		short_mem.append(c)
+		long_mem.append(c)
+		
 	return best(dynamic)
 
