@@ -1,10 +1,10 @@
-def tabu_search(modules, recipes, transport, iter, max_queue_size):
+def tabu_search(modules, recipes, transport, iter, max_short_size):
 	short_mem = []
 	long_mem = []
 	dynamic_mem = {}
-
+	
+	# Get initial liniear lines and evalutate them
 	init_configs = get_init_configs(modules, recipes)
-
 	for config in init_configs:
 		evaluate(config, dynamic_mem)
 		long_mem.append(config)
@@ -31,7 +31,7 @@ def tabu_search(modules, recipes, transport, iter, max_queue_size):
 			long_mem.remove(frontier)
 		
 		# Update memory
-		if len(short_mem) > max_queue_size:
+		if len(short_mem) > max_short_size:
 			short_mem.pop()
 		short_mem.append(c)
 		long_mem.append(c)
