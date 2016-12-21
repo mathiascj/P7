@@ -5,7 +5,7 @@ As a configuration is made up of individual modules, it seems natural to model i
 In our early design work, we tried to implement most everything brought up in \cref{sec:runningexample}. A module has an identifying name, and it may only work on one item at a time. It also takes a certain amount of time to perform  work and to transport an item across it. However, we start by allowing modules to only perform one type of work. There are also no physical restrictions, on which modules may be connected, other than the fact that a module may not be connected to more than four other modules. These basic ideas turned into our first version of the \textit{Module} template, which can be seen in \cref{fig:earlymodule}.
 
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{earlymodule.pdf}
 \caption{Early version of the \textit{Module} template}
@@ -26,11 +26,11 @@ These features lead to some drastic changes in the module template. The biggest 
 One aspect that we ultimately do not try to model in UPPAAL are the more extensive physical rules for placing down modules. We choose to enforce these later, when generating and comparing configurations. 
 
 \subsubsection{ModuleQueue Template}\label{subs:modulequeue}
-One of the most important characteristics observed was the queuing nature of the system. Several items may be located on a module, but only one is being processed at a time. Some of the items queued may need to be processed, others just want to be passed along to a neighbouring module. Based on this behaviour, we construct the \emph{ModuleQueue} template, which can be seen on \cref{fig:modulequeue}. A process of this template has a fixed size of modules, which it may hold. Other modules may be able to use the \emph{enqueue} channel to move an item onto the module. In addition, items may be removed from it through a synchronization on its \emph{dequeue} channel.
+One of the most important characteristics observed was the queuing nature of the system. Several items may be located on a module, but only one is being processed at a time. Some of the items queued may need to be processed, others just want to be passed along to a neighbouring module. Based on this behavior, we construct the \emph{ModuleQueue} template, which can be seen on \cref{fig:modulequeue}. A process of this template has a fixed size of modules, which it may hold. Other modules may be able to use the \emph{enqueue} channel to move an item onto the module. In addition, items may be removed from it through a synchronization on its \emph{dequeue} channel.
 
 As in the earlier version, an item is moved between instances by proxy of its id. The id is always stored in the local \emph{lock} variable.   
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{modulequeue.pdf}
 \caption{The \textit{ModuleQueue} template}
@@ -39,9 +39,9 @@ As in the earlier version, an item is moved between instances by proxy of its id
 
 
 \subsubsection{ModuleWorker Template}\label{subs:moduleworker}
-The \emph{ModuleWorker} template can be seen in \cref{fig:moduleworker}. An instance of this template may apply several different types of work upon an item. In the \textit{Idle} location, the worker waits to synchronize with the module's \emph{ModuleQueue} instance allowing it to enter the \textit{Done} location. If the module can perform some work, it will move into the \emph{Working} location. Here it will wait for \emph{p\_time}, symbolising the time it takes to perform the work. When the wait is over, it will try to synchronize with the item through the \emph{handshake} and \emph{work} channels as in the earlier version. Arriving at the \emph{Done} location, we may choose to work the item further if possible. Otherwise we perform a synchronization on the module's \emph{intern} channel. This passes the item over to the module's \emph{ModuleTransporter} instance. Synchronization on the intern channel may also occur, if the module can not perform any work on the item. This models the case, where an item has to pass through a module without having worked performed, while the model does not allow for pass through while it is working on other items.
+The \emph{ModuleWorker} template can be seen in \cref{fig:moduleworker}. An instance of this template may apply several different types of work upon an item. In the \textit{Idle} location, the worker waits to synchronize with the module's \emph{ModuleQueue} instance allowing it to enter the \textit{Done} location. If the module can perform some work, it will move into the \emph{Working} location. Here it will wait for \emph{p\_time}, symbolizing the time it takes to perform the work. When the wait is over, it will try to synchronize with the item through the \emph{handshake} and \emph{work} channels as in the earlier version. Arriving at the \emph{Done} location, we may choose to work the item further if possible. Otherwise we perform a synchronization on the module's \emph{intern} channel. This passes the item over to the module's \emph{ModuleTransporter} instance. Synchronization on the intern channel may also occur, if the module can not perform any work on the item. This models the case, where an item has to pass through a module without having worked performed, while the model does not allow for pass through while it is working on other items.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{moduleworker.pdf}
 \caption{The \textit{ModuleWorker} template}
@@ -51,13 +51,13 @@ The \emph{ModuleWorker} template can be seen in \cref{fig:moduleworker}. An inst
 \subsubsection{ModuleTransporter Template}
 The \emph{ModuleTransporter} template can be seen in \cref{fig:moduletransporter}. A process of this template allows a module to transport an item onto a neighbouring module. If the item comes from the module's \emph{ModuleWorker} instance, then we move into the \emph{Selector} location by synchronizing on the module's \emph{intern} channel. We may however also move directly to the \emph{Selector} location by synchronizing with the module's \emph{ModuleQueue} instance over the \emph{dequeue} channel. This can however only be done, if the \cref{fig:moduletransporter} module allows us to pass an item through a module, while it is working on another item. This is indicated by the boolean \emph{pass\_through} variable, which is given at process instantiation. To create a module only used for transportation, we set this variable to \emph{true} and do not create a \emph{ModuleWorker} instance for the module. 
 
-Once in the \emph{Selector} location a item may go to \emph{Idle} or \emph{Transporting}. If the item is done, it has to go back to \textit{Idle} and be removed from the production line by synchronizing on the \emph{remove} channel, as opposed to the \emph{transport[0]} in the earlier version. This also means that we do not specify a specefic module to remove items from, they are just removed when done.
+Once in the \emph{Selector} location a item may go to \emph{Idle} or \emph{Transporting}. If the item is done, it has to go back to \textit{Idle} and be removed from the production line by synchronizing on the \emph{remove} channel, as opposed to the \emph{transport[0]} in the earlier version. This also means that we do not specify a specific module to remove items from, they are just removed when done.
 
 If the item is not done, it may look for a neighbouring module to be passed onto. A module may have up to four neighbours, one on each side. These are stored in the local \emph{next} array, their index indicating their placement relative to the module. When moving to \emph{Transporting} location, the item will choose a possible neighbour. In \emph{Transporting}, we wait to simulate the time taken to transport an item over the module. This time varies according to where the item enters the module, and where it leaves. The different transport times are stored in the 4 by 4 multidimensional \emph{t\_time} array. Given that we at this point know the direction, which the item entered from \emph{origin}, and the direction on which it will leave \emph{succ}, we can look up the exact time to wait in \emph{t\_time}. By implementing this feature, we ensure that the time take to pass over a module becomes more accurate to how an item may actually be transported over a module. 
 
 Once the wait is over we move to the \emph{Queuing} location. If the neighbour's queue is full, we wait here until there is room. When possible we synchronize with the neighbours instance of \emph{ModuleQueue} using the \emph{enqueue} channel. At the same time we use the local \emph{inverse} function to calculate, from which side the item enters the neighbouring module. This is sent with the global \emph{var2} variable and is later saved into the  \emph{origin} variable of the neighbour's \textit{ModuleQueue} process. 
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{moduletransporter.pdf}
 \caption{The \textit{ModuleTransporter} template}

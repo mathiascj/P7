@@ -9,9 +9,9 @@ We could have implemented the neighbour function for anti-serialization in such 
 
 
 \subsection{Parallelization}
-For parallelization, we designed the neighbour function such that we get all possible largest parallelizations. This is done because. as we assume that if we can parallelize a set of modules on a line, then the neighbours that are a configuration with a subset of these modules parallelized tois likely to be worse. This might not always be the case, but it is an assumption we make, so that again our tabu search wonill not have to perform too many evaluation in a single iteration. 
+For parallelization, we designed the neighbour function such that we get all possible largest parallelizations. This is done because. as we assume that if we can parallelize a set of modules on a line, then the neighbours that are a configuration with a subset of these modules parallelized is likely to be worse. This might not always be the case, but it is an assumption we make, so that again our tabu search will not have to perform too many evaluation in a single iteration. 
 
-We alsoAdditionaly, we only implemented the $Para_0$ rule, and not $Para_1$ and $Para_2$. $Para_1$ was not implemented due to how, as we hcandled items start location. As in our implementation a only give one start module to \textit{Recipe} objects. An item can only start on a single specefic module, and $Para_1$ requires that an item can start onhas the option to start in one of multiple location. $Para_2$ was not implemented due to time constraints and for the gullible notion of symmetry.
+WAdditionaly, we only implemented the $Para_0$ rule, and not $Para_1$ and $Para_2$. $Para_1$ was not implemented due to how, as we hcandled items start location. As in our implementation a only give one start module to \textit{Recipe} objects. An item can only start on a single specefic module, and $Para_1$ requires that an item can start onhas the option to start in one of multiple location. $Para_2$ was not implemented due to time constraints and for the gullible notion of symmetry.
 
 
 \subsection{Swap}
