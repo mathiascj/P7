@@ -1,5 +1,5 @@
 def tabu_search(modules, recipes, transport, iter, max_short_size):
-	short_mem = []
+	short_mem[max\_short\_size]
 	long_mem = []
 	dynamic_mem = {}
 	
@@ -13,10 +13,10 @@ def tabu_search(modules, recipes, transport, iter, max_short_size):
 
 	# The actual Tabu Search
 	from 0 to iter:
-		# Select what kind of neighbours we based on a heuristic
+		# Select how to generate neighbours
 		func = get_neighbour_func()
 		
-		# Get neighbour and evaluate
+		# Get neighbours and evaluate
 		neighbours = func(modules, recipe, transport)
 		for c in neighbours:
 			evaluate(c)
