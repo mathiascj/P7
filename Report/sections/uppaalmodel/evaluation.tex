@@ -6,16 +6,16 @@ In order to compare our model to reality, we set up the configuration of the act
 
 The configuration, which we wish to simulate, is used to produce faux smartphones. 3 different recipes were set up, which described different types of smartphones that the configuration may produce. These can be seen in \cref{fig:cp-recipes}. Each are named after, how many fuses are put into them.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{cp-recipes.pdf}
+\includegraphics[width=0.8\textwidth]{cp-recipes.pdf}
 \caption{Dependency graphs representing the three recipes the CP-Factory could produce}
 \label{fig:cp-recipes}
 \end{figure}
 
 Inspecting the configuration, we find the different modules and the types of work that they may perform, as well as how they connect. This is shown in \cref{fig:cp-setup}. We choose to disregard that these modules each have two conveyor belts, as both are not used by any item produced. We also disregard the \textit{Transport1} module, as it is not used in the production of any item.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{cp-setup.pdf}
 \caption{Graphical representation of the CP-Factory configuration at Aalborg University}

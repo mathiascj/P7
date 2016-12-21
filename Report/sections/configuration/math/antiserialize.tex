@@ -2,7 +2,7 @@
 In this section we will describe a set of transformation rules known as Anti-Serializations. In \cref{fig:trivial-example} all items made according to the three recipes in \cref{fig:toy-recipes} will have to pass through modules, which do not work on them. We would like to minimize this as to reduce the total length that each item must be transported, in addition to combating bottlenecks in the line. Thus it would be beneficial if items could bypass modules that do not work on them. We get around this by branching out production on more lines, where items only go through modules that work on them. 
 
 \subsection{$AS_0$: Branch Between Common Modules}
-We start by defining the most common type of anti-serialization with the $AS_0$ transformation rule given in \cref{def:as0}. Informally the rule states that if we have a set of modules $B_{r,s,e}$, which works the recipe $r \in R$ exclusivly, lying between the modules $s$ and $e$ on $\Gamma_0$ then we may branch out all modules in $B_{r,s,e}$ to form a new line. This new line is connected to $\Gamma_0$ at $s$ and $e$. We will explain this more in depth, by going over the sets brough up in the rule. 
+We start by defining the most common type of anti-serialization with the $AS_0$ transformation rule given in \cref{def:as0}. Informally the rule states that if we have a set of modules $B_{r,s,e}$, which works the recipe $r \in R$ exclusively, lying between the modules $s$ and $e$ on $\Gamma_0$ then we may branch out all modules in $B_{r,s,e}$ to form a new line. This new line is connected to $\Gamma_0$ at $s$ and $e$. We will explain this more in depth, by going over the sets brough up in the rule. 
 
 \begin{definition}[htb]
 \runatt{AS}{0}
@@ -50,7 +50,7 @@ We can now define the total order of all modules appearing between $s$ and $e$, 
 
 \[A_{r,s,e} = (\{m |m \in M_{s,e} \land m \in \alpha\}, \prec)\]
 
-Similarly we can define the total order $B_{r,s,e}$, which contains all modules that appear between $s$ and $e$ which work exclusivly on $r$
+Similarly we can define the total order $B_{r,s,e}$, which contains all modules that appear between $s$ and $e$ which work exclusively on $r$
 
 \[B_{r,s,e} = (\{m |m \in M_{s,e} \land m \in \beta\}, \prec)\]
 
@@ -60,7 +60,7 @@ We define $Pre_{s}$ which is the set of all modules that come before a module $s
 And lastly we define $Pos_{e}$ which is the set of all modules that come after a module $e$  in line $\gamma \in \Gamma$:
 \[Pos_{e} = (\{m | m \in \gamma \land \gamma \in \Gamma \land e \prec  m \}, \prec)\]
 
-Having defined these sets the rule in \cref{def:as0}, shows that in the case where $|B_{r,s,e}| > 0 \land s <_K e$ then we may update $\Gamma$ with a new lines defined by the total order $B_{r,s,e}$ in addition to an update of $\Gamma_0$, which removes $B_{r,s,e}$ from the line. This describes a branch out from $\Gamma_0'$, which exclusivly works upon $r$ before rejoining with the old line.   
+Having defined these sets the rule in \cref{def:as0}, shows that in the case where $|B_{r,s,e}| > 0 \land s <_K e$ then we may update $\Gamma$ with a new lines defined by the total order $B_{r,s,e}$ in addition to an update of $\Gamma_0$, which removes $B_{r,s,e}$ from the line. This describes a branch out from $\Gamma_0'$, which exclusively works upon $r$ before rejoining with the old line.   
 
 While this rule is formally sound, it can be difficult to read. As such we have tried to illustrate the transformation from configuration to configuration visually in \cref{fig:as0}. This visualization uses a homemade notation. Square boxes refer to individual modules. Boxes with rounded corners are total orders of sets of modules. A graphical line of boxes flowing from left to right is a line in $\Gamma$ ordered as shown. If a module $s$ and a line $\gamma$ are connected by a vertical upward going edge, then $Start$ contains the ordered pair $(\gamma ,s)$. At the same time, if the edge goes downwards from a line $\gamma$ to a module $e$, then $End$ contains the ordered pair $(\gamma ,e)$.
 
@@ -91,7 +91,7 @@ It may be that we have modules that precede the first module of $K_{\Gamma_0 ,r}
 
 \[K_{\Gamma_0 ,r}^{first} = m \texttt{ where } \forall m' \in K_{\Gamma_0 ,r} \land m \neq m',\, m \prec m' \] 
 
-Similarly for the $AS_0$ transformation rule, we define two total orderings. $A_{\Gamma_0 ,r}^{first}$ that describes all modules before $K_{\Gamma_0 ,r}^{first}$ which do not work on $r$. And $B_{\Gamma_0 ,r}^{first}$ which describes all modules before $K_{\Gamma_0 ,r}^{first}$ which exclusivly works on $r$.
+Similarly for the $AS_0$ transformation rule, we define two total orderings. $A_{\Gamma_0 ,r}^{first}$ that describes all modules before $K_{\Gamma_0 ,r}^{first}$ which do not work on $r$. And $B_{\Gamma_0 ,r}^{first}$ which describes all modules before $K_{\Gamma_0 ,r}^{first}$ which exclusively works on $r$.
 
 \[ A_{\Gamma_0 ,r}^{first} = (\{m | m \in \alpha_{\gamma ,r}  \land m \in Pre_{K_{\Gamma_0 ,r}^{first}} \}, \prec) \]
 
@@ -116,7 +116,7 @@ We define the last module in $K_{\Gamma_0 ,r}$ as:
 \[K_{\Gamma_0 ,r}^{last} = m \texttt{ where } \forall m' \in K_{\Gamma_0 ,r} \land m \neq m',\, m' \prec m \] 
 
 
-Again we also define two total orders. $A_{\Gamma_0 ,r}^{last}$ that describes all modules after $K_{\Gamma_0 ,r}^{last}$ which do not perform any work on $r$. And $B_{\Gamma_0 ,r}^{last}$ which describes all modules after $K_{\Gamma_0 ,r}^{last}$, which exclusivly works on $r$.
+Again we also define two total orders. $A_{\Gamma_0 ,r}^{last}$ that describes all modules after $K_{\Gamma_0 ,r}^{last}$ which do not perform any work on $r$. And $B_{\Gamma_0 ,r}^{last}$ which describes all modules after $K_{\Gamma_0 ,r}^{last}$, which exclusively works on $r$.
 
 
 \[ A_{\Gamma_0 ,r}^{last} = \{m | m \in \alpha_{\gamma ,r}  \land m \in Pos_{K_{\Gamma_0 ,r}^{last}} \} \]
