@@ -1,0 +1,8 @@
+\chapter{Configuration Optimization}\label{ch:configuration_optimization}
+We have now defined both a UPPAAL model, which allows us to rate configurations through simulation, as well as a set of formal transformation rules that allow us to generate new configurations. When given a set of modules and an order, these tools allow us to search through an expanding set of candidate configurations, which we can compare through their ratings. This chapter will explain how we implement this search using python.
+
+\input{sections/configgeneration/uppaalgen.tex}
+\input{sections/configgeneration/tabusearch.tex}
+\input{sections/configgeneration/neighborfuncs.tex}
+\input{sections/configgeneration/conflicts.tex}
+\input{sections/configgeneration/experiment.tex }

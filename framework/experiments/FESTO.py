@@ -46,7 +46,6 @@ t5 = [[0, 0, 0, 0],
      [0, 0, 0, 0]]
 m5 = SquareModule('Package', {'pack': 68}, t5, QUEUE_LENGTH)
 
-
 m0.right = m1
 m1.right = m2
 m2.right = m3

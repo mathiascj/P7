@@ -4,7 +4,8 @@ const bool work_array0[NUMBER_OF_WORKTYPES] = \
 const int ptime_array0[NUMBER_OF_WORKTYPES] = \
  {0,0,0,0,0,60,0,0};
 const mid_t next_array0[NUMBER_OF_OUTPUTS] = {-1,1,-1,-1};
-const int ttime_array0[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
+const int \
+ ttime_array0[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
 {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,117,0,0}};
 mqueue0 = ModuleQueue(0, 0, 3, work_array0, false);
 mworker0 = \
@@ -18,7 +19,8 @@ const bool work_array1[NUMBER_OF_WORKTYPES] = \
 const int ptime_array1[NUMBER_OF_WORKTYPES] = \
 {0,0,0,0,53,0,106,0};
 const mid_t next_array1[NUMBER_OF_OUTPUTS] = {-1,2,-1,-1};
-const int ttime_array1[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
+const int \
+ttime_array1[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
 {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,107,0,0}};
 mqueue1 = ModuleQueue(1, 3, 3, work_array1, false);
 mworker1 = ModuleWorker(1, 4, work_array1, ptime_array1);
@@ -31,7 +33,8 @@ const bool work_array2[NUMBER_OF_WORKTYPES] = \
 const int ptime_array2[NUMBER_OF_WORKTYPES] = \
 {582,0,0,752,0,0,0,850};
 const mid_t next_array2[NUMBER_OF_OUTPUTS] = {-1,3,-1,-1};
-const int ttime_array2[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] =
+const int \
+ ttime_array2[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] =
 \ {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,164,0,0}};
 mqueue2 = ModuleQueue(2, 6, 3, work_array2, true);
 mworker2 = ModuleWorker(2, 7, work_array2, ptime_array2);
@@ -44,7 +47,8 @@ const bool work_array3[NUMBER_OF_WORKTYPES] = \
 const int ptime_array3[NUMBER_OF_WORKTYPES] = \
  {0,20,0,0,0,0,0,0};
 const mid_t next_array3[NUMBER_OF_OUTPUTS] = {-1,4,-1,-1};
-const int ttime_array3[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
+const int \
+ ttime_array3[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
 {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,112,0,0}};
 mqueue3 = ModuleQueue(3, 9, 3, work_array3, false);
 mworker3 = ModuleWorker(3, 10, work_array3, ptime_array3);
@@ -57,7 +61,8 @@ const bool work_array4[NUMBER_OF_WORKTYPES] = \
 const int ptime_array4[NUMBER_OF_WORKTYPES] = \
 {0,0,0,0,0,0,0,0};
 const mid_t next_array4[NUMBER_OF_OUTPUTS] = {-1,5,-1,-1};
-const int ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
+const int \
+ ttime_array4[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] =\
 {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,112,0,0}};
 mqueue4 = ModuleQueue(4, 12, 3, work_array4, false);
 mworker4 = ModuleWorker(4, 13, work_array4, ptime_array4);
@@ -70,7 +75,8 @@ const bool work_array5[NUMBER_OF_WORKTYPES] = \
 const int ptime_array5[NUMBER_OF_WORKTYPES] = \
 {0,0,68,0,0,0,0,0};
 const mid_t next_array5[NUMBER_OF_OUTPUTS] = {-1,-1,-1,-1};
-const int ttime_array5[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] = \
+const int \
+ ttime_array5[NUMBER_OF_OUTPUTS][NUMBER_OF_OUTPUTS] =\
 {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
 mqueue5 = ModuleQueue(5, 15, 3, work_array5, false);
 mworker5 = ModuleWorker(5, 16, work_array5, ptime_array5);
@@ -78,50 +84,77 @@ mtransporter5 = \
 ModuleTransporter(5, 17, ttime_array5, next_array5, false);
 
 // Recipe NoFuse
-const node rNoFusenode0 = {0, 1, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rNoFusenode1 = {1, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rNoFusenode2 = {5, 0, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rNoFusenode3 = {6, 1, {0, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rNoFusenode4 = {2, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node rNoFusenode5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node rNoFusenode6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node rNoFusenode7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rNoFusenode0 = \
+ {0, 1, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rNoFusenode1 = \
+ {1, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rNoFusenode2 = \
+ {5, 0, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rNoFusenode3 = \
+ {6, 1, {0, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rNoFusenode4 = \
+ {2, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node rNoFusenode5 = \
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rNoFusenode6 = \
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rNoFusenode7 = \
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
 node func_depNoFuse[NUMBER_OF_WORKTYPES] = \
-{rNoFusenode0,rNoFusenode1,rNoFusenode2,rNoFusenode3, \
+{rNoFusenode0,rNoFusenode1,rNoFusenode2,rNoFusenode3,
 rNoFusenode4,rNoFusenode5,rNoFusenode6,rNoFusenode7}; 
 
 const int number_of_nodesNoFuse = 5; 
-recipe0 = Recipe(0, 0, func_depNoFuse, number_of_nodesNoFuse, 3);
+recipe0 =\
+ Recipe(0, 0, func_depNoFuse, number_of_nodesNoFuse, 3);
 
 // Recipe LeftFuse
-const node rLeftFusenode0 = {3, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rLeftFusenode1 = {4, 1, {0, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rLeftFusenode2 = {1, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rLeftFusenode3 = {5, 0, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rLeftFusenode4 = {2, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node rLeftFusenode5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node rLeftFusenode6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node rLeftFusenode7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rLeftFusenode0 =\
+ {3, 1, {2, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rLeftFusenode1 =\
+ {4, 1, {0, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rLeftFusenode2 =\
+ {1, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rLeftFusenode3 =\
+ {5, 0, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rLeftFusenode4 =\
+ {2, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node rLeftFusenode5 =\
+{ -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rLeftFusenode6 =\
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rLeftFusenode7 =\
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
 node func_depLeftFuse[NUMBER_OF_WORKTYPES] = \
-{rLeftFusenode0,rLeftFusenode1,rLeftFusenode2,rLeftFusenode3, \
+{rLeftFusenode0,rLeftFusenode1,rLeftFusenode2,rLeftFusenode3,
 rLeftFusenode4,rLeftFusenode5,rLeftFusenode6,rLeftFusenode7}; 
 const int number_of_nodesLeftFuse = 5; 
-recipe1 = Recipe(1, 0, func_depLeftFuse, number_of_nodesLeftFuse, 3);
+recipe1 =\
+ Recipe(1, 0, func_depLeftFuse, number_of_nodesLeftFuse, 3);
 
 // Recipe BothFuse
-const node rBothFusenode0 = {1, 1, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rBothFusenode1 = {2, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
-const node rBothFusenode2 = {5, 0, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rBothFusenode3 = {6, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rBothFusenode4 = {7, 1, {0, -1, -1, -1, -1, -1, -1, -1}, 1}; 
-const node rBothFusenode5 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node rBothFusenode6 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
-const node rBothFusenode7 = { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rBothFusenode0 =\
+ {1, 1, {1, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rBothFusenode1 =\
+ {2, 1, {-1, -1, -1, -1, -1, -1, -1, -1}, 0}; 
+const node rBothFusenode2 =\
+ {5, 0, {3, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rBothFusenode3 =\
+ {6, 1, {4, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rBothFusenode4 =\
+ {7, 1, {0, -1, -1, -1, -1, -1, -1, -1}, 1}; 
+const node rBothFusenode5 =\
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rBothFusenode6 =\
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
+const node rBothFusenode7 =\
+ { -1, -1, {-1,-1,-1,-1,-1,-1,-1,-1}, -1}; 
 node func_depBothFuse[NUMBER_OF_WORKTYPES] = \
 {rBothFusenode0,rBothFusenode1,rBothFusenode2,rBothFusenode3,
 \rBothFusenode4,rBothFusenode5,rBothFusenode6,rBothFusenode7}; 
 const int number_of_nodesBothFuse = 5; 
-recipe2 = Recipe(2, 0, func_depBothFuse, number_of_nodesBothFuse, 3);
+recipe2 =\
+ Recipe(2, 0, func_depBothFuse, number_of_nodesBothFuse, 3);
 
 rid_t rqa[NUMBER_OF_RECIPES] = {0,1,2};
 rqueue = RecipeQueue(rqa, 18);rem = Remover(19);
