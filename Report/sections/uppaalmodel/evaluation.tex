@@ -1,39 +1,41 @@
 \section{Evaluation of Model}
-In this section we will evaluate our UPPAAL model on different criteria. First we will evaluate how well our model is capable of emulating reality. This is done by comparing the time it takes for a real life factory configuration to produce sequences of items to the time predicted by our model. Furthermore we will also evaluate how well our optimisations of the model fare. This is done by seeing how the state space and search time for fastest traces increase as we increase the complexity of the model.
+Having now defined all needed templates as to model a factory configuration in UPPAAL, we would like to evaluate our design. We will evaluate, how well our model is capable of emulating reality. This is done by comparing the time it takes for a real life factory configuration to produce an order items, to the rating we give the same configuration when simulated in UPPAAL. 
 
-\subsection{The Model Compared to Reality} \todo{Show query and the system declaration screen for the example}
-For comparing our model to reality we used the Festo CP-Factory available at Aalborg University. The current configuration of the CP-Factory when we did this evaluation was a factory that emulates the assembly of mobile phones. We split this configuration up into distinct modules, that could perform specific kinds of work. The configuration that we used for our comparison can be seen in \cref{fig:cp-setup}.
+\subsection{The Model Compared to Reality} \label{ssec:realcomparison}
+In order to compare our model to reality, we set up the configuration of the actual CP Learning Factory mentioned earlier using our UPPAAL templates. We then run different orders on both the actual factory and the model. Afterwards, we compare the time it takes for both to produce their orders.  
 
-\begin{figure}[h]
+The configuration, which we wish to simulate, is used to produce faux smartphones. 3 different recipes were set up, which described different types of smartphones that the configuration may produce. These can be seen in \cref{fig:cp-recipes}. Each are named after, how many fuses are put into them.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{cp-recipes.pdf}
+\caption{Dependency graphs representing the three recipes the CP-Factory could produce}
+\label{fig:cp-recipes}
+\end{figure}
+
+Inspecting the configuration, we find the different modules and the types of work that they may perform, as well as how they connect. This is shown in \cref{fig:cp-setup}. We choose to disregard that these modules each have two conveyor belts, as both are not used by any item produced. We also disregard the \textit{Transport1} module, as it is not used in the production of any item.
+
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{cp-setup.pdf}
 \caption{Graphical representation of the CP-Factory configuration at Aalborg University}
 \label{fig:cp-setup}
 \end{figure}
 
-After having identified the different modules and the kinds of work they could perform, we seperately ordered single items of three different recipes and timed the travel time between modules, the time it took a module to perform a certain work upon an item and the total time it took for the factory to process the item. The recipes for these items can be seen in \cref{fig:cp-recipes} and the timings can be seen in \cref{tab:cp-time}. This is done so that we can input the time values for how long it takes to travel and work on modules into our UPPAAL model. We can then verify if our models total time is equivalent to the measured total time.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.5\textwidth]{cp-recipes.pdf}
-\caption{Dependency graphs representing the three recipes the CP-Factory could produce}
-\label{fig:cp-recipes}
-\end{figure}
+Each item is placed on the configuration in the \textit{Case Loader} module and are removed at the \textit{Package} module. We were allowed to try and produce some items using the factory. Here we timed how long it takes for items to pass over modules, and how long it takes for certain works to be done. Averages of these times are listed in \cref{tab:cp-time}.
 
 \input{figures/cp_time_table.tex}
 
-We furthermore also did a more complicated order of items, where we wanted one item of each recipe to be produced simultaneously. This is done to verify that our model can also handle working on more than one item at a time. A comparison of our models predictions and the actual times measured can be seen in \cref{tab:cp-result}.
+In total we ran four different orders on the configuration. On \cref{tab:orders} each order is defined by the item types it needs to produce, as well as the amount of each type required.   
+
+\input{figures/cp_order_table.tex}
+
+With all this in place, we are able to set up the configuration in UPPAAL using our templates and running each of the four orders on it. In \cref{app:festoex} is shown how we set up the system to run the \textit{AllTypes} order. Please note that the \textit{Item} template is here called \textit{Recipe} and similarly \textit{ItemQueue} is called \textit{RecipeQueue}. The variables \textit{recipe0}, \textit{recipe1} and \textit{recipe2} refer to the 3 processes, which represent the three items that need to be produced for the \textit{AllTypes} order. At the bottom of the example, we see how we parallelize all the smaller processes into one big system process. For this case the following reachability query is given to the UPPAAL model checker:
+\\ \\
+$E<>\textit{ }recip0.done\textit{ and }recipe1.done\textit{ and }recipe2.done$
+\\ \\
+It asks: \textit{"From the initial state, can we reach a state where all three items have been completed"}. A similar query is used for the three simpler orders. In all cases it evaluates to true. Because of this we can produce the shortest timed trace for each order, and on the last state read the value of the global clock. This is the configuration's rating given the specific order, which describes how long it takes to run the fastest schedule. Having extracted this from each of the four orders, we compare them with the time it takes to complete the orders on the actual factory configuration. The results of this can be seen in \cref{tab:cp-results}.
 
 \input{figures/cp_result.tex}
 
-As seen in \cref{tab:cp-result}, our model accuratly emulates reality to a margin of PLACEHOLDER. It is however importen to keep in mind that the the comparison was done upon a relatively simple and linear system. So we can not be certain that our model would fare as well as it did for this configuration on a more complex configuration. This way of verifying if the model accuratly emulates reality also only work if the items ordered on the real systems a scheduled in a optimal way. As UPPAAL will generate the fastest trace. There are also certain behavious that a factory could have, such as independent queues for items in work and items who want to travel through, that we have not implemented in our model. Adding our removing such behaviours could change the outcome of this evalutation. We however feel confident that our model is capable of accurately mimic the most common modular factories.
-
- 
-
-
-
-
-\subsection{The Complexity of the Model}
-
-It's super fast with a lot of VROOM!
-:-) \todo{Vis noget om hvordan vi instantierer og forespørger på systemet}
+Looking at the results, we are almost spot on for the very simple orders. Yet the simulated and actual time drift a bit apart as the orders becomes more complex, though still to a small degree in our case. These results will be discussed further in \cref{sec:modeling}.

@@ -1,11 +1,15 @@
-\begin{table}[]
+\begin{table}[htb]
 \centering
-\begin{tabular}{ccccc}
-\multicolumn{1}{l}{} & \multicolumn{1}{l}{PLACE HOLDER} & \multicolumn{1}{l}{TABLE} & \multicolumn{1}{l}{PLACE} & \multicolumn{1}{l}{HOLDER} \\
-recipe 1             & 69                               & 69                        & 69                        & 69                         \\
-recipe 2             & 69                               & 69                        & 69                        & 69                         \\
-recipe 3             & 69                               & 69                        & 69                        & 69                        
+\begin{tabular}{|l|l|l|}
+\hline
+{\ul \textbf{Module Name}} & {\ul \textbf{Transport Time}} & {\ul \textbf{Work Time}}                                                     \\ \hline
+\textbf{Case Loader:}      & 11.7                           & load case: 6                                                                \\ \hline
+\textbf{Drill}             & 10.7                           & \begin{tabular}[c]{@{}l@{}}drill1: 5.3\\ drill2: 10.6\end{tabular}             \\ \hline
+\textbf{Robot Arm}         & 16.4                           & \begin{tabular}[c]{@{}l@{}}fuse0: 58.2\\ fuse1: 75.2\\ fuse2: 85\end{tabular} \\ \hline
+\textbf{Camera}            & 11.2                           & picture:2.0                                                                   \\ \hline
+\textbf{Transport}         & 11.2                           & /                                                                            \\ \hline
+\textbf{Packaging}         & 0                             & pack:6.8                                                                      \\ \hline
 \end{tabular}
-\caption{Table showing the time it took for transport through and do different kinds of work on modules. Times are in milliseconds}
+\caption{For each module, shows time taken to transport through it and time to perform each of its works. Time is given in seconds.}
 \label{tab:cp-time}
 \end{table}

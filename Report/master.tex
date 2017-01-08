@@ -12,7 +12,6 @@
 \pdfbookmark[0]{Contents}{label:contents}
 \pagestyle{fancy} %enable headers and footers again
 \tableofcontents
-\listoftodos
 \input{sections/preface.tex}
 \cleardoublepage
 %mainmatter
@@ -21,7 +20,16 @@
 \input{sections/problemanalysis/problemanalysis.tex}
 \input{sections/uppaalmodel/uppaalmodel.tex}
 \input{sections/configuration/configuration.tex}
-\input{sections/experimentation/experimentation.tex}
+\input{sections/configgeneration/configgeneration.tex}
+\input{sections/discussion/discussion.tex}
 \input{sections/conclusion/conclusion.tex}
+\input{sections/futureworks/futureworks.tex}
+
 \bibliography{sources}\label{bib:mybiblio}
+
+\appendix
+\input{sections/appendix/FESTOexample.tex}
+\input{sections/appendix/pythonFESTOexample.tex}
+
+
 \end{document} 

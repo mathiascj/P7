@@ -1,1 +1,20 @@
 \chapter{Conclusion}\label{ch:conclusion}
+In this report we started out by looking at Industry 4.0 and modular factory systems. This lead to the following initial  problem:
+
+\bigskip
+\textit{How may it be possible to optimize the throughput of individual production lines in a modular factory system, while keeping down the overall cost of production?}
+\bigskip
+
+With the problem stated, we inspected our local modular factory set-up. This allowed us gain some insight into how the technology was used. We also looked into relevant problems and discovered that it was difficult for manufacturers to arrive at an optimal configuration, when they need to produce a certain order. We also sat up a running example of a factory configuration, which we kept returning to through the report.
+
+In response to this we sat up the following problem definition:
+
+\bigskip
+\textit{How may we, given some order of items and set of avaliable modules, be able to generate a factory configuration which has the fastest schedule of any other candidate configuration?}
+\bigskip
+
+We attempted to solve this problem by first modeling modular factory systems in UPPAAL. Through this, we were able to simulate the production of orders on different configurations. In addition, we were able to, for a given configuration and order, extract the time taken to produce according to the fastest schedule. This value is known as the configuration's rating. Comparing a configuration set up with our model to an actutal simple factory, we found the production times to be about equal for the orders tested.
+
+Later we set up some formal rules, allowing us to transform naive configurations, made up of a single line, into configurations that show off parallelism and branching. In addition the rule allow us to only create configurations, which can physcially be set up.
+
+The rules were implemented in python and used to generate different configurations, which were searched through using a tabu search. During the search we tried to optimize on the configuration rating. By using this search we were able to generate a configuration that was very similar to our running example, which we created by our own hands. This shows that all our work comes together to form a tool, which can be used to generate at least some good factory configurations for producing orders.  

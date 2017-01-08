@@ -12,6 +12,7 @@ class ConfigStringHandler:
         self.current_modules = []
 
         self.free_transporters = []
+        self.transport_modules = []
         self.main_line = []
 
         self.module_dictionary = {m.m_id: m for m in all_modules}
@@ -152,6 +153,7 @@ class ConfigStringHandler:
             t.m_id = "transporter" + str(self.transport_id)
             self.module_dictionary[t.m_id] = t
             self.transport_id += 1
+        self.transport_modules.append(t)
         self.all_modules.append(t)
         # self.current_modules.append(t)  #TODO: Adder også til current_modules. Find hvorfor.
 

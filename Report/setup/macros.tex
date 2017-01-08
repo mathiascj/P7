@@ -37,11 +37,9 @@
     \noindent%
     \begin{tabular}{@{}ll@{}}
       \parbox{\titlepageleftcolumnwidth}{
-        \iflanguage{danish}{%
-          \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_da}
-        }{%
-          \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_en}
-        }
+
+      \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_en}
+        
       } &
       \parbox{\titlepagerightcolumnwidth}{\raggedleft\sf\small
         #2
@@ -55,11 +53,9 @@
       }\\
     \end{tabular}
     \vfill
-    \iflanguage{danish}{%
-      \noindent{\footnotesize\emph{Rapportens indhold er frit tilgængeligt, men offentliggørelse (med kildeangivelse) må kun ske efter aftale med forfatterne.}}
-    }{%
+
       \noindent{\footnotesize\emph{The content of this report is freely available, but publication (with reference) may only be pursued due to agreement with the author.}}
-    }
+
     \clearpage
   }
 }
@@ -95,3 +91,36 @@
 }
 
 
+% DEFINITIO ENV
+\makeatletter
+
+% this creates a custom and simpler ruled box style
+\newcommand\floatc@simplerule[2]{{\@fs@cfont #1 #2}\par}
+\newcommand\fs@simplerule{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@simplerule
+	\def\@fs@pre{\hrule height.8pt depth0pt \kern6pt}%
+	\def\@fs@post{\kern4pt\hrule height.8pt depth0pt \kern6pt \relax}%
+	\def\@fs@mid{\kern8pt}%
+	\let\@fs@iftopcapt\iftrue}
+
+
+\floatstyle{simplerule}
+\newfloat{definition}{thp}{lop}[chapter]
+\floatname{defintion}{Definition}
+
+\crefname{definition}{definition}{definitions}
+\Crefname{definition}{Definition}{Definitions}
+
+% Med sidebetingelse
+
+\newcommand{\newcondinfrule}[3]
+           {\parbox{5.5cm}{$$ {\frac{#1}{#2}}{\qquad
+            #3} \hfill  $$}}
+
+% Uden sidebetingelse
+
+\newcommand{\infrule}[2]
+           {\parbox{4.5cm}{$$ \frac{#1}{#2}\hspace{.5cm}$$}}
+           
+% Navne på regler
+\newcommand{\runa}[1]{\mbox{\textsc{\protect{(#1})}}}
+\newcommand{\runatt}[2]{$[{\mbox{\textsc{#1}}}_{\mbox{\textsc{\small #2}}}]$}

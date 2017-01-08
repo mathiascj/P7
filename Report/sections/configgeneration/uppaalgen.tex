@@ -1,0 +1,28 @@
+\section{UPPAAL Configuration Generation and Rating}\label{sec:uppaalpython}
+As seen in \cref{app:festoex}, to set up a single configuration in UPPAAL requires a lot of work. UPPAAL saves a system definition along with templates to an XML file. We are able to set up new configurations within UPPAAL by altering this file. Being able to generate this XML file for any configuration that we want to simulate and rate is needed in order to implement our search.
+
+This generation is implemented with the \textit{generate\_xml} function, which can be found in the generate\_xml.py file along with all its helping functions. We will not go in depth with how it works, however its prototype can be seen in \cref{code:xmlgenerator}. As arguments it takes the path to the XML file \textit{template\_file}, a list of \textit{SquareModule} objects \textit{modules}, list of \textit{Recipe} objects \textit{recipes}. In addition, it needs the path, where to write the new XML file \textit{xml\_name} and the path, where to write the file containing the query to be run on the configuration \textit{q\_name}. This is the query run on the configuration to check if all items in the given order can be completed. 
+
+\lstinputlisting[language=Python, caption= Prototype of the \textit{generate\_xml function}, captionpos = b, label={code:xmlgenerator}]{codeRelated/Python/xml_generator.py}
+
+\textit{Recipe} and \textit{SquareModule} are python classes, which we have defined in order to help us set up orders and configurations. 
+
+The prototype of \textit{Recipe}'s constructor can be seen in \cref{code:recipe}. To insantiate, we need the recipe's name \textit{name}, a dictionary describing the recipe's acyclical dependency graph \textit{dependencies}, name of a module to start on \textit{start\_module}, direction to enter the start module from \textit{start\_direction} and the amount of items needed to be produced according to this recipe. Thus a list of \textit{Recipe} objects actually describes an order.
+
+\lstinputlisting[language=Python, caption= Prototype of the \textit{Recipe} class, captionpos = b, label={code:recipe}]{codeRelated/Python/recipe.py}
+
+The prototype of \textit{Module}'s constructor can be seen in \cref{code:module}. To instantiate, we need the module's name \textit{m\_id}, a dictionary mapping names of work to the amount of time it takes to perform and a 4 by 4 array describing transport time \textit{t\_time}. In addition, we must set the length of the module's queue in \textit{queue\_length}, as well as setting the boolean \textit{pass\_through} to indicate, whether we can pass through this module, while it is working. To each of the parameters \textit{up}, \textit{down}, \textit{left}, \textit{right} we can assign at most one neighbour module, which this module may pass items to. To make a configuration, we connect different modules through these last four parameters.
+
+ \lstinputlisting[language=Python, caption= Prototype of the \textit{SquareModule} class, captionpos = b, label={code:module}]{codeRelated/Python/module.py}
+
+When we have a list of \textit{Recipe} objects, describing an order, and a list of connected \textit{Module} objects, describing a configuration, we may get the configuration rating by calling the \textit{get\_best\_time} function found in \textit{uppaalAPI.py}. This can be seen in \cref{code:get_best_time}. The function first generates a new XML file and query file from the configuration and its order using \textit{generate\_xml}. During this generation, the names of modules, works and items are translated to numerical ids in UPPAAL. The \textit{generate\_xml function} returns three dictionaries, which are mappings from the new module, work and item names to the old ones.   
+
+It then runs the UPPAAL model checker through the verifyta executable directly on the generated XML and query file. This is done with the \textit{run\_verifyta} function. It also takes a few additional arguments to run the verifyta executable. $t2$ means that we want the fastest trace, $o3$ means that we perform an optimal first search, $u$ means that we want a result summary, and $y$ makes sure that we get the trace.
+
+This returns two strings, result and trace. From result we extract the rating using the \textit{trace\_time} function. Additionally, we send the trace to the \textit{get\_traversal\_info} function along with the name mappings from before. This analyses the trace, including all states and transitions, and extracts useful information about production. This includes a map from modules to the items that they work on \textit{worked\_on}. The map from module names, to items they transport \textit{transported\_through}. We also get the mapping from modules to their active works set, mentioned in \cref{ch:configuration}, \textit{active\_works}. This is used to update the module objects in the configuration according to the work that they have actually done on items. These mappings are returned from the function along with the rating.
+
+\begin{minipage}{\linewidth}
+  \lstinputlisting[language=Python, caption= \textit{get\_best\_time} function, captionpos = b, label={code:get_best_time}]{codeRelated/Python/get_best_time.py}
+\end{minipage}
+
+With these objects and functions, we have now introduced the basic constructs used to set up configurations and orders through python, as well as how to extract the ratings from configurations. As to get an idea of how they can be applied, \cref{app:pythonfestoex} to generate the rating for the construct and order pair described in \cref{ssec:realcomparison}.

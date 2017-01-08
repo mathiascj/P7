@@ -1,12 +1,13 @@
-\begin{table}[]
+\begin{table}[htb]
 \centering
-\begin{tabular}{cccc}
-\multicolumn{1}{l}{}      & \multicolumn{1}{l}{Predicted} & \multicolumn{1}{l}{Actual} & \multicolumn{1}{l}{Difference} \\
-recipe 1                  & 69                            & 69                         & 69                             \\
-recipe 2                  & 69                            & 69                         & 69                             \\
-recipe 3                  & 69                            & 69                         & 69                             \\
-\multicolumn{1}{l}{All 3} & \multicolumn{1}{l}{69}        & \multicolumn{1}{l}{69}     & \multicolumn{1}{l}{69}        
+\begin{tabular}{|l|l|l|l|}
+\hline
+{\ul \textbf{Order Name}} & {\ul \textbf{Actual}} & {\ul \textbf{Simulated}} & {\ul \textbf{Difference}} \\ \hline
+\textbf{SingleNoFuse}     & 144.8                 & 144.9                    & 0.1                       \\ \hline
+\textbf{SingleLeftFuse}   & 156.5                 & 156.6                    & 0.1                       \\ \hline
+\textbf{SingleBothFuse}   & 171.6                 & 171.7                    & 0.1                       \\ \hline
+\textbf{AllTypes}         & 305                   & 311                      & 6                         \\ \hline
 \end{tabular}
-\caption{The predictions of our UPPAAL model and the actual measured values. Times are in milliseconds.}
-\label{tab:cp-result}
+    \caption{Comparison of actual and simulated times. Time is in seconds.}
+    \label{tab:cp-results}
 \end{table}

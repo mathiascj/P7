@@ -1,17 +1,16 @@
 \section{Problem Definition}\label{ch:problemdefinition}
-This report started by bringing up Industry 4.0 in addition to the concept of the modular factory. This lead to the following initial problem:
+This report started by bringing up Industry 4.0 in addition to the modular factory. This lead to the following initial problem:
 
 \bigskip
-\textit{How may it be possible to optimize the throughput of individual production lines in a modular factory system, while keeping down the overall cost of production}
+\textit{How may it be possible to optimize the throughput of individual production lines in a modular factory system, while keeping down the overall cost of production?}
 \bigskip
 
-Afterwards we looked deeper into the field of modular factories, taking FESTO's CP Learning Factory as a starting point. From this we found a few challenges that modular factories are facing. Some relate to industry 4.0 as a whole, such as handling security and Big Data. Looking at the issues facing modular factories in particular, we see that the main problem lies in reconfiguration, as it requires a lot of resources. This is somewhat surprising, since modular factories are mainly based on frequent reconfiguration. In addition we have provided a running example of a factory configuration, and already discussed what properties of the real world modular factories, we wish to model.
+Afterwards we looked deeper into the field of modular factories, using FESTO's CP Learning Factory as a starting point. From this we found a few challenges that modular factories are facing. Some relate to industry 4.0 as a whole, such as handling security and Big Data. Looking at the issues facing modular factories in particular, we see that the main problem lies in reconfiguration, as it requires a lot of resources. This is somewhat surprising, since modular factories are mainly based on frequent reconfiguration. In addition we have provided a running example of a factory configuration, and already discussed what properties of the real world modular factories, we wish to model.
 
-For this project, we choose to concern ourselves with the issue of producing optimal factory configuration, given some order of items that needs to be produced. We define an optimal configuration to be the factory layout, whose fastest schedule produces the highest throughput among all candidate configurations. We formulate the goal of this project with the following project statement:
+For this project, we choose to concern ourselves with the issue of producing optimal factory configurations, given some order of items that needs to be produced and a set of avaliable modules. We define an optimal configuration to be the factory layout, which has the fastest schedule, and thus the highest throughput, among all candidate configurations. We formulate the goal of this project with the following project statement:
 
 \bigskip
-\textit{How may we, given some order of items, be able to generate a factory configuration whose fastest schedule has the greatest throughput of any other candidate configuration?}
+\textit{How may we, given some order of items and set of avaliable modules, be able to generate a factory configuration which has the fastest schedule of any other candidate configuration?}
 \bigskip
 
-This problem is solved in two parts. The first will concern itself with the actual modelling and simulation of a modular factory. This should allow us to simulate any factory configuration, and allow us to generate its fastest schedule and throughput for a given order. The other part will concern how we pick the optimal configuration by simulating and comparing the throughputs of different configuration candidates. 
-
+This problem is solved in two parts. The first will concern itself with the actual modelling and simulation of a modular factory. This should allow us to simulate any factory configuration, and allow us to generate its fastest schedule for producing a given order. We rate a configuration according to the time taken to execute its fastest schedule. The second part of the solution will concern, how we pick the optimal configuration by generating candidates and comparing their ratings, as to identify an optimal choice. 

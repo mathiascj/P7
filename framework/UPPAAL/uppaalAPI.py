@@ -19,20 +19,22 @@ def get_best_time(recipes, modules, template_file=XML_TEMPLATE, verifyta=VERIFYT
     :return: The best cost of the configuration
     """
     m_map, w_map, r_map =\
-        generate_xml(template_file=template_file, modules=modules, recipes=recipes, xml_name=XML_FILE, q_name=Q_FILE)
+        generate_xml(template_file=template_file, modules=modules.copy(), recipes=recipes.copy(), xml_name=XML_FILE, q_name=Q_FILE)
 
     result, trace = run_verifyta(XML_FILE, Q_FILE, "-t 2", "-o 3", "-u", "-y", verifyta=verifyta)
 
     if property_satisfied(result):
         time = trace_time(trace)
         trace_iter = iter((trace.decode('utf-8')).splitlines())
-        worked_on, transported_through = get_travsersal_info(trace_iter, m_map, r_map)
-        return time, worked_on, transported_through
+        worked_on, transported_through, active_works = get_travsersal_info(trace_iter, m_map, r_map, w_map)
+
+        return time, worked_on, transported_through, active_works
     else:
         raise RuntimeError("Could not verify the properties, see the temp files")
 
 
-def get_travsersal_info(trace_iter, module_map, recipe_map):
+
+def get_travsersal_info(trace_iter, module_map, recipe_map, work_map):
     """
     :param trace_iter: An iterator to run over lines in trace output
     :param module_map: A mapping from UPPAAL m_ids to the originals
@@ -43,6 +45,7 @@ def get_travsersal_info(trace_iter, module_map, recipe_map):
 
     worked_on = {}
     transported_through = {}
+    active_works = {}
 
     for line in trace_iter:
         if line == "Transitions:":
@@ -69,6 +72,18 @@ def get_travsersal_info(trace_iter, module_map, recipe_map):
                     # Adds recipe type to the given module
                     worked_on[m_id].add((recipe_map[r_id]))
 
+                if "work" in lines[0] and 'Handshaking' in lines[0]:
+                    m_id = int(re.findall("\d+", lines[0])[0])
+                    m_id = module_map[m_id]
+
+                    w_id = int(re.findall('\[(.*?)\]', lines[1])[0])
+                    w_id = work_map[w_id]
+
+                    if m_id not in active_works:
+                        active_works[m_id] = set()
+
+                    active_works[m_id].add(w_id)
+
                 # If the transition is an enqueue using a transporter. Transportation is being performed.
                 elif "enqueue" in lines[0] and "mtransporter" in lines[0]:
                     m_id = int(re.findall("\d+", lines[0])[0])
@@ -92,5 +107,4 @@ def get_travsersal_info(trace_iter, module_map, recipe_map):
                     # Adds recipe type to the given module
                     transported_through[m_id].add(recipe_map[r_id])
 
-
-    return worked_on, transported_through
+    return worked_on, transported_through, active_works
