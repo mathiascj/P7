@@ -1,0 +1,12 @@
+Recipes har ikke defineret start. Ikke behøvet hvis vi går ud fra første work der skal gøres.
+Vi kan ikke have to moduler, der kan lave præcist det samme.
+Vi har ikke skrevet hvordan vi har defineret en funktion noget sted.
+Kan vi sige at noget er \in en total order
+Der er ikke sat nogle regler op for transport moduler
+Fucking vertikale linjer
+ParaMapsPathsX FIX PLOX
+End(a) er ikke en funktion, skulle bruge den inverse iEnd(a) til at finde linjen
+Prøv at beskriv transport moduler, prøv at beskriv vertikale linjer 
+Push around og push underneathe behøves ikke at være eksklusive
+På grund af produktionsrækkefølge kan vi være blokeret af en gyngehest selvom andre moduler godt kunne starte på svær
+
