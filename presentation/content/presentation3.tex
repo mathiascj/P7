@@ -1,0 +1,258 @@
+%Predicates
+%	Vis dem alle
+%		Men snak kun om de seje
+%		Func dep
+%		Referential integrity
+%		Compare
+%	Vis kode for dem
+%Hvorfor er de nyttige og hvordan løser de vores problem
+%Hvordan anvendes de
+%Alternativ implementering/design
+%Andre nyttige predicates - Har vi covered enough
+
+\section{Predicates}
+%Nævn assertion af DW properties
+\subsection{Hvorfor er de nyttige?}
+\begin{frame}{Predicates}{Hvorfor er de nyttige?}
+	\begin{itemize}
+		\item<1-> Source to target test
+		\item<1->[] \includegraphics[width=8.5cm]{figures/overview.pdf}
+		\item<2-> Regression testing
+		\item<3-> Business Rules
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Predicates}{Hvorfor er de nyttige?}
+	\begin{block}{Predicates til rådighed i SKiRaff}
+		\begin{itemize}
+			\item<1-> RowCountPredicate
+			\item<1-> ColumnNotNullPredicate
+			\item<1-> ReferentialIntegrityPredicate
+			\item<1-> FunctionalDependencyPredicate
+			\item<1-> SCDVersionPredicate
+			\item<1-> CompareTablePredicate
+			\item<1-> RuleRowPredicate
+			\item<1-> RuleColumnPredicate
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Predicates}{Hvorfor er de nyttige?}
+	\begin{block}{Predicates til rådighed i SKiRaff}
+		\begin{itemize}
+			\item<1-> RowCountPredicate
+			\item<1-> ColumnNotNullPredicate
+			\item<1-> ReferentialIntegrityPredicate
+			\item<1-> \textbf{FunctionalDependencyPredicate}
+				\begin{itemize}
+					\item<1-> \textbf{Har meget til fælles med mange af vores predicater.}
+				\end{itemize}			
+			\item<1-> SCDVersionPredicate
+			\item<1-> CompareTablePredicate
+			\item<1-> RuleRowPredicate
+			\item<1-> RuleColumnPredicate
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Predicates}{Hvorfor er de nyttige?}
+	\begin{block}{Predicates til rådighed i SKiRaff}
+		\begin{itemize}
+			\item<1-> RowCountPredicate
+			\item<1-> ColumnNotNullPredicate
+			\item<1-> \textbf{ReferentialIntegrityPredicate}
+				\begin{itemize}
+					\item<1-> \textbf{Advanceret predicate}
+				\end{itemize}
+			\item<1-> \textbf{FunctionalDependencyPredicate}
+				\begin{itemize}
+					\item<1-> \textbf{Har meget til fælles med mange af vores predicater.}
+				\end{itemize}			
+			\item<1-> SCDVersionPredicate
+			\item<1-> CompareTablePredicate
+			\item<1-> RuleRowPredicate
+			\item<1-> RuleColumnPredicate
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+%\begin{frame}{Predicates}{Hvorfor er de nyttige?}
+%	\begin{block}{Predicates til rådighed i SKiRaff}
+%		\begin{itemize}
+%			\item<1-> RowCountPredicate
+%			\item<1-> ColumnNotNullPredicate
+%			\item<1-> \textbf{ReferentialIntegrityPredicate}
+%				\begin{itemize}
+%					\item<1-> \textbf{Advanceret predicate}
+%				\end{itemize}
+%			\item<1-> \textbf{FunctionalDependencyPredicate}
+%				\begin{itemize}
+%					\item<1-> \textbf{Har meget til fælles med mange af vores predicater.}
+%				\end{itemize}			
+%			\item<1-> SCDVersionPredicate
+%			\item<1-> CompareTablePredicate
+%			\item<1-> \textbf{RuleRowPredicate}
+%				\begin{itemize}
+%					\item<1-> \textbf{Bruger ikke SQL men representation objekter}
+%				\end{itemize}
+%			\item<1-> RuleColumnPredicate
+%		\end{itemize}
+%	\end{block}
+%\end{frame}
+
+\subsection{Usage/Implementation}
+\begin{frame}{Predicates}{Brug - Functional Dependency}
+	\begin{block}{Functional Dependency - Hvorfor er den nyttig?}
+		\begin{itemize}
+			\item<1-> Teste at DW overholder specifikke hierarkiske egenskaber
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+%Godt kode eksempel da mange predicater ligner den
+\begin{frame}{Predicates}{Brug- Functional Dependency}
+	\begin{block}{Setup:}
+		\insertcodefile{FunctionalDependencyPredicate.py}{}
+	\end{block}
+	\begin{block}{SQL querie:}
+		\insertcodefileSQL{SQLFunctionalDependency.sql}{}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Predicates}{Implementation - Functional Dependency}
+	\insertcodefile{funDep1.py}{}
+\end{frame}
+
+\begin{frame}{Predicates}{Implementation - Functional Dependency}
+	\insertcodefile{funDep2.py}{}
+	\begin{block}{SQL querie:}
+		\insertcodefileSQL{SQLFunctionalDependency.sql}{}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Predicates}{Implementation - Functional Dependency}
+	\insertcodefile{funDep3.py}{}
+\end{frame}
+
+\begin{frame}{Predicates}{Brug - Referential Integrity}
+	\begin{block}{Referential Integrity - Hvorfor er den nyttig?}
+		\begin{itemize}
+		%Nævn mere at referential integrity er en standart
+			\item<1-> Fleste DBMS's har referential integrity rules som skal overholdes
+				\begin{itemize}
+					\item<1-> Men de kan slås fra
+				\end{itemize}
+			\item<2-> Cascading delete ikke er blevet overholdt
+		\end{itemize}
+	\end{block}
+	\pause
+	\pause
+	\begin{block}{Referential Integrity - Hvad er specielt ved den?}
+		\begin{itemize}
+		%Nævn mere at referential integrity er en standart
+			\item<3-> Metoder ref\_sql og referential\_check
+				\begin{itemize}
+					\item<3-> Bruger table representant objekter fra dw\_rep
+				\end{itemize}
+			\item<4-> self.points\_to\_all
+				\begin{itemize}
+					\item<4-> Checker foreign keys for referring table
+				\end{itemize}
+			\item<4-> self.all\_pointed\_to 
+				\begin{itemize}
+					\item<4-> Checker foreign keys for referred table
+				\end{itemize}
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+%Går igennem fordi advanceret.
+%\begin{frame}{Predicates}{Brug - Referential Integrity}
+%  \begin{block}{Setup:}
+%		\insertcodefile{ReferentialIntegrityPredicate.py}{}
+%	\end{block}
+%	\begin{block}{SQL querie:}
+%		\insertcodefileSQL{SQLReferentialIntegrityPredicate.sql}{}
+%	\end{block}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - Referential Integrity}
+%	\begin{block}{Method: ref\_sql(table1, table2, key)}
+%		\insertcodefile{reff1.py}{}
+%	\end{block}
+%	\begin{block}{SQL querie:}
+%		\insertcodefileSQL{SQLReferentialIntegrityPredicate.sql}{}
+%	\end{block}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - Referential Integrity}
+%	\begin{block}{Method: referential\_check(table1, table2, key, dw\_rep)}
+%		\insertcodefile{reff2.py}{}
+%	\end{block}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - Referential Integrity}
+%	\insertcodefile{ref1.py}{}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - Referential Integrity}
+%	\insertcodefile{ref2.py}{}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - Referential Integrity}
+%	\insertcodefile{ref3.py}{}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - Referential Integrity}
+%	\insertcodefile{ref4.py}{}
+%\end{frame}
+
+%Nævn comparePredicate som en anden advanceret predicate, men lang til at gå igennem.
+%Hvis mangel på tid - fjern kode eksempel
+%\begin{frame}{Predicates}{Brug - RuleRowPredicate}
+%	\begin{block}{RuleRowPredicate - Hvorfor er den nyttig?}
+%		\begin{itemize}
+%			\item<1-> Giver brugeren frihed til at lave assertions vi ikke har en anden predicate for
+%			\item<1-> Nem at sætte op
+%			\item<2-> Men også langsommere pga. manglende SQL implementation
+%		\end{itemize}
+%	\end{block}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Brug - RuleRowPredicate}
+%  \begin{block}{Setup:}
+%		\insertcodefile{RuleRowPredicate.py}{}
+%	\end{block}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - RuleRowPredicate}
+%		\insertcodefile{ruleRow1.py}{}
+%\end{frame}
+
+%\begin{frame}{Predicates}{Implementation - RuleRowPredicate}
+%		\insertcodefile{ruleRow2.py}{}
+%\end{frame}
+
+\subsection{Alternative Implementation}
+\begin{frame}{Predicates}{Alternativ Implementation - row\_count\_predicate}
+	\begin{block}{Now: SQL queries}
+		\insertcodefileline{row_count_predicate_new.py}{}{25}{36}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Predicates}{Alternativ Implementation - row\_count\_predicate}
+	\begin{block}{Alternative: Representation objects in python}
+		\insertcodefileline{row_count_predicate_old.py}{}{21}{32}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Predicates}{Alternativ Implementation - Compilers som extensions til Python}
+	\begin{block}{Compilers som Extensions til Python}
+		\begin{itemize}
+			\item<1-> Cython
+			\item<1-> Numba
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+	

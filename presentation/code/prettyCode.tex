@@ -1,0 +1,50 @@
+\usepackage{listings} % Required for inserting code snippets
+
+%Changing lis name from 'Listing' to 'Code Example'
+\renewcommand{\lstlistingname}{Code Example}
+
+%Defining colors used in our style
+\definecolor{color1}{RGB}{0,0,90} % Color of the article title and sections
+\definecolor{color2}{RGB}{0,20,20} % Color of the boxes behind the abstract and headings
+\definecolor{color3}{RGB}{230, 231, 231} % background
+\definecolor{Blue}{RGB}{0, 51, 204} % keywords
+\definecolor{Gray}{RGB}{153, 153, 153} % line numbers
+\definecolor{PineGlade}{RGB}{204, 204, 153}
+
+%Our style for python
+\lstdefinestyle{Python1}{ 
+language=Python,
+frame=single,
+basicstyle=\scriptsize\ttfamily,
+backgroundcolor=\color{color3},
+keywordstyle=\color{color1}\bf,
+captionpos=b,
+breakatwhitespace=false,
+breaklines=true,
+numbers=left, % Location of line numbers, can take the values of: none, left, right
+numbersep=6pt, % Distance of line numbers from the code box
+numberstyle=\tiny, % Style used for line numbers \color{Gray}
+commentstyle=\usefont{T1}{pcr}{m}{sl}\color{color1}
+} 
+
+%Our style for SQL
+\lstdefinestyle{SQL1}{ 
+language=SQL,
+frame=single,
+basicstyle=\scriptsize\ttfamily,
+backgroundcolor=\color{color3},
+keywordstyle=\color{color1}\bf,
+captionpos=b,
+breakatwhitespace=false,
+breaklines=true,
+numbers=left, % Location of line numbers, can take the values of: none, left, right
+numbersep=6pt, % Distance of line numbers from the code box
+numberstyle=\tiny, % Style used for line numbers \color{Gray}
+commentstyle=\usefont{T1}{pcr}{m}{sl}\color{color1}
+} 
+
+\newcommand{\insertcodefile}[2]{\begin{itemize}\item[]\lstinputlisting[caption=#2,label=#1,style=Python1,belowskip=-0.8\baselineskip]{code/#1}\end{itemize}} % The first argument is the script location/filename and the second is a caption for the code
+
+\newcommand{\insertcodefileSQL}[2]{\begin{itemize}\item[]\lstinputlisting[caption=#2,label=#1,style=SQL1,belowskip=-0.8\baselineskip]{code/#1}\end{itemize}} 
+
+\newcommand{\insertcodefileline}[4]{\begin{itemize}\item[]\lstinputlisting[firstnumber=#3,firstline=#3,lastline=#4,caption=#2,label=#1,style=Python1]{code/#1}\end{itemize}}

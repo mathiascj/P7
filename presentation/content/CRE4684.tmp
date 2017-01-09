@@ -1,0 +1,86 @@
+\section{Omliggende implementation}
+% motivation for creating this theme
+
+\subsection{DWPopulator}
+\begin{frame}{DWPopulator}{}
+  Hvornår bruges den?
+  \begin{itemize}
+    \item<1-> Populate test-database
+    \item<2-> Bruger pygrametl program
+    \item<3-> Udskiftning af sources
+  \end{itemize}
+  Hvorfor nyttig?
+  \begin{itemize}
+		\item<4-> Source-to-target
+		\item<5-> Laver Drepresentations objekter for os
+    \item<6-> Udskiftning af sources
+			\begin{itemize}
+				\item<7-> Tester - Ingen adgang til firmaets sources
+				\item<8-> Skrive egne test sources til program
+				\item<9-> Ingen grund til at ændre program
+			\end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  \begin{itemize}
+    \item<1-> Arash 1
+    \item<2-> Arash 2
+    \item<3-> Arash 3
+    \item<4-> Arash 4
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  transform\_visitor.py
+	\insertcodefile{CallNode.py}{}
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  Overskrift
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  transform\_visitor.py
+	\insertcodefile{get_id.py}{}
+\end{frame}
+
+\subsection{Intermediate Representation}
+\begin{frame}{Intermediate Representation}{}
+  Hvornår bruges det?
+  \begin{itemize}
+    \item<1-> Arash 1
+    \item<2-> Arash 2
+    \item<3-> Arash 3
+    \item<4-> Arash 4
+  \end{itemize}
+  Hvorfor nyttigt?
+  \begin{itemize}
+    \item<5-> Arash 1
+    \item<6-> Arash 2
+    \item<7-> Arash 3
+    \item<8-> Arash 4
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  Begrænsinger
+  \begin{itemize}
+    \item<1-> Arash 1
+    \item<2-> Arash 2
+    \item<3-> Arash 3
+    \item<4-> Arash 4
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  Overskrift
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  Overskrift
+\end{frame}
+
+\begin{frame}{Begrænsninger}{}
+  Overskrift
+\end{frame}

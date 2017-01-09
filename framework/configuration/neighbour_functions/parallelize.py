@@ -1,4 +1,4 @@
-from configuration.path_placers import  push_underneath
+from configuration.path_placers import push_underneath
 import random
 
 def parallel_args(line, free_modules, csh):
@@ -31,22 +31,6 @@ def parallel_args(line, free_modules, csh):
 def parallel_args_helper(capable, remaining, free_modules):
     result = []
     if capable:
-        """
-        c = random.choice(list(capable))
-        fm = free_modules.copy()
-        fm.remove(c)
-        temp = []
-
-        result.append([c])
-        if remaining:
-            next_capable = capable_modules(remaining[0].active_w_type, fm)
-            temp = parallel_args_helper(next_capable, remaining[1:], fm)
-        if temp:
-            for l in temp:
-                result.append([c] + l)
-
-
-        """
         for c in capable:
             fm = free_modules.copy()
             fm.remove(c)
