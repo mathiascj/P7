@@ -1,6 +1,5 @@
 from module import SquareModule
 from recipe import Recipe
-from configuration.tabu_search import tabu_search
 from UPPAAL.uppaalAPI import get_best_time
 VERIFYTA = '../UPPAAL/verifyta'
 XML_TEMPLATE = "../../Modeler/iter3.4.2.xml"
