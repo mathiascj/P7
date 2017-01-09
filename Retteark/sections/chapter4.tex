@@ -19,8 +19,8 @@ $AW$ is a function, which for a module $m \in M$ returns the set of works, which
 \begin{definition}[htb]
 \runatt{AS}{0}
     \infrule
-        {0 < |B_{r,s,e}| \land |A_{r,s,e}| = |B_{r,s,e}| \land  s <_k e}
-        {(R,M,\Gamma, \Gamma_0, AW, Start, End) \rightarrow_{AS}
+        {}
+        {(R,M,\Gamma, \Gamma_0, AW, Start, End) \rightarrow_{}
         (R,M,\Gamma', \Gamma_0', AW, Start', End') } \\
         Where: \\
         $r \in R$ \\
@@ -28,7 +28,10 @@ $AW$ is a function, which for a module $m \in M$ returns the set of works, which
 		$\Gamma_0' = (Pre_s \cup \{s\}  \cup A_{r,s,e} \cup \{e\} \cup Pos_e, \prec)$ \\     
         $\Gamma' = \Gamma \cup B_{r,s,e} $ \\
 		$Start' = Start \cup \{(B_{r,s,e}, s)\}$ \\
-		$End' = End \cup \{(B_{r,s,e}, e)\}$
+		$End' = End \cup \{(B_{r,s,e}, e)\}$ \\
+		$0 < |B_{r,s,e}|$ \\
+		$|A_{r,s,e}| = |B_{r,s,e}|$ \\
+		$s <_k e$        
 
 \caption{Formal definition of the $AS_0$ transformation rule}
 \label{def:as0}
