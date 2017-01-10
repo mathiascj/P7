@@ -1,12 +1,83 @@
 \subsection{Regler}
+\begin{frame}{Transformations Regler}
+	\begin{itemize}
+		\item Transformationer som har mulighed for at gøre en fabriks konfiguration bedre
+		\item Anti-Serialize
+		\item Parallelize
+		\item Swap		
+	\end{itemize}
+\end{frame}
+
+
 % De gør et system bedre.
 % Eksempel på hvad de enkelte regler gør.
-\subsection{Forbederinger}
+\subsection{Forbedringer}
+\begin{frame}{Multiple Recipe Anti-Serialize}
+	\begin{itemize}
+		\item Vi anti-serialisere flere recipes ud på engang
+		\item Dette er godt hvis vi har en mængde moduler som bedre kan løse et delmængde af recipes, men ikke resten
+	\end{itemize}
+\end{frame}
+
+\begin{frame} {Multiple Recipe Anti-Serialize}
+	% Billed eksempel på anti serialize regl
+\end{frame}
+
+\begin{frame}{Mere Robust Parallelize}
+	\begin{itemize}
+		\item Lige nu skal der være et 1 til 1 forhold mellem hvad de moduler vi gerne vil paralellisere kan og dem som vi bruger til at parallelisere med
+		\item Vi gerne være i stand til at parallelisere en mængde af moduler så længe den mængde kan udføre det samme arbejde i den række den række fælge, som den mængde vi parallelisere ud fra
+	\end{itemize}
+\end{frame}
+
+\begin{frame} {Mere Robust Parallelize}
+	% Billed eksempel på anti serialize regl
+\end{frame}
+
+
+
+
 
 \section{Tabu Search}
+\begin{frame} {Tabu Search}
+	\begin{itemize}
+		\item Tabu er en form for local search, men med hukommelse om hvad den tidliger har gjort.
+		\item Hvorfor bruger vi Tabu Search?
+		\item Hvorfor ikke en genetisk algorithme
+	\end{itemize}
+\end{frame}
+
+\begin{frame} {Tabu Search}
+	\begin{itemize}
+		\item Vi kan bruge vores transformations regler til at finde naboer
+		\item Topologisk Sort til at finde starts configurationer
+		\item Vi vælger at fase vores regler på forskellige tidspunkter for potentielt bedre søgninger
+		\begin{itemize}
+			\item Start: Mest sandsynelig at Anti-Serialisere
+			\item Midt: Mest sandsynelig at Parallelisere
+			\item Slut: Mest sandsynelig at Swappe
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Bedre Heuristikker til Tabu Search}
+	\begin{itemize}
+		\item Bedre håndtering af hukommelse
+		\item asdf
+		\item asdf
+	\end{itemize}
+\end{frame}
+
 % Hvorfor Tabu Search
 % Kobling til Regler 
 % Andre Heuristiker vi kunne have brugt og forbedringer.
 
 \section{Konklusion}
+\begin{frame}{Konklusion}
+	\textit{How may we, given some order of items and set of available modules, be able to generate a factory configuration which has the fastest schedule of any other candidate configuration?}
+	\begin{itemize}
+		\item Did we solve this problem?
+	\end{itemize}
+\end{frame}
+
 % Kort om at vi løser problemet
