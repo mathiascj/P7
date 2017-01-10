@@ -26,7 +26,7 @@
 \begin{frame}{Mere Robust Parallelize}
 	\begin{itemize}
 		\item Lige nu skal der være et 1 til 1 forhold mellem hvad de moduler vi gerne vil paralellisere kan og dem som vi bruger til at parallelisere med
-		\item Vi gerne være i stand til at parallelisere en mængde af moduler så længe den mængde kan udføre det samme arbejde i den række den række fælge, som den mængde vi parallelisere ud fra
+		\item Vi gerne være i stand til at parallelisere en mængde af moduler så længe den mængde kan udføre det samme arbejde i den række den række følge, som den mængde vi parallelisere ud fra
 	\end{itemize}
 \end{frame}
 
@@ -56,7 +56,7 @@
 	Hvordan fungere vores tabu search?
 	\begin{itemize}
 		\item Vi kan bruge vores transformations regler til at finde naboer
-		\item Topologisk Sort af recipes til at finde starts konfigurationer
+		\item Topologisk Sort af recipes til at finde $C_{naive}$
 		\item Bruger langtidshukommelse til at gå tilbage til tidligere besøgte konfigurationer
 		\item Bruger korttidshukommelse til at restriktere hvilke naboer vi må tage.
 		\item Vi vælger at fase vores regler på forskellige tidspunkter for potentielt bedre søgninger
@@ -75,6 +75,10 @@
 			\item Bedre udvælgelse af hvornår noget skal i langtidshukommelse
 			\item Måske ikke lade searchen tage en gammel route med det samme igen efter man er gået tilbage til et punkt i langtidshukommelsen.
 		\end{itemize}
+		\item Beskrive konfigurationer med flere attributer
+		\begin{itemize}
+			\item Beskriv sektioner i en konfiguration hvori ændrelser kan gøres til en tabu hvis de når et kriterie
+		\end{itemize}
 	\end{itemize}
 \end{frame}
 
@@ -91,5 +95,14 @@
 		\item Implemeteret nævnte regler i en tabu search som er i stand til at søge efter en optimal konfiguration
 	\end{itemize}
 \end{frame}
+
+\begin{frame}{Konklusion}
+	\textit{How may we, given some order of items and set of available modules, be able to generate a factory configuration which has the fastest schedule of any other candidate configuration?}
+	\begin{itemize}
+		\item Løste vi vores problem?
+	\end{itemize}
+\end{frame}
+
+
 
 % Kort om at vi løser problemet
