@@ -34,7 +34,12 @@
 	% Billed eksempel på anti serialize regl
 \end{frame}
 
-
+\begin{frame}{Multiple Swap og Safe Swap}
+	\begin{itemize}
+		\item \textbf{Multiple Swap}: Igen være i stand til at swappe en mængde moduler ind eller ud, med en anden mængde moduler som er i stand til det samme arbejde i samme rækkefølge
+		\item \textbf{Safe Swap}: Være i stand til at swappe moduler rundt i en konfiguration, hvor det stadigvæk er muligt at udføre recipes.
+	\end{itemize}
+\end{frame}
 
 
 
@@ -48,9 +53,12 @@
 \end{frame}
 
 \begin{frame} {Tabu Search}
+	Hvordan fungere vores tabu search?
 	\begin{itemize}
 		\item Vi kan bruge vores transformations regler til at finde naboer
-		\item Topologisk Sort til at finde starts configurationer
+		\item Topologisk Sort af recipes til at finde starts konfigurationer
+		\item Bruger langtidshukommelse til at gå tilbage til tidligere besøgte konfigurationer
+		\item Bruger korttidshukommelse til at restriktere hvilke naboer vi må tage.
 		\item Vi vælger at fase vores regler på forskellige tidspunkter for potentielt bedre søgninger
 		\begin{itemize}
 			\item Start: Mest sandsynelig at Anti-Serialisere
@@ -62,9 +70,11 @@
 
 \begin{frame}{Bedre Heuristikker til Tabu Search}
 	\begin{itemize}
-		\item Bedre håndtering af hukommelse
-		\item asdf
-		\item asdf
+		\item Bedre håndtering af langtidshukommelse
+		\begin{itemize}
+			\item Bedre udvælgelse af hvornår noget skal i langtidshukommelse
+			\item Måske ikke lade searchen tage en gammel route med det samme igen efter man er gået tilbage til et punkt i langtidshukommelsen.
+		\end{itemize}
 	\end{itemize}
 \end{frame}
 
@@ -74,9 +84,11 @@
 
 \section{Konklusion}
 \begin{frame}{Konklusion}
-	\textit{How may we, given some order of items and set of available modules, be able to generate a factory configuration which has the fastest schedule of any other candidate configuration?}
+	Så hvad har vi lavet?
 	\begin{itemize}
-		\item Did we solve this problem?
+		\item En UPPAAL model baseret på virkelige modulere fabrikker, som korrekt kan simulere dem
+		\item Opsat regler for transformationer som kan har mulighed for at forbedre en konfiguration
+		\item Implemeteret nævnte regler i en tabu search som er i stand til at søge efter en optimal konfiguration
 	\end{itemize}
 \end{frame}
 
